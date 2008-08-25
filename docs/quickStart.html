@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:pure="http://beebole.com/pure">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title>Quick start - PURE Unobtrusive Rendering Engine for HTML</title>
+	    <link href="white.css" rel="alternate stylesheet" type="text/css" title="white"/>
+	    <link href="black.css" rel="stylesheet" type="text/css" title="black"/>
+		<script type="text/javascript" src="../js/jqueryMin.js"></script>
+		<script type="text/javascript" src="../js/pure.js"></script>
+		<script type="text/javascript" src="tutorial.js"></script>
+		<script type="text/javascript">
+			function render(){
+			  var html = document.getElementById('hello');
+			  var context = { "name": "Mary" };
+			  var directive = {"span.who":"name"};
+			  html = $p.map( directive, html);
+			  var target = document.getElementById('target');
+			  $p.render(html, context, target);}
+		</script>
+	</head>
+	<body>
+ 		<div class="links"><a href="#" onclick="setActiveStyleSheet('black');return false;">Dark Night</a><span style="color:#52ABFF"> | </span><a href="#" onclick="setActiveStyleSheet('white');return false;">Bright Day</a>
+				<br /><a href="quickStart.html">Quick Start</a><br />
+				<a href="example1.html">Example 1</a><br />
+				<a href="example2.html">Example 2</a><br />
+				<a href="example3.html">Example 3</a><br />
+				<a href="example4.html">Example 4</a><br />
+				<a href="allExamples.html">All Examples</a><br />
+				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
+			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
+		</div>
+		<h1>Quick Start: 5 steps to run PURE on an HTML page</h1>
+		Here are the very, very... easy steps to start using PURE, and discover a totally new way of building web interfaces.<br />
+		First have a look at the <a href="example1.html">examples</a>.<br />Nothing flashy in those examples yet. Their purpose is mainly didactic.
+		<h2>1. Download PURE</h2>
+		Go to download page and get the last version available.<br />
+		Copy the /pure directory somewhere on your web server or computer.
+		<h2>2. Add the JS files</h2>
+		Place a script tag in the &lt;head&gt; of your document with the src pointing to the location of the js/pure.js file
+		<pre>&lt;script type="text/javascript" src="../js/pure.js"&gt;&lt;/script&gt;</pre>
+		Place a script tag in the &lt;head&gt; of your document with the src pointing to a JS library of your choice (only jQuery is supported at this time and is provided within the /pure/js directory)
+		<pre>&lt;script type="text/javascript" src="../js/jqueryMin.js"&gt;&lt;/script&gt;</pre>
+		<h2>3. Build your HTML</h2>
+		Put the HTML below in the &lt;body&gt; section of your document
+<pre>&lt;div id="hello"&gt;
+  Hello &lt;span class="who">World&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;a href="#" onclick="render();return false;"&gt;Render&lt;/a&gt;
+
+&lt;div id="target"&gt;&lt;/div&gt;</pre>
+		<h2>4. Add the Javascript</h2>
+		Place the function below in the &lt;head&gt; section of your page
+		<pre>function render(){
+  var html = document.getElementById('hello');
+  var context = { "name": "Mary" };
+  var directive = {"span.who":"name"};
+  html = $p.map( directive, html);
+  var target = document.getElementById('target');
+  $p.render(html, context, target);
+}</pre>
+		<h2>5. Render it</h2>
+		Click the link <a href="#" onclick="render();return false;">Render</a> in your page. You should see Hello Mary appearing below the link you just cliked.
+		<div id="target"></div>
+		<h2>Optional</h2>
+		If you plan to use the examples as tutorials, you may find the css useful, so add them in the head section of your page like below:
+		<br />Either:
+		<pre>&lt;link href="white.css" rel="stylesheet" type="text/css" title="white"/&gt;</pre>
+		Or:
+		<pre>&lt;link href="black.css" rel="stylesheet" type="text/css" title="black"/&gt;</pre>
+		<h2>if you plan to use PURE on Internet Explorer</h2>
+		You need to add the namespace pure to the HTML tag of your page, otherwise you may encounter some strange behaviours.
+		<pre>&lt;html xmlns="http://www.w3.org/1999/xhtml" <span class="codeHi">xmlns:pure="http://beebole.com/pure"</span>&gt;</pre>
+	<div style="display:none">
+		<div id="hello">Hello <span class="who">World</span></div>
+	</div>
+	</body>
+</html>

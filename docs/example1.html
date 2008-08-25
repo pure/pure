@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:pure="http://beebole.com/pure">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title>Example 1 - PURE Unobtrusive Rendering Engine for HTML</title>
+	    <link href="white.css" rel="alternate stylesheet" type="text/css" title="white"/>
+	    <link href="black.css" rel="stylesheet" type="text/css" title="black"/>
+		<script type="text/javascript" src="../js/jqueryMin.js"></script>
+		<script type="text/javascript" src="../js/pure.js"></script>
+		<script type="text/javascript" src="tutorial.js"></script>
+		<script type="text/javascript">
+			function transform(){
+				var html = document.getElementById('hello');
+				var context = { "name": "Mary" };
+				var directive = {"span.who":"name"};
+				html = $p.map( directive, html );
+				var target = document.getElementById('transform1');
+				$p.render(html, context, target);}
+
+			function libraryTransform(){
+				$('#target').html( 
+					$('#hello')
+					.$pMap({"span.who":"name"})
+					.$pRender({"name":"Mary"}) )
+			}
+		</script>
+	</head>
+	<body onload="transform()">
+ 		<div class="links"><a href="#" onclick="setActiveStyleSheet('black');return false;">Dark Night</a><span style="color:#52ABFF"> | </span><a href="#" onclick="setActiveStyleSheet('white');return false;">Bright Day</a>
+				<br /><a href="quickStart.html">Quick Start</a><br />
+				<a href="example1.html">Example 1</a><br />
+				<a href="example2.html">Example 2</a><br />
+				<a href="example3.html">Example 3</a><br />
+				<a href="example4.html">Example 4</a><br />
+				<a href="allExamples.html">All Examples</a><br />
+				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
+			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
+		</div>
+		<h1>Example 1: Hello Who?</h1>
+		In this first example we receive some very simple data with the name of someone, say "Mary".<br /> And then we apply an HTML on it to obtain a nice "Hello Mary".<br />
+		<p>Here below are all the steps explained.</p>
+		<p class="note">If Javascript, JSON and CSS selectors are your daily food, you may want to jump directly to the <a href="allExamples.html" target="_blank">All examples page</a>.<br />
+		Fire your JS debugger. Put a breakpoint and watch it running.</p>
+
+		<h2>The HTML</h2>
+		We design our HTML and CSS.<br />
+<pre>&lt;div id="hello">
+  Hello &lt;span class="who">World&lt;/span>
+&lt;/div></pre>
+		Which should look like this in your web browser:
+		<div id="hello">Hello <span class="who">World</span></div>
+		<p class="note">This HTML needs to be somewhere in your page while you develop.<br />In fact, and this is rather important, any portion of your static HTML page can be "activated" and become dynamic.</p>
+		We're done with our HTML and we can now start the javascript part.<br />We select this HTML by its Id.<br />
+		<pre>var html = document.getElementById( 'hello' );</pre>
+		<p class="note">To make it simple in these examples, we use the Id, but using other selectors is way more flexible.</p>
+
+		
+		<h2>The context</h2>
+		We will apply our HTML to some data to render it. We call this data the context.<br />
+		It has the JSON format.<br />
+		In general, the context will come from an AJAX call.<br />
+		
+		<pre>var context = {"name":"Mary"}</pre>
+		<p class="note">It means: the var "context" has a property called "name" that has the value "Mary".<br />
+		<p class="note">JSON, to put it short, can be seen as a javascript equivalent of XML.<br />If you are not familiar with it, have a look at the <a href="http://www.json.org/" target="_blank">JSON site</a></p>
+		<p class="note">The rendering of XML data will be implemented <a href="http://code.google.com/p/pure/issues/detail?id=9" target="_blank">later</a></p>
+
+		
+		<h2>Mapping the context to the HTML</h2>
+		Here is the tricky part. We will now set a directive to link the data and the HTML.
+		<p>It has the format { <a href="http://www.w3.org/TR/css3-selectors/#selectors" target="_blank">selector</a> : data-path, ... }<br />
+		<pre>var directive = { "span.who" : "name" };</pre>
+		<p class="note">It means: we link the tag &lt;span&gt; having the class "who" to the property called "name" of our data.</p>
+		And we apply this directive to our HTML with the function $p.map( ).
+		<pre>html = $p.map( html, directive );</pre>
+		<p class="note">$p is the prefix for all PURE functions.<br />For this step a JS library is required such as <a href="http://dojotoolkit.org/" target="_blank">dojo</a>, <a href="http://www.domassistant.com/" target="_blank">domAssistant</a>, <a href="http://jquery.com/" target="_blank">jQuery</a>, <a href="http://mootools.net/" target="_blank">Mootools</a>, <a href="http://www.prototypejs.org/" target="_blank">prototype</a>,... with a valid CSS/DOM selector function.<br />
+		PURE needs this JS library only during the build phase. Only the jQuery interface is implemented so far.<br />
+		Hopefully the next release of the popular browsers should have the selectors implemented natively.</p>
+
+		
+		<h2>Rendering</h2>
+		In our page, we will now choose a site where we want to render our HTML.<br />
+		Here the &lt;div&gt; with the id "target".
+		<pre>&lt;div id="target"&gt;&lt;/div&gt;</pre>
+		We select it in our javascript by its Id.
+		<pre>var target = document.getElementById('target');</pre>
+		And finally, with the function $p.render( ) below, we apply the HTML to the context and place the result in the "target" element.
+		<pre>$p.render( html, context, target )</pre>
+		And we get this amazing ;) result:
+		<div id="transform1"><span class="oops">Oops! Either your javascript is disabled or something is broken...</span></div>
+		<p class="note">This "Hello Mary", was actually rendered by PURE running on this page.</p>
+
+		
+		<h2>Putting all the JS commands together</h2>
+		Now we can bring all the pieces together in a single function.<br />
+		The function transform( ) below has a classical javascript syntax.
+		<pre>function transform(){
+  var html = document.getElementById('hello');
+  var context = { "name": "Mary" };
+  var directive = {"span.who":"name"};
+  html = $p.map( directive, html);
+  var target = document.getElementById('target');
+  $p.render(html, context, target);
+}</pre>
+		While the one below is a JS library kind of syntax (here it's jQuery)
+		<pre id="jQueryCode">function libraryTransform() {
+  $("#target").html(
+    $("#hello")
+    .$pMap({ "span.who": "name" })
+    .$pRender({ "name": "Mary" }));
+}</pre>
+
+		
+		<h2>Conclusion</h2>
+		<p>It may not be very visible here, but we think the big change PURE is bringing is this:<br />
+		<p style="color:#DA7600">By being totally unobtrusive, any portion of your HTML page can become dynamic.</p>
+		We can select an HTML portion of the page, add some javascript directives, and then render it upon user actions. And all this on the fly.
+		<p>Granted, this was an easy one.<br />We can go now to the next example about how to <a href="example2.html">handle iterations</a></p>
+	</body>
+</html>

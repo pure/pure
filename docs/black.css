@@ -1,0 +1,108 @@
+body{
+	font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;
+	background-color:#222;
+	color:#eee;
+	font-size:0.8em;
+	padding-left:10px;
+	padding-bottom:30px;}
+a{	
+	color:#52ABFF;
+	text-decoration:none;}
+	
+a:hover{
+	text-decoration:underline;}
+h1{
+	font-size:160%;
+	padding-top:40px;
+	color:#52ABFF}
+h2{
+	width:85%;
+	font-size:130%;
+	padding-top:20px;
+	border-bottom:solid 1px #555;
+	color:#52ABFF}
+.who{
+	color:#DA7600;
+	font-weight:bold}
+pre {
+	font-family:"Andale Mono", Monaco, "Lucida Console","Bitstream Vera Sans Mono","Courier New",monospace;
+	font-size:130%;
+	color:#ddd;
+	background-color:#333;
+	line-height:1.5em;
+	width:90%;
+	padding:10px;
+	margin-left:20px;
+	border:solid 1px #444
+}
+.note{
+	color:#999;
+	font-style:italic;
+	padding-bottom:10px;
+	padding-left:20px
+}
+.codeHi{
+	color:#DA7600
+}
+div.links{
+	float:right;
+	text-align:center;
+	line-height:180%;
+	background-color:#333;
+	border:solid 1px #444;
+	padding:5px}
+div.feedback{
+	float:left}
+span.oops{
+	background-color:#D00;
+	font-size:150%;
+}
+
+/*example 1*/
+div#hello {
+	border:solid 1px #AAA;
+	font-size:110%;
+	line-height:1.5em;
+	width:30%;
+	padding:10px;
+	margin:20px;
+}
+/*example 2*/
+table#teamList{
+	border-collapse:collapse;
+	margin:20px;
+	width:200px
+}	
+td.score, th.score{
+	text-align:right;
+	border:solid 1px #666;
+	padding:3px;
+}
+td.player, th.player{
+	text-align:left;
+	border:solid 1px #666;
+	padding:3px;
+}
+th.score, th.player{
+	background-color:#DA7600;
+	color:#000;
+}
+/*example 3*/
+tr.even{ 
+	background-color: #333}
+tr.odd{
+	background-color: #888;
+	color:#222}
+/*example 4*/
+table.scoreBoard{
+	border-collapse:collapse;
+	margin:20px;
+	width:300px}
+th.teamName, td.teamName{
+	font-size:150%;
+	text-align:left}
+td.teamPlace{padding:5px}
+table.teamList{
+	width:100%;
+	border-collapse:collapse}
+	

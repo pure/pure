@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:pure="http://beebole.com/pure">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title>Tutorial - Pure Unobtrusive Rendering Engine for HTML</title>
+	    <link href="white.css" rel="stylesheet" type="text/css" title="black"/>
+		<style type="text/css">
+			#pureRuntime{width:100%;height:200px;background-color:#DEF}
+			.htmlDoc{width:90%;background-color:#def;}
+			.transformation{width:90%;background-color:#DEF;}
+			.demo{border:solid 1px #ccc;background-color:#def;padding:10px}
+		</style>
+		<script type="text/javascript" src="../js/jqueryMin.js"></script>
+		<script type="text/javascript" src="../js/pure.js"></script>
+		<script type="text/javascript">
+			function render1(){
+				var html = document.getElementById('hello');
+				var context = { "name": "Mary" };
+				var directive = {"span.who":"name"};
+				html = $p.map( directive, html);
+				var target = document.getElementById('render1');
+				$p.render(html, context, target);}
+				
+			function render2(){
+				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
+				
+				var players = $('table.players')
+				.$pMap( {'tbody tr' : 'player <- context',
+						 'tbody tr td' : 'player[]'});
+
+		        $p.compile(players, 'playersFct');
+				$('#render2').html( $p.render('playersFct', context) );}
+
+			function render3(){
+				var context = [{"name":"Beebole", "url":"http://beebole.com"}, {"name":"BeeLit", "url":"http://beeLit.com"}, {"name":"PURE", "url":"http://beebole.com/pure"}];
+				
+				var beeboleSites = $('ol.teamList')
+				    .$pMap( {'li' : 'beeboleSite <-'})
+				    .$pMap( {'a' : 'beeboleSite[\'name\']', 'a[href]':function(context, items, pos){return items[pos].url}});
+
+		        $p.compile(beeboleSites, 'beeboleSites');
+		        $('#render3').html( $p.render('beeboleSites', context) );}
+
+			function render4(){
+				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
+				
+				var players2 = $('table.players.2')
+				.$pMap( {'tbody tr' : 'player <- context',
+					'tbody tr td' : 'player[]',
+					'tbody tr[class]': (function(context, items, pos){return (pos % 2 == 0) ? 'even' : 'odd';})});
+
+		        $p.compile(players2, 'playersFct2');
+				$('#render4').html( $p.render('playersFct2', context) );}
+
+			function render5(){
+				var context = {
+					'list': [['Cats', 
+								[["Alice Keasler", 14], 
+								["Charles LeGrand", 13], 
+								["Gary Bitemning", 20], 
+								["Helen Moren", 5]]], 
+					
+							['Cows', [["Mary Cain", 15], ["Vicky Benoit", 5], ["Wayne Dartt", 11]]], ['Dogs', [["Ray Braun", 13], ["Aaron Ben", 24], ["Steven Smith", 1], ["Kim Caffey", 19]]], ['Donkeys', [["Natalie Kinney", 16], ["Caren Cohen", 3]]]]};
+				
+				var scoreBoard = $('table.scoreBoard').$pMap({
+					'tbody tr': 'teams <- list',
+					'td.teamName': 'teams[0]'
+				});
+				
+				var teamList = $('table.teamList', scoreBoard)
+					.$pMap({
+						'tbody tr': 'player <- teams[1]',
+						'td.player': 'player[0]',
+						'td.score': 'player[1]',
+						'tbody tr[class]': (function(context, items, pos){ return ((items.length + pos) % 2 == 0) ? 'even' : 'odd';})});
+				
+				$('td.teamPlace', scoreBoard).html(teamList);
+				$p.compile(scoreBoard, 'scoreBoardFct');
+		        $('#render5').html( $p.render('scoreBoardFct', context) );}
+				
+			function renderAll(){ render1();render2();render3();render4();render5();}
+		</script>
+	</head>
+	<body>
+ 		<div class="links"><a href="#" onclick="setActiveStyleSheet('black');return false;">Dark Night</a><span style="color:#52ABFF"> | </span><a href="#" onclick="setActiveStyleSheet('white');return false;">Bright Day</a>
+				<br /><a href="quickStart.html">Quick Start</a><br />
+				<a href="example1.html">Example 1</a><br />
+				<a href="example2.html">Example 2</a><br />
+				<a href="example3.html">Example 3</a><br />
+				<a href="example4.html">Example 4</a><br />
+				<a href="allExamples.html">All Examples</a><br />
+				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
+			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
+		</div>
+		<h3>Example 1: Hello Who?</h3>
+		<div class="demo">
+			<a href="#" onclick="render1();return false;">render</a>
+			<div class="htmlDoc">
+				<div id="hello"> 
+					Hello <span class="who">World</span>
+				</div>
+			</div>
+			<div class="transformation">
+				<div id="render1"></div>
+			</div>
+		</div>
+		<h3>Example 2: Iteration on a table</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<a href="#" onclick="render2();return false;">render</a>
+                <table class="players">
+                    <thead><tr><th class="player">Player</th></tr></thead>
+                    <tbody><tr><td class="player">Chloe</td></tr></tbody>
+                </table>
+			</div>
+			<div class="transformation">
+				<div id="render2"></div>
+			</div>
+		</div>
+		<h3>Example 3: Iteration on a list</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<a href="#" onclick="render3();return false;">render</a>
+				<ol class="teamList">
+					<li class="player"><a href="http://beebole.com">Beebole</a></li>
+				</ol>
+			</div>
+			<div class="transformation">
+				<div id="render3"></div>
+			</div>
+		</div>
+		<h3>Example 4: Passing a JS function as a directive (Iteration on a table zebra like)</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				Here the target and the source HTML are the same. The HTML will replace itself.<br /> 
+				<a href="#" onclick="render4();return false;">render</a>
+			</div>
+			<div class="transformation">
+				<div id="render4">
+	                <table class="players 2">
+	                    <thead><tr><th class="player">Player</th></tr></thead>
+	                    <tbody><tr><td class="player">Chloe</td></tr></tbody>
+	                </table>
+				</div>
+			</div>
+		</div>
+		<h3>Example 5: Nested Iteration</h3>
+		This was not explained in the examples. The objective here is to have a double iteration. First on teams, then on players.<br />
+		It shows the nested iteration and as well how a template can be included in another.
+		<div class="demo">
+			<div class="htmlDoc">
+				<a href="#" onclick="render5();return false;">render</a>
+				<table class="scoreBoard">
+				    <tbody>
+				        <tr>
+				            <td class="teamName">Team Name</td>
+				            <td class="teamPlace">
+				                <table class="teamList">
+				                    <thead><tr><th class="player">Player</th><th class="score">Score</th></tr></thead>
+				                    <tbody><tr><td class="player">Chloe</td><td class="score">20</td></tr></tbody>
+				                </table>
+				            </td>
+				        </tr>
+				    </tbody>
+				</table>
+			</div>
+			<div class="transformation">
+				<div id="render5"></div>
+			</div>
+		</div>
+		<h3>Compile your HTML's into Javascript and save some Kb</h3>
+		<p class="note"><a href="#" onclick="renderAll();$p.getRuntime(this);return false">get the PURE runtime file</a><br />
+		<textarea id="pureRuntime">Click the link above to get all the HTML compiled to a JS file. The screen may scroll a little.</textarea>
+		<p>Copy paste the content of the text area above to a JS file. Save it. You can even minify and/or gzip it.<br />
+		Then include this JS file in your pages. Your compiled HTML's will be available and cached by the browser as any other JS file.</p>
+		<p>Then you can save some additional Kb from your page, by removing pure.js and all the code that set the directives, and compile.<br />
+		Here is an example of <a href="allExamplesCompiled.html">a page that uses compiled templates</a><br />
+		Note that if you remove pure.js, you won't be able to generate templates on the fly, so a mix is probably the best approach.</p>
+	</body>
+</html>
