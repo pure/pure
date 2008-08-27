@@ -78,12 +78,12 @@ td.score, th.score{
 	border:solid 1px #666;
 	padding:3px;
 }
-td.player, th.player{
+td.player, th.player, td.position, th.position{
 	text-align:left;
 	border:solid 1px #666;
 	padding:3px;
 }
-th.score, th.player{
+th.score, th.player, th.position{
 	background-color:#DA7600;
 	color:#000;
 }
@@ -97,7 +97,7 @@ tr.odd{
 table.scoreBoard{
 	border-collapse:collapse;
 	margin:20px;
-	width:300px}
+	width:450px}
 th.teamName, td.teamName{
 	font-size:150%;
 	text-align:left}

@@ -81,7 +81,7 @@ table#teamList, table.players{
 	margin:20px;
 	width:200px
 }	
-td.score, th.score{
+td.score, th.score, td.position, th.position{
 	text-align:right;
 	border:solid 1px #aaa;
 	padding:3px;
@@ -92,7 +92,7 @@ td.player, th.player{
 	border:solid 1px #aaa;
 	padding:3px;
 }
-th.score, th.player{
+th.score, th.player, th.position{
 	background-color:#DA7600;
 	color:#eee;
 }
@@ -106,7 +106,7 @@ tr.even{
 table.scoreBoard{
 	border-collapse:collapse;
 	margin:20px;
-	width:300px}
+	width:450px}
 th.teamName, td.teamName{
 	font-size:150%;
 	text-align:left}

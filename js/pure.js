@@ -99,6 +99,7 @@ var pure  = window.$p = window.pure = {
 
         function out(content) { return ['output.push(', content, ');'].join('')};
         function strOut(content) { return ['output.push(', "'", content, "');"].join('')};
+		function outputFn(attValue, currentLoop){ return out(attValue.substring(1, attValue.length - 1) + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
         function contextOut(path){ return ['output.push(pure.$c(context, ', path, '));'].join('')};
         function att2node(obj, ns){
             // find on [pure:repeat] alone does not work, so look all nodes and filter
@@ -211,44 +212,46 @@ var pure  = window.$p = window.pure = {
                 var attValue = attr.match(/"[^"]*"/)[0] || false;
                 //check if it is a function call: assume abc(...) or (...) is a function
                 var isFn = attValue.search(/[^\s]*\(|^\(/);
-                //check if it is an array reference [0-9]
+                //prepare array directive
                 var isArrayRef = false;
 
                 if (isFn > -1) {
 					attValue = attValue.replace(/&quot;/g, "'");}
 				else{ //not a function try if an array
-	                var arrIndex = attValue.match(/\[[^\]]*]/);
+					var arrIndex = attValue.match(/\[[^\]]*]/);
 					if(arrIndex || openArrays[attValue.substring(1,attValue.length-1)]){ // "[0-9]" or "[a-Z]" or current loop ok
-	                    //should be a reference to an open loop
+						//should be a reference to an open loop
 						attValue = arrayName(attValue.substring(1,attValue.length-1));
-	                    isArrayRef = true}
-	                else{
-	                    isArrayRef=false;}}
-					
-                if (isStr > -1){
-                    attValue = attValue.replace(/(^\"&quot;|&quot;\"\Z)/g, "'");
-                    attValue = '"'+attValue.substring( 2, attValue.length-2 )+'"'}
+						isArrayRef = true}
+					else{
+						isArrayRef=false;}}
 
-                var pos = 0;
-                if ( attName.search(/nodeValue/i) > -1 ){
-                    var attrRight = wrkStr.substring(attr.length);
-                    //do not read context if string, function or array reference
-                    if (isStr > -1 || isFn > -1 || isArrayRef){
-                        aJS.push(out(attValue));}
-                    else{
-                        aJS.push(contextOut(attValue));}
+				if (isStr > -1){
+					attValue = attValue.replace(/(^\"&quot;|&quot;\"\Z)/g, "'");
+					attValue = '"'+attValue.substring( 2, attValue.length-2 )+'"'}
 
-                    aJS.push(strOut(attrRight));}
-                else{
-                    if (isStr > -1){ //a string leave it as is
-                        aJS.push(strOut(attName + '=' + attValue));}
-                    else{
-                        aJS.push(strOut(attName + '='));
-                        if( isFn > -1) //a function remove the quotes for evaluation
-                            aJS.push(strOut('"')+out(attValue.substring(1, attValue.length-1)+'(context,'+currentLoop+',parseInt('+currentLoop+'Index))')+strOut('"'));
-                        else if(isArrayRef){//an array reference
-                            aJS.push(strOut('"')+out(attValue)+strOut('"'));
-						}
+				var pos = 0;
+				if ( attName.search(/nodeValue/i) > -1 ){
+					var attrRight = wrkStr.substring(attr.length);
+					//do not read context if string, function or array reference
+					if( isFn > -1){
+						aJS.push(outputFn(attValue, currentLoop))}
+					else if (isStr > -1 || isArrayRef){
+						aJS.push(out(attValue));}
+					else{
+						aJS.push(contextOut(attValue));}
+
+					aJS.push(strOut(attrRight));}
+				else{
+					if (isStr > -1) { //a string leave it as is
+						aJS.push(strOut(attName + '=' + attValue));
+					}
+					else {
+						aJS.push(strOut(attName + '='));
+						if (isFn > -1){ //a function remove the quotes for evaluation
+							aJS.push(strOut('"') + outputFn(attValue, currentLoop) + strOut('"'));}
+						else if(isArrayRef){//an array reference
+							aJS.push(strOut('"')+out(attValue)+strOut('"'));}
 						else //context data
                             aJS.push(contextOut(attValue));}
                     //push the after attribute string
@@ -285,9 +288,14 @@ var pure  = window.$p = window.pure = {
 		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
 			var currentDir = directives[selector];
 
-			//if a function is provided transform it to a string, we should take its reference but ok for now
-			if(typeof currentDir == 'function') currentDir = directives[selector] = currentDir.toString().replace(/\t|\n|\r/g,'');
-            
+			//if a function is provided transform it to a string if anonymous, otherwise get the string of the call and wrap it in an anonymous call
+			if(typeof currentDir == 'function'){ 
+				var dirStr = directives.toString().replace(/\t|\n|\r/g,'');
+				currentDir = directives[selector] = currentDir.toString().replace(/\t|\n|\r/g,'');
+				var fname=/\W*function\s+([\w\$]+)\(/i.exec(currentDir);//Tx2 Geoffrey Summerhayes
+				if(fname)
+					currentDir = 'function(context, items, pos){ return ' + fname[1] + '(context, items, pos)}';}
+
 			var target = this.find(selector, clone);
 	        var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
 	        if (!target && isAttr){
@@ -295,27 +303,24 @@ var pure  = window.$p = window.pure = {
 	            target = this.find(selector.substr(0, isAttr.index), clone);}
 				
 	        if ( target ){  //target found
-	            var options = currentDir.split('|'); // check for append/prepend/<replace> option
-	            var theValue = options[0];
 				var attName = 'nodeValue'; //default
 				if (isAttr){
 					//the directive points to an attribute
 					attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
 					if(attName.indexOf(this.ns) > -1) 
-						attName = attName.substring(this.ns.length);
-					
-				}else{
+						attName = attName.substring(this.ns.length);}
+				else{
 					//check if the directive is a repetition
 					var repetition = currentDir.search(/w*<-w*/);
-					if(repetition > -1) attName = 'repeat';
-				}
-				target.setAttribute( this.ns + attName, theValue);
+					if(repetition > -1) attName = 'repeat';}
+					
+				target.setAttribute( this.ns + attName, currentDir);
                 if(repetition < 0){
 					if(isAttr && attName != 'nodeValue'){
 						try{ //some special attributes do not like it so try & catch
 							target[attName]=''; //IE
-							target.removeAttribute(attName);
-						}catch(e){}}}}
+							target.removeAttribute(attName);}
+						catch(e){}}}}
 					
 	        else{ // target not found
 				var parentName = [clone.nodeName];
