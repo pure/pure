@@ -36,7 +36,7 @@
 				
 				var beeboleSites = $('ol.teamList')
 				    .$pMap( {'li' : 'beeboleSite <-'})
-				    .$pMap( {'a' : 'beeboleSite[\'name\']', 'a[href]':function(context, items, pos){return items[pos].url}}); //show an example of [ ] within ( ) and as the ( ) are not necessary
+				    .$pMap( {'a' : 'beeboleSite.name', 'a[href]':function(context, items, pos){return items[pos].url}}); //show an example of [ ] within ( ) and as the ( ) are not necessary
 
 		        $p.compile(beeboleSites, 'f3');
 		        $('#render3').html( $p.render('f3', context) );}
@@ -86,7 +86,49 @@
 				$p.compile(scoreBoard, 'f5');
 		        $('#render5').html( $p.render('f5', context) );}
 				
-			function renderAll(){ render1();render2();render3();render4();render5();}
+			function render6(){
+			
+			    var context = [
+			        {"name" : "Home", 
+			         "url" : "#ho"},
+			        {"name" : "About",
+			          "url" : "http://about...",
+			
+			          "subMenu" : [
+			              {"name" : "History",
+			               "url" : "http://history..."},
+			              {"name" : "Team",
+			               "url" : "http://team..."},
+			              {"name" : "Offices",
+			               "url" : "http://offices...",
+			               "subMenu" : [
+			                   {"name" : "Brussels",
+			                    "url" : "http://brussels..."},
+			                   {"name" : "New Delhi",
+			                    "url" : "http://newdelhi..."}]}]},
+			        {"name" : "Services",
+			         "url" : "http://services...",
+			         "subMenu" : [
+			             {"name" : "Web Design",
+			              "url" : "http://web..."},
+			             {"name" : "Development",
+			              "url" : "http://dev..."}]}];
+			               
+				var directive = {
+				  "li" : "menu <-",
+				  "a" : "menu.name", 
+				  "a[href]" : "menu.url",
+			     	  "ul.nav1 li" : "sub1 <- menu.subMenu",
+			     	  "ul.nav1 li a" : "sub1.name", 
+				  "ul.nav1 li a[href]" : "sub1.url",
+			     	  "ul.nav2 li" : "sub2 <- sub1.subMenu",
+			     	  "ul.nav2 li a" : "sub2.name", 
+				  "ul.nav2 li a[href]" : "sub2.url"};
+						
+			     	$("ul#nav").replaceWith( $("ul#nav").$pMap(directive).$pRender(context) );}
+			
+				
+			function renderAll(){ render1();render2();render3();render4();render5();render6();}
 		</script>
 	</head>
 	<body>
@@ -174,6 +216,23 @@
 			</div>
 			<div class="transformation">
 				<div id="render5"></div>
+			</div>
+		</div>
+		<h3>Example 6: Nested List</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<a href="#" onclick="render6();return false;">render</a>
+				<ul  id="nav"> 
+					<li><a href="#">About</a> 
+						<ul class="nav1"> 
+							<li><a href="#">Offices</a>
+								<ul class="nav2">
+									<li><a href="#">Brussels</a></li> 
+								</ul>
+							</li> 
+						</ul> 
+					</li> 
+				</ul>
 			</div>
 		</div>
 		<h3>Compile your HTML's into Javascript and save some Kb</h3>
