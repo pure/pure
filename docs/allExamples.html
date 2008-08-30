@@ -15,18 +15,25 @@
 		<script type="text/javascript">
 			function render1(){ 
 				var html = document.getElementById('hello');
-				var context = { "name": "Mary" };
-				var directive = {"span.who":"name"};
+				var context = { "name": "Mary", "id":"3456" };
+				var directive = {
+					"span.who":"name",
+					"span.who[id]":"'7890'",
+					"span.who[class]":"'who other'",
+					"[id]":"id"};
+				
 				html = $p.map( directive, html);
 				var target = document.getElementById('render1');
 				$p.render(html, context, target);}
 				
 			function render2(){
-				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
+				var context ={
+					"tableId":"newId",
+					"players":["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"]};
 				
 				var players = $('table.players')
-				.$pMap( {'tbody tr' : 'player <- context',
-						 'tbody tr td' : 'player[]'});
+				.$pMap( {'tbody tr' : 'player <- players',
+						 'tbody tr td' : 'player'});
 
 		        $p.compile(players, 'f2');
 				$('#render2').html( $p.render('f2', context) );}
@@ -56,7 +63,7 @@
 				odd: 'odd',
 				even:'even',
 				decorator: function(context, items, pos){
-					return ((items.length + pos) % 2 == 0) ? this.even : this.odd;}}
+					return ((items.length + pos) % 2 == 0) ? 'even' : 'odd';}}
 
 			function render5(){
 				var context = {
@@ -79,8 +86,7 @@
 						'td.player': 'player[0]',
 						'td.score': 'player[1]',
 						'td.position': function(context, items, pos){return pos+1},
-						'tbody tr[class]': function(context, items, pos){
-							return row.decorator(context, items, pos); }});
+						'tbody tr[class]': row.decorator });
 				
 				$('td.teamPlace', scoreBoard).html(teamList);
 				$p.compile(scoreBoard, 'f5');
@@ -218,7 +224,7 @@
 				<div id="render5"></div>
 			</div>
 		</div>
-		<h3>Example 6: Nested List</h3>
+		<h3>Example 6: Recursive List (the recursion is not dynamic)</h3>
 		<div class="demo">
 			<div class="htmlDoc">
 				<a href="#" onclick="render6();return false;">render</a>

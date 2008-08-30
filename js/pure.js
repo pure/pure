@@ -13,8 +13,9 @@
 
 var pure  = window.$p = window.pure ={
 	ns: 'pure:',
+	
 	find: function(){
-		pure.msg('library_needed')},
+		this.msg('library_needed')},
 	
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
@@ -35,8 +36,8 @@ var pure  = window.$p = window.pure ={
 		txt.id = 'pureRuntime';
 		document.body.appendChild(txt);
 		txt.select();}},
-	$f:{//storage of directive functions
-	},
+		
+	$f:[],
 
 	$c:function(context, path){
 	if(!context) context ={};
@@ -75,7 +76,7 @@ var pure  = window.$p = window.pure ={
 			if(HTML) delete this.compiledFunctions[fName];
 			return str;}
 		else{
-			pure.msg('HTML_does_not_exist', fName);}},
+			this.msg('HTML_does_not_exist', fName);}},
 
 	compiledFunctions:{},
 
@@ -98,8 +99,8 @@ var pure  = window.$p = window.pure ={
 		
 		function out(content){ return ['output.push(', content, ');'].join('')};
 		function strOut(content){ return ['output.push(', "'", content, "');"].join('')};
-		function outputFn(attValue, currentLoop){ return out(attValue.substring(1, attValue.length - 1) + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
-		function contextOut(path){ return ['output.push(pure.$c(context, ', path, '));'].join('')};
+		function outputFn(attValue, currentLoop){ return out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
+		function contextOut(path){ return ['output.push($p.$c(context, ', path, '));'].join('')};
 		function att2node(obj, ns){
 		// find on [pure:repeat] alone does not work, so look all nodes and filter
 		var allNodes = obj.getElementsByTagName('*');
@@ -145,7 +146,7 @@ var pure  = window.$p = window.pure ={
 		//avoid shifting lines remove the > and </ around pure:repeat tags
 		str = str.replace(/\<pure:repeat/gi, 'pure:repeat').replace(/\<\/pure:repeat/gi, 'pure:repeat');
 		
-		//clean the dom string, based on rules in pure.domCleaningRules
+		//clean the dom string, based on rules in $p.domCleaningRules
 		var rules = this.domCleaningRules;
 		for(i in rules){
 		str = str.replace(rules[i].what ,rules[i].by);}
@@ -154,101 +155,140 @@ var pure  = window.$p = window.pure ={
 			this.msg( 'no_HTML_name_set_for_parsing', str, HTML);
 			return false}
 		//start the js generation
-		var aJS = [[ 'pure.compiledFunctions["', fName, '"]={};pure.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
+		var aJS = [[ '$p.compiledFunctions["', fName, '"]={};$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 		var aDom = str.split(this.ns);
 		var pos = 0, wrkStr, rTag = false, rSrc, next, openArrays=[], cnt=1, subSrc='', currentLoop, swap='';
+		var offset, isStr = false, attName = '', attValue = '';
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
-			if (wrkStr.match(/^repeat[^\>]*\>/i)){
-			rTag = wrkStr.match(/^repeat[^\>]*>/i);
-			rSrc = rTag[0].match(/"[^"]*"/);
-			if (rSrc){
-				//some browsers replace the < by &lt; replace it and strip spaces
-				rSrc = rSrc[0].replace(/&lt;/,'<').replace(/"/g,'').replace(/\s/g,'');
-				subSrc = rSrc.split(/\<-/);
-				currentLoop = subSrc[0];
-				var arrSrc = subSrc[1] || '';
-				if ( isArray(arrSrc, openArrays) ){
-					//reference to an open array
-					aJS.push('var ' + currentLoop + '=' + arrayName(arrSrc) + ';');}
-				else{
-					if (arrSrc.search(/context/i) > -1 || arrSrc.length == 0)
-						aJS.push('var ' + currentLoop + '= context;');
-					else 
-						aJS.push('var ' + currentLoop + '= pure.$c(context, "' + arrSrc + '");');}
+			if (j==0){
+				//push the first line as it is HTML
+				aJS.push(strOut(wrkStr.substring(0, wrkStr.length)));}
+			else{
+				if (/^repeat[^\>]*\>/i.test(wrkStr)){
+					rTag = wrkStr.match(/^repeat[^\>]*>/i);
+					rSrc = rTag[0].match(/"[^"]*"/);
+					if (rSrc){ //start a loop
+						rSrc = rSrc[0].replace(/&lt;/,'<').replace(/"/g,'').replace(/\s/g,'');
+						subSrc = rSrc.split(/\<-/);
+						currentLoop = subSrc[0];
+						var arrSrc = subSrc[1] || '';
+						if ( isArray(arrSrc, openArrays) ){
+							//reference to an open array
+							aJS.push('var ' + currentLoop + '=' + arrayName(arrSrc) + ';');}
+						else{
+							if (arrSrc.search(/context/i) > -1 || arrSrc.length == 0)
+								aJS.push('var ' + currentLoop + '= context;');
+							else 
+								aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
+						
+						aJS.push('for('+currentLoop+'Index in '+currentLoop+'){');
+						aJS.push(strOut(wrkStr.substring(rTag[0].length)));
+						openArrays[currentLoop] = cnt++;}
 				
-				aJS.push('for('+currentLoop+'Index in '+currentLoop+'){');
-				aJS.push(strOut(wrkStr.substring(rTag[0].length)));
-				openArrays[currentLoop] = cnt++;}
-		
-		else{
-			//end of loop;
-			aJS.push('}');
-			delete openArrays[currentLoop];
-			var max = 0, curr, key;
-			for (key in openArrays){
-				curr = openArrays[key];
-				if( curr > max){
-				max = curr;
-				currentLoop = key;}}
+					else{ //end of loop;
+						aJS.push('}');
+						delete openArrays[currentLoop];
+						var max = 0, curr, key;
+						for (key in openArrays){
+							curr = openArrays[key];
+							if( curr > max){
+							max = curr;
+							currentLoop = key;}}
+						aJS.push(strOut(wrkStr.substring(rTag[0].length, wrkStr.length)));}
 
-			aJS.push(strOut(wrkStr.substring(rTag[0].length, wrkStr.length)));}
+					rTag = false;
+					continue;}
+				else{
+					attName = wrkStr.substring(0, wrkStr.indexOf('='));
+					attValue = wrkStr.match(/=""?[^"]*""?/)[0].substr(2).replace(/"$/,'');
+					offset = attName.length + attValue.length + 3;
+					isStr = /^("|'|&quot;)(.*)("|'|&quot;)/.test(attValue);
+					if (/&quot;/.test(attValue)) {
+						attValue = attValue.replace(/&quot;/g, '"');
+						//remove the 2 first for the offset
+						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
+						
+					if(/^nodeValue/i.test(wrkStr)){ //value for a node
+						attName = 'nodeValue';
+						if(/\$p\.\$f\[[0-9]]/.test(attValue)){
+							aJS.push(outputFn(attValue, currentLoop));}
+						else if(isStr){ //a string, strip the quotes
+							aJS.push(strOut(attValue.substr(1, attValue.length-2)));}
+						else if(isArray(attValue, openArrays)){ 
+							attValue = arrayName(attValue);
+							aJS.push(out(attValue));}
+						else{ //context data
+							aJS.push(contextOut("'"+attValue+"'"));}}
+		
+					else{
+						if(/\$p\.\$f\[[0-9]]/.test(attValue)){
+							aJS.push(strOut(attName + '="'));
+							aJS.push(outputFn(attValue, currentLoop));
+							aJS.push(strOut('"'));}
+						else if(isStr){							
+							aJS.push(strOut(attName + '="' +  attValue.substr(1, attValue.length-2) +'"'));}
+						else if(isArray(attValue, openArrays)){ 
+							attValue = arrayName(attValue);
+							aJS.push(out(attValue));}
+						else{
+							aJS.push(strOut(attName + '="'));
+							aJS.push(contextOut("'"+attValue+"'"))
+							aJS.push(strOut('"'));}}}
+					
+				//output the remaining if any	
+				wrkStr = wrkStr.substr(offset);
+				if(wrkStr != '') aJS.push(strOut(wrkStr));
 
-		rTag = false;
-		continue;}
+
+/*			//find the first abc="def"
+			var attr = wrkStr.match(/[^=]*="?[^"]*"?/)[0] || false;
+			//check if the value is a string to avoid context overhead process
+			var isStr = attr.search(/(=\s*"'|=\s*'"|=\s*"\s*&quot;|""?)/) || false;
+			//look for the name of the attribute
+			var attName = attr.match(/[^=]*)[0] || false;
+			//look for the value of the atttribute
+			var attValue = attr.match(/""?[^"]*""?/)[0] || false;
+			//check if it is a function call: assume abc(...) or (...) is a function
+			var isFn = attValue.search(/[^\s]*\(|^\(/);
+			//prepare array directive
+			var isArrayRef = false;
+			if (isFn > -1){
+				attValue = attValue.replace(/&quot;/g, "'");}
+			else{ //not a function try if an array, and remove first and last "
+				isArrayRef = isArray(attValue, openArrays);
+				if(isArrayRef) attValue = arrayName(attValue.substring(1,attValue.length-1));}
 		
-		if (j==0){
-			//push the first line as it is HTML
-			aJS.push(strOut(wrkStr.substring(0, wrkStr.length)));}
-		else{
-		//find the first abc="def"
-		var attr = wrkStr.match(/[^=]*="[^"]*"/)[0] || false;
-		//check if the value is a string to avoid context overhead process
-		var isStr = attr.search(/(=\s*\"'|=\s*'\"|=\s*\"\s*&quot;)/) || false;
-		//look for the name of the attribute
-		var attName = attr.match(/[^=]*/)[0] || false;
-		//look for the value of the atttribute
-		var attValue = attr.match(/"[^"]*"/)[0] || false;
-		//check if it is a function call: assume abc(...) or (...) is a function
-		var isFn = attValue.search(/[^\s]*\(|^\(/);
-		//prepare array directive
-		var isArrayRef = false;
-		if (isFn > -1){
-			attValue = attValue.replace(/&quot;/g, "'");}
-		else{ //not a function try if an array, and remove first and last "
-			isArrayRef = isArray(attValue, openArrays);
-			if(isArrayRef) attValue = arrayName(attValue.substring(1,attValue.length-1));}
-	
-		if (isStr > -1){
-		attValue = attValue.replace(/(^\"&quot;|&quot;\"\Z)/g, "'");
-		attValue = '"'+attValue.substring( 2, attValue.length-2 )+'"'}
-		
-		var pos = 0;
-		if ( attName.search(/nodeValue/i) > -1 ){
-			var attrRight = wrkStr.substring(attr.length);
-			//do not read context if string, function or array reference
-			if( isFn > -1){
-			aJS.push(outputFn(attValue, currentLoop))}
-			else if (isStr > -1 || isArrayRef){
-			aJS.push(out(attValue));}
-			else{
-			aJS.push(contextOut(attValue));}
+			if (isStr > -1)	attValue = attValue.replace(/^\"&quot;|&quot;\"$/g, '"');
 			
-			aJS.push(strOut(attrRight));}
-		else{
-			if (isStr > -1){ //a string leave it as is
-				aJS.push(strOut(attName + '=' + attValue));}
+			var pos = 0;
+			if ( attName.search(/nodeValue/i) > -1 ){
+				var attrRight = wrkStr.substring(attr.length);
+				//do not read context if string, function or array reference
+				if( isFn > -1)
+					aJS.push(outputFn(attValue, currentLoop))
+				else if (isStr > -1)
+					aJS.push(out(attValue.substring( 1, attValue.length-1 )));
+				else if (isArrayRef)
+					aJS.push(out(attValue));
+				else
+					aJS.push(contextOut(attValue));
+				
+				aJS.push(strOut(attrRight));}
 			else{
-				aJS.push(strOut(attName + '='));
-				if (isFn > -1){ //a function remove the quotes for evaluation
-					aJS.push(strOut('"') + outputFn(attValue, currentLoop) + strOut('"'));}
-				else if(isArrayRef){//an array reference
-					aJS.push(strOut('"')+out(attValue)+strOut('"'));}
-				else //context data
-					aJS.push(contextOut(attValue));}
-
-			//push the after attribute string
-			aJS.push(strOut(wrkStr.substr(attr.length, wrkStr.length)));}}}
+				if (isStr > -1){ //a string leave it as is
+					aJS.push(strOut(attName + '=' + attValue));}
+				else{
+					aJS.push(strOut(attName + '='));
+					if (isFn > -1){ //a function remove the quotes for evaluation
+						aJS.push(strOut('"') + outputFn(attValue, currentLoop) + strOut('"'));}
+					else if(isArrayRef){//an array reference
+						aJS.push(strOut('"')+out(attValue)+strOut('"'));}
+					else //context data
+						aJS.push(contextOut(attValue));}
+	
+				//push the after attribute string
+				aJS.push(strOut(wrkStr.substr(attr.length, wrkStr.length)));}*/}}
 	
 		aJS.push( 'return output.join("");}' );
 		var js = aJS.join('');
@@ -276,25 +316,26 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
+		var fnId, currentDir; 
 		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
 		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
-			var currentDir = directives[selector];
-
-			//if a function is provided transform it to a string if anonymous, otherwise get the string of the call and wrap it in an anonymous call
-			if(typeof currentDir == 'function'){ 
-				var dirStr = directives.toString().replace(/\t|\n|\r/g,'');
-				currentDir = directives[selector] = currentDir.toString().replace(/\t|\n|\r/g,'');
-				var fname=/\W*function\s+([\w\$]+)\(/i.exec(currentDir);//Tx2 Geoffrey Summerhayes
-				if(fname)
-					currentDir = 'function(context, items, pos){ return ' + fname[1] + '(context, items, pos)}';}
-
-			var target = this.find(selector, clone);
 			var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
-			if (!target && isAttr){
-				//if the attribute does not exist yet, select its containing element
-				target = this.find(selector.substr(0, isAttr.index), clone);}
-
+			if(/^\[/.test(selector)){ //attribute of the selected node
+				target = clone;}
+			else{
+				var target = this.find(selector, clone);
+				if (!target && isAttr){
+					//if the attribute does not exist yet, select its containing element
+					target = this.find(selector.substr(0, isAttr.index), clone);}}
+					
 			if ( target ){  //target found
+				currentDir = directives[selector];
+	
+				if (typeof currentDir == 'function'){
+					fnId = this.$f.push(currentDir) -1;
+					currentDir = '$p.$f['+fnId+']';}
+
+
 				var attName = 'nodeValue'; //default
 				if (isAttr){
 					//the directive points to an attribute
@@ -318,7 +359,7 @@ var pure  = window.$p = window.pure ={
 				var parentName = [clone.nodeName];
 				if(clone.id != '') parentName.push('#' + clone.id);
 				if(clone.className !='') parentName.push('#' + clone.className);
-				pure.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}
+				this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}
 
 		//target = null;
 		return clone;},
@@ -363,7 +404,7 @@ try{ if (jQuery){
 
 }catch(e){ try{ if (MooTools){
 	// mootools selector
-	pure.find = function(selector, context){
+	$p.find = function(selector, context){
 		var found = $(context).getElements(selector);
 		return (found[0]) ? found[0]:false}}
 
@@ -375,6 +416,6 @@ try{ if (jQuery){
 		(typeof context == 'string') ? context = document : args.splice(0,1);
 		return Selector.findChildElements(context, args);}
 
-	pure.find = function(selector, context){
+	$p.find = function(selector, context){
 		var found = $$(context, selector);
 		return (found[0]) ? found[0]:false}}}catch(e){}}}
