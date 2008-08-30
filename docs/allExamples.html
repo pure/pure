@@ -63,8 +63,11 @@
 				odd: 'odd',
 				even:'even',
 				decorator: function(context, items, pos){
-					return ((items.length + pos) % 2 == 0) ? 'even' : 'odd';}}
-
+					return (pos % 2 == 1) ? this.even : this.odd;}}
+					
+			function lineNb(context, items, pos){
+				return pos+1;}
+				
 			function render5(){
 				var context = {
 					'list': [['Cats', 
@@ -85,8 +88,8 @@
 						'tbody tr': 'player <- teams[1]',
 						'td.player': 'player[0]',
 						'td.score': 'player[1]',
-						'td.position': function(context, items, pos){return pos+1},
-						'tbody tr[class]': row.decorator });
+						'td.position': lineNb,
+						'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } });
 				
 				$('td.teamPlace', scoreBoard).html(teamList);
 				$p.compile(scoreBoard, 'f5');
