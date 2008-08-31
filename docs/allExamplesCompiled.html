@@ -26,6 +26,10 @@
 				var target = document.getElementById('transform1');
 				$p.render(html, context, target);}
 				
+			function lineClick(name){ alert(name); } //example1 of event attachment, still some research needed
+
+			function swapStyle(obj, inOut){ //example2
+				obj.className = (inOut) ? 'player hover' : 'player';};
 			function render2(){
 				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
 				transform('f2', context, 'render2');}
@@ -162,7 +166,7 @@
 		<div class="demo">
 			<div class="htmlDoc">
 				<a href="#" onclick="render6();return false;">render</a>
-				<ul  id="nav"> 
+				<ul id="nav"> 
 					<li><a href="#">About</a> 
 						<ul class="nav1"> 
 							<li><a href="#">Offices</a>

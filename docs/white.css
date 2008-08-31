@@ -92,7 +92,7 @@ td.player, th.player{
 	border:solid 1px #aaa;
 	padding:3px;
 }
-th.score, th.player, th.position{
+th.score, th.player, th.position, .hover{
 	background-color:#DA7600;
 	color:#eee;
 }

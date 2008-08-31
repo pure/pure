@@ -21,6 +21,8 @@
     }
     return value;
 },$f:[function (context, items, pos) {
+    return "lineClick('" + items[pos] + "');";
+},function (context, items, pos) {
     return items[pos].url;
 },function (context, items, pos) {
     return pos % 2 == 0 ? "even" : "odd";
@@ -51,7 +53,23 @@
     output.push("<table class=\"players\"><thead><tr><th class=\"player\">Player</th></tr></thead><tbody>");
     var player = context;
     for (playerIndex in player) {
-        output.push("<tr><td class=\"player\">");
+        output.push("<tr><td ");
+        output.push("style=\"");
+        output.push("cursor:pointer");
+        output.push("\"");
+        output.push(" ");
+        output.push("onmouseout=\"");
+        output.push("swapStyle(this, false);");
+        output.push("\"");
+        output.push(" ");
+        output.push("onmouseover=\"");
+        output.push("swapStyle(this, true);");
+        output.push("\"");
+        output.push(" ");
+        output.push("onclick=\"");
+        output.push($p.$f[0](context, player, parseInt(playerIndex)));
+        output.push("\"");
+        output.push(" class=\"player\">");
         output.push(player[playerIndex]);
         output.push("</td></tr>");
     }
@@ -64,7 +82,7 @@
     for (beeboleSiteIndex in beeboleSite) {
         output.push("<li class=\"player\"><a ");
         output.push("href=\"");
-        output.push($p.$f[0](context, beeboleSite, parseInt(beeboleSiteIndex)));
+        output.push($p.$f[1](context, beeboleSite, parseInt(beeboleSiteIndex)));
         output.push("\"");
         output.push(">");
         output.push(beeboleSite[beeboleSiteIndex].name);
@@ -79,7 +97,7 @@
     for (playerIndex in player) {
         output.push("<tr ");
         output.push("class=\"");
-        output.push($p.$f[1](context, player, parseInt(playerIndex)));
+        output.push($p.$f[2](context, player, parseInt(playerIndex)));
         output.push("\"");
         output.push("><td class=\"player\">");
         output.push(player[playerIndex]);
@@ -99,10 +117,10 @@
         for (playerIndex in player) {
             output.push("<tr ");
             output.push("class=\"");
-            output.push($p.$f[3](context, player, parseInt(playerIndex)));
+            output.push($p.$f[4](context, player, parseInt(playerIndex)));
             output.push("\"");
             output.push("><td class=\"position\">");
-            output.push($p.$f[2](context, player, parseInt(playerIndex)));
+            output.push($p.$f[3](context, player, parseInt(playerIndex)));
             output.push("</td><td class=\"player\">");
             output.push(player[playerIndex][0]);
             output.push("</td><td class=\"score\">");
@@ -119,21 +137,27 @@
     var menu = context;
     for (menuIndex in menu) {
         output.push("<li><a ");
+        output.push("href=\"");
         output.push(menu[menuIndex].url);
+        output.push("\"");
         output.push(">");
         output.push(menu[menuIndex].name);
         output.push("</a><ul class=\"nav1\"> \t\t\t\t\t\t\t");
         var sub1 = menu[menuIndex].subMenu;
         for (sub1Index in sub1) {
             output.push("<li><a ");
+            output.push("href=\"");
             output.push(sub1[sub1Index].url);
+            output.push("\"");
             output.push(">");
             output.push(sub1[sub1Index].name);
             output.push("</a><ul class=\"nav2\">\t\t\t\t\t\t\t\t\t");
             var sub2 = sub1[sub1Index].subMenu;
             for (sub2Index in sub2) {
                 output.push("<li><a ");
+                output.push("href=\"");
                 output.push(sub2[sub2Index].url);
+                output.push("\"");
                 output.push(">");
                 output.push(sub2[sub2Index].name);
                 output.push("</a></li>");

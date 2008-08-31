@@ -157,8 +157,8 @@ var pure  = window.$p = window.pure ={
 		//start the js generation
 		var aJS = [[ '$p.compiledFunctions["', fName, '"]={};$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 		var aDom = str.split(this.ns);
-		var pos = 0, wrkStr, rTag = false, rSrc, next, openArrays=[], cnt=1, subSrc='', currentLoop, swap='';
-		var offset, isStr = false, attName = '', attValue = '';
+
+		var wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', currentLoop, isNodeValue, offset, isStr = false, attName = '', attValue = '';
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
 			if (j==0){
@@ -206,89 +206,26 @@ var pure  = window.$p = window.pure ={
 					isStr = /^("|'|&quot;)(.*)("|'|&quot;)/.test(attValue);
 					if (/&quot;/.test(attValue)) {
 						attValue = attValue.replace(/&quot;/g, '"');
-						//remove the 2 first for the offset
 						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
-						
-					if(/^nodeValue/i.test(wrkStr)){ //value for a node
-						attName = 'nodeValue';
-						if(/\$p\.\$f\[[0-9]]/.test(attValue)){
-							aJS.push(outputFn(attValue, currentLoop));}
-						else if(isStr){ //a string, strip the quotes
-							aJS.push(strOut(attValue.substr(1, attValue.length-2)));}
-						else if(isArray(attValue, openArrays)){ 
-							attValue = arrayName(attValue);
-							aJS.push(out(attValue));}
-						else{ //context data
-							aJS.push(contextOut("'"+attValue+"'"));}}
-		
-					else{
-						if(/\$p\.\$f\[[0-9]]/.test(attValue)){
-							aJS.push(strOut(attName + '="'));
-							aJS.push(outputFn(attValue, currentLoop));
-							aJS.push(strOut('"'));}
-						else if(isStr){							
-							aJS.push(strOut(attName + '="' +  attValue.substr(1, attValue.length-2) +'"'));}
-						else if(isArray(attValue, openArrays)){ 
-							attValue = arrayName(attValue);
-							aJS.push(out(attValue));}
-						else{
-							aJS.push(strOut(attName + '="'));
-							aJS.push(contextOut("'"+attValue+"'"))
-							aJS.push(strOut('"'));}}}
+
+					isNodeValue = /^nodeValue/i.test(wrkStr);	
+					(isNodeValue) ? attName = 'nodeValue': aJS.push(strOut(attName + '="'));
+
+					if(/\$p\.\$f\[[0-9]]/.test(attValue)){//function reference
+						aJS.push(outputFn(attValue, currentLoop));}
+					else if(isStr){ //a string, strip the quotes
+						aJS.push(strOut(attValue.substr(1, attValue.length-2)));}
+					else if(isArray(attValue, openArrays)){ //iteration reference
+						aJS.push(out(arrayName(attValue)));}
+					else{ //context data
+						aJS.push(contextOut("'"+attValue+"'"));}
+
+					if (!isNodeValue) { //close the attribute string
+						aJS.push(strOut('"'));}}
 					
 				//output the remaining if any	
 				wrkStr = wrkStr.substr(offset);
-				if(wrkStr != '') aJS.push(strOut(wrkStr));
-
-
-/*			//find the first abc="def"
-			var attr = wrkStr.match(/[^=]*="?[^"]*"?/)[0] || false;
-			//check if the value is a string to avoid context overhead process
-			var isStr = attr.search(/(=\s*"'|=\s*'"|=\s*"\s*&quot;|""?)/) || false;
-			//look for the name of the attribute
-			var attName = attr.match(/[^=]*)[0] || false;
-			//look for the value of the atttribute
-			var attValue = attr.match(/""?[^"]*""?/)[0] || false;
-			//check if it is a function call: assume abc(...) or (...) is a function
-			var isFn = attValue.search(/[^\s]*\(|^\(/);
-			//prepare array directive
-			var isArrayRef = false;
-			if (isFn > -1){
-				attValue = attValue.replace(/&quot;/g, "'");}
-			else{ //not a function try if an array, and remove first and last "
-				isArrayRef = isArray(attValue, openArrays);
-				if(isArrayRef) attValue = arrayName(attValue.substring(1,attValue.length-1));}
-		
-			if (isStr > -1)	attValue = attValue.replace(/^\"&quot;|&quot;\"$/g, '"');
-			
-			var pos = 0;
-			if ( attName.search(/nodeValue/i) > -1 ){
-				var attrRight = wrkStr.substring(attr.length);
-				//do not read context if string, function or array reference
-				if( isFn > -1)
-					aJS.push(outputFn(attValue, currentLoop))
-				else if (isStr > -1)
-					aJS.push(out(attValue.substring( 1, attValue.length-1 )));
-				else if (isArrayRef)
-					aJS.push(out(attValue));
-				else
-					aJS.push(contextOut(attValue));
-				
-				aJS.push(strOut(attrRight));}
-			else{
-				if (isStr > -1){ //a string leave it as is
-					aJS.push(strOut(attName + '=' + attValue));}
-				else{
-					aJS.push(strOut(attName + '='));
-					if (isFn > -1){ //a function remove the quotes for evaluation
-						aJS.push(strOut('"') + outputFn(attValue, currentLoop) + strOut('"'));}
-					else if(isArrayRef){//an array reference
-						aJS.push(strOut('"')+out(attValue)+strOut('"'));}
-					else //context data
-						aJS.push(contextOut(attValue));}
-	
-				//push the after attribute string
-				aJS.push(strOut(wrkStr.substr(attr.length, wrkStr.length)));}*/}}
+				if(wrkStr != '') aJS.push(strOut(wrkStr));}}
 	
 		aJS.push( 'return output.join("");}' );
 		var js = aJS.join('');

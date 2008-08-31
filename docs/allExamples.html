@@ -17,23 +17,31 @@
 				var html = document.getElementById('hello');
 				var context = { "name": "Mary", "id":"3456" };
 				var directive = {
-					"span.who":"name",
-					"span.who[id]":"'7890'",
-					"span.who[class]":"'who other'",
-					"[id]":"id"};
+					"span.who":"name", // simple variable assignment
+					"span.who[class]":"'who other'", //assign a string value
+					"[id]":"id"}; //set an attribute value for the root node of the template
 				
 				html = $p.map( directive, html);
 				var target = document.getElementById('render1');
 				$p.render(html, context, target);}
+				
+			function lineClick(name){ alert(name); } //example1 of event attachment, still some research needed
+
+			function swapStyle(obj, inOut){ //example2
+				obj.className = (inOut) ? 'player hover' : 'player';};
 				
 			function render2(){
 				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
 				
 				var players = $('table.players')
 				.$pMap( {'tbody tr' : 'player <-',
-						 'tbody tr td' : 'player'});
+					'tbody tr td[onclick]':function(context,items, pos){ return 'lineClick(\''+items[pos]+'\');'},
+					'tbody tr td[onmouseover]':'\'swapStyle(this, true);\'',
+					'tbody tr td[onmouseout]' :'\'swapStyle(this, false);\'',
+					'tbody tr td[style]':'\'cursor:pointer\'',
+					'tbody tr td' : 'player'});
 
-		        $p.compile(players, 'f2');
+				$p.compile(players, 'f2');
 				$('#render2').html( $p.render('f2', context) );}
 
 			function render3(){
@@ -87,7 +95,7 @@
 						'td.player': 'player[0]',
 						'td.score': 'player[1]',
 						'td.position': lineNb,
-						'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } });
+						'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
 				
 				$('td.teamPlace', scoreBoard).html(teamList);
 				$p.compile(scoreBoard, 'f5');
@@ -118,7 +126,7 @@
 			     	  "ul.nav1 li a" : "sub1.name", 
 				  "ul.nav1 li a[href]" : "sub1.url",
 			     	  "ul.nav2 li" : "sub2 <- sub1.subMenu",
-			     	  "ul.nav2 li a" : "sub2.name", 
+			     	  "ul.nav2 li a" : "sub2['name']", //same result as sub2.name
 				  "ul.nav2 li a[href]" : "sub2.url"};
 				var menu = $('ul#nav').$pMap(directive);
 				$p.compile(menu, 'f6');
@@ -152,6 +160,8 @@
 		</div>
 		<h3>Example 2: Iteration on a table</h3>
 		<div class="demo">
+			In addition to the iteration, this example shows a way to attach events by a directive.<br />
+			Mouse over the lines of the rendered table, and click on a line.<br/>
 			<div class="htmlDoc">
 				<a href="#" onclick="render2();return false;">render</a>
                 <table class="players">
@@ -234,8 +244,8 @@
 
 		<h3>Compile your HTML's into Javascript and save some Kb</h3>
 
-		<p class="note"><input onclick="renderAll();$p.getRuntime(this);return false" value="get the PURE runtime file" type="button"></input><br />
-		<textarea id="pureRuntime">Click the link above to get all the HTML compiled to a JS file. The screen may scroll a little.</textarea>
+		<p class="note"><p><input onclick="renderAll();$p.getRuntime(this);return false" value="get the PURE runtime file" type="button"></input></p>
+		<textarea id="pureRuntime">Click the button above to get all the HTML compiled to a JS file. The screen may scroll a little.</textarea>
 		<p>Copy paste the content of the text area above to a JS file. Save it. You can even minify and/or gzip it.<br />
 		Then include this JS file in your pages. Your compiled HTML's will be available and cached by the browser as any other JS file.</p>
 		<p>Then you can save some additional Kb from your page, by removing pure.js and all the code that set the directives, and compile.<br />
