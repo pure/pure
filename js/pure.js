@@ -19,8 +19,8 @@ var pure  = window.$p = window.pure ={
 	
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
-		var src = ['var pure =window.$p = window.pure ={', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
-		for (fName in this.compiledFunctions){
+		var src = ['var pure =window.$p = window.pure ={', '$c:', this.$c.toString(), ',', '$f:[', this.$f.toString(), '],', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
+		for (var fName in this.compiledFunctions){
 		var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
 		src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
 		src.push(this.compiledFunctions[fName].compiled.toString()+';');}
