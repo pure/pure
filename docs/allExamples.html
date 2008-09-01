@@ -17,17 +17,17 @@
 				var html = document.getElementById('hello');
 				var context = { "name": "Mary", "id":"3456" };
 				var directive = {
-					"span.who":"name", // simple variable assignment
-					"span.who[class]":"'who other'", //assign a string value
-					"[id]":"id"}; //set an attribute value for the root node of the template
+					'span.who':'name', // simple variable assignment
+					'span.who[class]':'"who other"', // assign a string value
+					'[id]':'id'}; // set an attribute value for the root node of the template
 				
 				html = $p.map( directive, html);
 				var target = document.getElementById('render1');
 				$p.render(html, context, target);}
 				
-			function lineClick(name){ alert(name); } //example1 of event attachment, still some research needed
+			function lineClick(name){ alert(name); } // example1 of event attachment, still some research needed
 
-			function swapStyle(obj, inOut){ //example2
+			function swapStyle(obj, inOut){ // example2 for mouseover, mouseout
 				obj.className = (inOut) ? 'player hover' : 'player';};
 				
 			function render2(){
@@ -36,9 +36,9 @@
 				var players = $('table.players')
 				.$pMap( {'tbody tr' : 'player <-',
 					'tbody tr td[onclick]':function(context,items, pos){ return 'lineClick(\''+items[pos]+'\');'},
-					'tbody tr td[onmouseover]':'\'swapStyle(this, true);\'',
-					'tbody tr td[onmouseout]' :'\'swapStyle(this, false);\'',
-					'tbody tr td[style]':'\'cursor:pointer\'',
+					'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
+					'tbody tr td[onmouseout]' : '"swapStyle(this, false);"', //both '"..."' and "'...'" work now
+					'tbody tr td[style]':"'cursor:pointer'",
 					'tbody tr td' : 'player'});
 
 				$p.compile(players, 'f2');
@@ -94,7 +94,7 @@
 						'tbody tr': 'player <- teams[1]',
 						'td.player': 'player[0]',
 						'td.score': 'player[1]',
-						'td.position': lineNb,
+						'td.position': lineNb, //passing the pointer of a function that does not use "this"
 						'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
 				
 				$('td.teamPlace', scoreBoard).html(teamList);

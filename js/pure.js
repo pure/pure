@@ -36,7 +36,7 @@ var pure  = window.$p = window.pure ={
 		txt.id = 'pureRuntime';
 		document.body.appendChild(txt);
 		txt.select();}},
-		
+
 	$f:[],
 
 	$c:function(context, path){
@@ -46,18 +46,14 @@ var pure  = window.$p = window.pure ={
 		var aPath = path.split(/\./);
 		var value = context[aPath[0]];
 		if(value == 'undefined') value = window[aPath[0]];
-		
+
 		for (var i=1; i<aPath.length; i++){
 			if (!value){
 				i = aPath.length;
 				continue;}
-		
-		value = value[aPath[i]];}
-		
-//      //TODO: XPath if xml context
-//      }else if(typeof context ~~ 'xml'){
-	
-	}
+
+		value = value[aPath[i]];}}
+
 	if (!value && value!=0) value = '""';
 	return value;},
 
@@ -81,22 +77,13 @@ var pure  = window.$p = window.pure ={
 	compiledFunctions:{},
 
 	domCleaningRules:[
-		//put all absolute links( img.src ) of window.location relative to the root
-		{what:new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'), by:''},
-		//remove spaces between >..< (IE 6)
-		{what:/\>\s+\</g, by:'><'}, 
-		//clean leading white spaces in the html
-		{what:/^\s+/, by:''},
-		//may be too strong check with and pre, textarea,...
-		{what:/\n/g, by:''},
-		//remove pure ns (IE)
-		{what:/\<\?xml:namespace[^>]*beebole[^\>]*\>/gi, by:''}],
+		{what:new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'), by:''},//put all absolute links( img.src ) of window.location relative to the root
+		{what:/\>\s+\</g, by:'><'}, //remove spaces between >..< (IE 6) 
+		{what:/^\s+/, by:''},//clean leading white spaces in the html
+		{what:/\n/g, by:''},//may be too strong check with and pre, textarea,...
+		{what:/\<\?xml:namespace[^>]*beebole[^\>]*\>/gi, by:''}],//remove pure ns (IE)
 
 	compile: function(HTML, fName, noEval){
-		// Why compiling instead of DOM ?
-		// 1) innerHTML is way faster than DOM manipulation on today's browser
-		// 2) once the compiledFunctions are compiled they can be collected, gzipped in a single js file, then cached by the browser
-		
 		function out(content){ return ['output.push(', content, ');'].join('')};
 		function strOut(content){ return ['output.push(', "'", content, "');"].join('')};
 		function outputFn(attValue, currentLoop){ return out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
@@ -246,7 +233,6 @@ var pure  = window.$p = window.pure ={
 		return div.innerHTML;})();},
 
 	map:function(directives, HTML){
-		// apply the directive to the HTML for parsing
 		// a directive is a tuple{ dom selector, value }
 		// returns the HTML with the directives as pure:<attr>="..."
 		if(!HTML[0] && HTML.length == 0){
@@ -283,6 +269,9 @@ var pure  = window.$p = window.pure ={
 					//check if the directive is a repetition
 					var repetition = currentDir.search(/w*<-w*/);
 					if(repetition > -1) attName = 'repeat';}
+				
+				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
+					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 
 				target.setAttribute( this.ns + attName, currentDir);
 				if(repetition < 0){
@@ -298,7 +287,6 @@ var pure  = window.$p = window.pure ={
 				if(clone.className !='') parentName.push('#' + clone.className);
 				this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}
 
-		//target = null;
 		return clone;},
 
 	messages:{
@@ -333,7 +321,6 @@ try{ if (jQuery){
 	$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
 		return (found[0]) ? found[0]:false}}
-
 	// jQuery chaining functions
 	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));};
 	$.fn.$pCompile = function(fName, noEval){return $p.compile($(this), fName, noEval);};
