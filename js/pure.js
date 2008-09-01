@@ -260,26 +260,26 @@ var pure  = window.$p = window.pure ={
 
 
 				var attName = 'nodeValue'; //default
-				if (isAttr){
+				var repetition = -1;
+                if (isAttr){
 					//the directive points to an attribute
 					attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
 					if(attName.indexOf(this.ns) > -1) 
 						attName = attName.substring(this.ns.length);}
 				else{
 					//check if the directive is a repetition
-					var repetition = currentDir.search(/w*<-w*/);
+					repetition = currentDir.search(/w*<-w*/);
 					if(repetition > -1) attName = 'repeat';}
 				
 				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 
 				target.setAttribute( this.ns + attName, currentDir);
-				if(repetition < 0){
-					if(isAttr && attName != 'nodeValue'){
+					if(isAttr && attName != 'nodeValue' && repetition < 0){
 						try{ //some special attributes do not like it so try & catch
 							target[attName]=''; //IE
 							target.removeAttribute(attName);}
-						catch(e){}}}}
+						catch(e){}}}
 
 			else{ // target not found
 				var parentName = [clone.nodeName];
