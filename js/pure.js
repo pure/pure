@@ -98,17 +98,32 @@ var pure  = window.$p = window.pure ={
 		function strOut(content){ return ['output.push(', "'", content, "');"].join('')};
 		function outputFn(attValue, currentLoop){ return out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
 		function contextOut(path){ return ['output.push($p.$c(context, ', path, '));'].join('')};
-		function att2node(obj, ns, context, autoRenderAtt){
-			function autoMap(node, autoRender, context, openArray, autoRenderAtt){
+		function att2node(node, ns, context, autoRenderAtt){
+			var autoRender = node.getAttribute(ns + 'autoRender');
+			node.removeAttribute(ns + 'autoRender');
+			var currentNode = node, openArray=[];
+			while (currentNode != null) {
+				autoMap(currentNode, autoRender, context, autoRenderAtt, openArray);
+				var nextNode = currentNode.firstChild;
+				if (nextNode != null) {
+					currentNode = nextNode;
+					continue;}
+				while (currentNode != null) {
+					nextNode = currentNode.nextSibling;
+					if (nextNode != null) {
+						currentNode = nextNode;
+						break;}
+					if (currentNode = node) 
+						currentNode = null;
+					else 
+						currentNode = currentNode.parentNode;}}
+			function autoMap(node, autoRender, context, autoRenderAtt, openArray){
 				if (node.nodeType == 1) {
-					if (!openArray) {
-						openArray = []
-					};
 					var repeatAtt = ns + 'repeat';
 					var nodeValueAtt = ns + 'nodeValue';
 					var replaced, replacer, replacedSrc, nodeValueSrc, toMap, inContext, k, j, i, att;
 					if (autoRender == 'true') {
-						toMap = obj.getAttribute(autoRenderAtt);
+						toMap = node.getAttribute(autoRenderAtt);
 						if (toMap) {
 							inContext = false;
 							toMap = toMap.split(/\s+/);
@@ -128,12 +143,12 @@ var pure  = window.$p = window.pure ={
 								if (prop) {
 									if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
 										openArray.push(att[0]);
-										obj.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);
+										node.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);
 									}
 									else {
 										if (att[1]) {
 											try {
-												obj.removeAttribute(att[1]);
+												node.removeAttribute(att[1]);
 											} 
 											catch (e) {
 											}
@@ -142,8 +157,8 @@ var pure  = window.$p = window.pure ={
 											att.push('nodeValue')
 										};
 										
-										if (!obj.getAttribute(ns + att[1])) {
-											obj.setAttribute(ns + att[1], att[0]);
+										if (!node.getAttribute(ns + att[1])) {
+											node.setAttribute(ns + att[1], att[0]);
 										};
 									}
 								}
@@ -152,30 +167,8 @@ var pure  = window.$p = window.pure ={
 					}
 				}
 			}
-			function traverse(node, autoRender, context, autoRenderAtt){//Non-recursive Tail walk: Tx2 John Cowan
-				var args = Array.prototype.slice.call(arguments);
-				delete args[0];delete args[0];
-				var currentNode = node;
-				while (currentNode != null) {
-					callBack(currentNode, autoRender, context, autoRenderAtt);
-					var nextNode = currentNode.firstChild;
-					if (nextNode != null) {
-						currentNode = nextNode;
-						continue;}
-					while (currentNode != null) {
-						nextNode = currentNode.nextSibling;
-						if (nextNode != null) {
-							currentNode = nextNode;
-							break;}
-						if (currentNode = node) 
-							currentNode = null;
-						else 
-							currentNode = currentNode.parentNode;}}}
-
-			var autoRender = obj.getAttribute(ns + 'autoRender');
-			obj.removeAttribute(ns + 'autoRender');
-			traverse(obj, autoRender, context, autoRenderAtt);
 		}
+
 
 /*					try {
 						replacedSrc = obj.getAttribute(repeatAtt); //wrap to find the end easily
