@@ -10,20 +10,11 @@
 			.transformation{width:90%;background-color:#DEF;}
 			.demo{border:solid 1px #ccc;background-color:#def;padding:10px}
 		</style>
-		<script type="text/javascript" src="../js/jqueryMin.js"></script>
+		<script type="text/javascript" src="../../library/jquery.js"></script>
 		<script type="text/javascript" src="../js/pure.js"></script>
 		<script type="text/javascript">
 			function render1(){ 
-				var html = document.getElementById('hello');
-				var context = { "name": "Mary", "id":"3456" };
-				var directive = {
-					'span.who':'name', // simple variable assignment
-					'span.who[class]':'"who other"', // assign a string value
-					'[id]':'id'}; // set an attribute value for the root node of the template
-				
-				html = $p.map( directive, html);
-				var target = document.getElementById('render1');
-				$p.render(html, context, target);}
+				$('#hello').$pTransform({ "firstName": "Mary" } );}
 				
 			function lineClick(name){ alert(name); } // example1 of event attachment, still some research needed
 
@@ -45,14 +36,21 @@
 				$('#render2').html( $p.render('f2', context) );}
 
 			function render3(){
-				var context = [{"name":"Beebole", "url":"http://beebole.com"}, {"name":"BeeLit", "url":"http://beeLit.com"}, {"name":"PURE", "url":"http://beebole.com/pure"}];
+				var context = {
+					"id": "3456",
+					sites: [{ 
+						"name": "Beebole","url": "http://beebole.com"}, {
+						"name": "BeeLit", "url": "http://beeLit.com"}, {
+						"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 				
-				var beeboleSites = $('ol.teamList')
-				    .$pMap( {'li' : 'beeboleSite <-'})
+/*				var beeboleSites = $('ol.teamList')
+				    .$pMap( {'li' : 'beeboleSite <- sites'})
 				    .$pMap( {'a' : 'beeboleSite.name', 'a[href]':function(context, items, pos){return items[pos].url}}); //show an example of [ ] within ( ) and as the ( ) are not necessary
 
 		        $p.compile(beeboleSites, 'f3');
-		        $('#render3').html( $p.render('f3', context) );}
+		        $('#render3').html( $p.render('f3', context) );*/
+				$('ol.teamList').$pTransform(context);
+				}
 
 			function render4(){
 				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
@@ -151,7 +149,7 @@
 			<a href="#" onclick="render1();return false;">render</a>
 			<div class="htmlDoc">
 				<div id="hello"> 
-					Hello <span class="who">World</span>
+					Hello <span class="who firstName">World</span>
 				</div>
 			</div>
 			<div class="transformation">
@@ -178,7 +176,7 @@
 			<div class="htmlDoc">
 				<a href="#" onclick="render3();return false;">render</a>
 				<ol class="teamList">
-					<li class="player"><a href="http://beebole.com">Beebole</a></li>
+					<li class="player sites"><a class="name url@href" href="http://beebole.com">Beebole</a></li>
 				</ol>
 			</div>
 			<div class="transformation">

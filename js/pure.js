@@ -54,8 +54,15 @@ var pure  = window.$p = window.pure ={
 
 		value = value[aPath[i]];}}
 
-	if (!value && value!=0) value = '""';
+		if (!value && value!=0) value = '""';
 	return value;},
+
+	autoRenderAtt: ['class'],
+	
+	transform:function(html, context, directive, target){
+		html.setAttribute(this.ns+'autoRender', true); //add autorendering
+		if(directive){ this.map(directive, html, true);}
+		return this.render(html, context, target);},
 
 	render: function(fName, context, target){
 		// apply the HTML to the context and return the innerHTML string
@@ -63,13 +70,16 @@ var pure  = window.$p = window.pure ={
 			//an HTML element is passed to render, so first compile it
 			var HTML = fName;
 			fName = this.compiledFunctions.length || 0;
-			this.compile(HTML, fName);}
+			this.compile(HTML, fName, context, false);}
 			
 		if(this.compiledFunctions[fName]){
 			var str = this.compiledFunctions[fName].compiled(context);
-			if(target) target.innerHTML = str;
-			//if temp compilation delete it
-			if(HTML) delete this.compiledFunctions[fName];
+			if (target) {
+				target.innerHTML = str}
+			else{
+				if (HTML) {
+					//if temp compilation delete it
+					delete this.compiledFunctions[fName];}}
 			return str;}
 		else{
 			this.msg('HTML_does_not_exist', fName);}},
@@ -82,35 +92,166 @@ var pure  = window.$p = window.pure ={
 		{what:/^\s+/, by:''},//clean leading white spaces in the html
 		{what:/\n/g, by:''},//may be too strong check with and pre, textarea,...
 		{what:/\<\?xml:namespace[^>]*beebole[^\>]*\>/gi, by:''}],//remove pure ns (IE)
-
-	compile: function(HTML, fName, noEval){
+	
+	compile: function(HTML, fName, context, noEval){
 		function out(content){ return ['output.push(', content, ');'].join('')};
 		function strOut(content){ return ['output.push(', "'", content, "');"].join('')};
 		function outputFn(attValue, currentLoop){ return out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
 		function contextOut(path){ return ['output.push($p.$c(context, ', path, '));'].join('')};
-		function att2node(obj, ns){
-		// find on [pure:repeat] alone does not work, so look all nodes and filter
-		var allNodes = obj.getElementsByTagName('*');
-		var repeats = [], node;
-		var repeatAtt = ns+'repeat';
-		var nodeValueAtt = ns+'nodeValue';
-		var replaced, replacer, replacedSrc, nodeValueSrc;
-		for (var i = 0; i<allNodes.length;i++){
-			try{
-				node = allNodes[i];
-				replacedSrc = node.getAttribute(repeatAtt); //wrap to find the end easily
-				if (replacedSrc){
-					replaced = node.cloneNode(true);
-					replaced.removeAttribute(repeatAtt);
-					replacer = document.createElement(repeatAtt);
-					replacer.appendChild(replaced);
-					replacer.setAttribute( 'source', "" + replacedSrc);
-					node.parentNode.replaceChild(replacer, node);}
-				nodeValueSrc = node.getAttribute(nodeValueAtt); // put the node value in place
-				if (nodeValueSrc){
-					node.innerHTML = nodeValueAtt+'="'+nodeValueSrc+'"';
-					node.removeAttribute(nodeValueAtt);}
-			}catch(e){}}}
+		function att2node(obj, ns, context, autoRenderAtt){
+			function autoMap(node, autoRender, context, openArray, autoRenderAtt){
+				if (node.nodeType == 1) {
+					if (!openArray) {
+						openArray = []
+					};
+					var repeatAtt = ns + 'repeat';
+					var nodeValueAtt = ns + 'nodeValue';
+					var replaced, replacer, replacedSrc, nodeValueSrc, toMap, inContext, k, j, i, att;
+					if (autoRender == 'true') {
+						toMap = obj.getAttribute(autoRenderAtt);
+						if (toMap) {
+							inContext = false;
+							toMap = toMap.split(/\s+/);
+							for (j = 0; j < toMap.length; j++) {
+								att = toMap[j].split(/@/);
+								if (openArray.length == 0) {
+									prop = context[att[0]]
+								}
+								else {
+									for (k = 0; k < openArray.length; k++) {
+										prop = context[openArray[k]][0][att[0]];
+										if (prop) 
+											k = openArray.length + 1;
+										continue
+									}
+								}
+								if (prop) {
+									if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
+										openArray.push(att[0]);
+										obj.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);
+									}
+									else {
+										if (att[1]) {
+											try {
+												obj.removeAttribute(att[1]);
+											} 
+											catch (e) {
+											}
+										}
+										else {
+											att.push('nodeValue')
+										};
+										
+										if (!obj.getAttribute(ns + att[1])) {
+											obj.setAttribute(ns + att[1], att[0]);
+										};
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			function traverse(node, autoRender, context, autoRenderAtt){//Non-recursive Tail walk: Tx2 John Cowan
+				var args = Array.prototype.slice.call(arguments);
+				delete args[0];delete args[0];
+				var currentNode = node;
+				while (currentNode != null) {
+					callBack(currentNode, autoRender, context, autoRenderAtt);
+					var nextNode = currentNode.firstChild;
+					if (nextNode != null) {
+						currentNode = nextNode;
+						continue;}
+					while (currentNode != null) {
+						nextNode = currentNode.nextSibling;
+						if (nextNode != null) {
+							currentNode = nextNode;
+							break;}
+						if (currentNode = node) 
+							currentNode = null;
+						else 
+							currentNode = currentNode.parentNode;}}}
+
+			var autoRender = obj.getAttribute(ns + 'autoRender');
+			obj.removeAttribute(ns + 'autoRender');
+			traverse(obj, autoRender, context, autoRenderAtt);
+		}
+
+/*					try {
+						replacedSrc = obj.getAttribute(repeatAtt); //wrap to find the end easily
+						if (replacedSrc) {
+							replaced = obj.cloneNode(true);
+							replaced.removeAttribute(repeatAtt);
+							replacer = document.createElement(repeatAtt);
+							replacer.appendChild(replaced);
+							replacer.setAttribute('source', "" + replacedSrc);
+							obj.parentNode.replaceChild(replacer, obj);}
+						else {
+							nodeValueSrc = obj.getAttribute(nodeValueAtt); // put the node value in place
+							if (nodeValueSrc) {
+								obj.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
+								obj.removeAttribute(nodeValueAtt);}}}
+					catch (e) {}}};*/
+
+
+
+/*			function navTree(obj, openArray){
+				var kid, i, prop;
+				if (obj.nodeType == 1) {
+					if(!openArray){openArray = []};
+						var repeatAtt = ns + 'repeat';
+						var nodeValueAtt = ns + 'nodeValue';
+						var replaced, replacer, replacedSrc, nodeValueSrc, toMap, inContext, k, j, i, att;
+						if (autoRender == 'true') {
+							toMap = obj.getAttribute(autoRenderAtt);
+							if (toMap) {
+								inContext = false;
+								toMap = toMap.split(/\s+/);
+								for (j = 0; j < toMap.length; j++) {
+									att = toMap[j].split(/@/);
+									if (openArray.length == 0) {
+										prop = context[att[0]]}
+									else {
+										for (k = 0; k < openArray.length; k++) {
+											prop = context[openArray[k]][0][att[0]];
+											if (prop) 
+												k = openArray.length + 1; continue}}
+									if (prop) {
+										if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
+											openArray.push(att[0]);
+											obj.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);}
+										else {
+											if (att[1]) {
+												try {
+													obj.removeAttribute(att[1]);} 
+												catch (e) {}}
+											else {
+												att.push('nodeValue')
+											};
+
+											if (!obj.getAttribute(ns+att[1])) {
+											obj.setAttribute(ns + att[1], att[0]);};}}}}};
+						try {
+							replacedSrc = obj.getAttribute(repeatAtt); //wrap to find the end easily
+							if (replacedSrc) {
+								replaced = obj.cloneNode(true);
+								replaced.removeAttribute(repeatAtt);
+								replacer = document.createElement(repeatAtt);
+								replacer.appendChild(replaced);
+								replacer.setAttribute('source', "" + replacedSrc);
+								obj.parentNode.replaceChild(replacer, obj);}
+							else {
+								nodeValueSrc = obj.getAttribute(nodeValueAtt); // put the node value in place
+								if (nodeValueSrc) {
+									obj.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
+									obj.removeAttribute(nodeValueAtt);}}}
+						catch (e) {};
+					var kids = obj.childNodes;
+					for (i = 0; i < kids.length; i++) {
+						kid = kids[i];
+						if (kid.nodeType == 1) {
+							navTree(kid, openArray);}}}};
+*/
 
 		function isArray(attValue, openArrays){ //check if it is an array reference either [] or an open loop
 			var arrIndex = /\[[^\]]*]/.test(attValue);
@@ -125,8 +266,8 @@ var pure  = window.$p = window.pure ={
 		//convert to string, clean the HTML and convert to a js function
 		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
 		
-		//convert pure:repeat attributes in nodes for easy split
-		att2node(clone, this.ns);
+		//node manipulation before conversion to string
+		att2node(clone, this.ns, context, this.autoRenderAtt[0]);
 		
 		//convert the HTML to a string
 		var str = this.outerHTML( clone );
@@ -232,15 +373,20 @@ var pure  = window.$p = window.pure ={
 		div.appendChild(elm);
 		return div.innerHTML;})();},
 
-	map:function(directives, HTML){
+	map:function(directives, HTML, noClone){
 		// a directive is a tuple{ dom selector, value }
 		// returns the HTML with the directives as pure:<attr>="..."
 		if(!HTML[0] && HTML.length == 0){
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, currentDir; 
-		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
+		var fnId, currentDir;
+		var clone;
+		if (noClone){
+			clone = (HTML[0])? HTML[0] : HTML;}
+		else{
+			clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);}
+			
 		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
 			var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
 			if(/^\[/.test(selector)){ //attribute of the selected node
@@ -260,6 +406,7 @@ var pure  = window.$p = window.pure ={
 
 
 				var attName = 'nodeValue'; //default
+				var repetition = -1;
 				if (isAttr){
 					//the directive points to an attribute
 					attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
@@ -267,19 +414,18 @@ var pure  = window.$p = window.pure ={
 						attName = attName.substring(this.ns.length);}
 				else{
 					//check if the directive is a repetition
-					var repetition = currentDir.search(/w*<-w*/);
+					repetition = currentDir.search(/w*<-w*/);
 					if(repetition > -1) attName = 'repeat';}
 				
 				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 
 				target.setAttribute( this.ns + attName, currentDir);
-				if(repetition < 0){
-					if(isAttr && attName != 'nodeValue'){
+					if(isAttr && attName != 'nodeValue' && repetition < 0){
 						try{ //some special attributes do not like it so try & catch
 							target[attName]=''; //IE
 							target.removeAttribute(attName);}
-						catch(e){}}}}
+						catch(e){}}}
 
 			else{ // target not found
 				var parentName = [clone.nodeName];
@@ -323,7 +469,14 @@ try{ if (jQuery){
 		return (found[0]) ? found[0]:false}}
 	// jQuery chaining functions
 	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));};
-	$.fn.$pCompile = function(fName, noEval){return $p.compile($(this), fName, noEval);};
+	$.fn.$pTransform = function(context, directive, target){ 
+		$(this).each( function(){
+			if (target) {
+				target.html( $p.transform($(this)[0], context, directive));}
+			else {
+				$(this).replaceWith($p.transform($(this)[0], context, directive));}});};
+				
+	$.fn.$pCompile = function(fName, noEval){return $p.compile($(this), fName, false, noEval);};
 	$.fn.$pRender = function(context, target){return $p.render($(this), context, target);}
 
 }catch(e){ try{ if (MooTools){
