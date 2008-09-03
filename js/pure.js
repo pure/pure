@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    version: 1.3
+    version: 1.4
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -59,10 +59,31 @@ var pure  = window.$p = window.pure ={
 
 	autoRenderAtt: ['class'],
 	
-	transform:function(html, context, directive, target){
-		html.setAttribute(this.ns+'autoRender', true); //add autorendering
-		if(directive){ this.map(directive, html, true);}
-		return this.render(html, context, target);},
+	transform:function(html, context, directives, target){
+		//if attribute not already there false or true add it to trigger auto rendering
+		if(!html.getAttribute(this.ns+'autoRender'))
+			html.setAttribute(this.ns+'autoRender', true); 
+		//map the directives if any
+		if(directives){ this.map(directives, html, true);}
+		//compile
+		var fn = this.compiledFunctions.length || 0;
+		this.compile(html, fn, context, false);
+		//transform
+		var str = this.compiledFunctions[fn].compiled(context);
+		var replaced;
+		if(target){
+			//if a target is provided either obj or innerHTML
+			if (typeof target == 'string') {
+				target = str;
+				return;}
+			else 
+				replaced = target;
+		}else{
+			replaced = html;}
+		//no target, replace html by itself
+		var div = document.createElement('DIV');
+		div.innerHTML = str;
+		replaced.parentNode.replaceChild(div.firstChild, replaced);},
 
 	render: function(fName, context, target){
 		// apply the HTML to the context and return the innerHTML string
@@ -75,7 +96,9 @@ var pure  = window.$p = window.pure ={
 		if(this.compiledFunctions[fName]){
 			var str = this.compiledFunctions[fName].compiled(context);
 			if (target) {
-				target.innerHTML = str}
+				var div = document.createElement('DIV');
+				div.innerHTML = str;
+				target.parentNode.replaceChild(div.firstChild, target);}
 			else{
 				if (HTML) {
 					//if temp compilation delete it
@@ -103,57 +126,42 @@ var pure  = window.$p = window.pure ={
 			if (autoRender == 'true') {
 				toMap = n.getAttribute(autoRenderAtt);
 				if (toMap) {
-					toMap = toMap.split(/\s+/);
+					toMap = toMap.replace(/^\d|\s\d/g,'').split(/\s+/);//remove numeric classes as they mess up the array reference
 					for (j = 0; j < toMap.length; j++) {
 						repeatPrefix = '';
 						att = toMap[j].split(/@/);
 						prop = context[att[0]];
-						if (!prop && openArray.length > 0) {
-							for (k = 0; k < openArray.length; k++) {
-								prop = context[openArray[k]][0][att[0]];
-								if (prop) 
-									repeatPrefix = openArray[k];
-								k = openArray.length + 1;
-								continue
-							}
-						}
+						if(!prop){
+							if (openArray.length > 0) {
+								for (k = 0; k < openArray.length; k++) {
+									prop = (openArray[k] == 'context')?context[0][att[0]]:context[openArray[k]][0][att[0]];
+									if (prop) {//found a repetition field, break
+										repeatPrefix = openArray[k];
+										break;}
+									else if (att[0] == 'context'){ //check if not root context field
+										prop = true; 
+										j=100;}}}
+							else if (att[0] == 'context'){ //check if repeat on the context
+								prop = context;}}
+							
 						if (prop) {
 							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
 								openArray.push(att[0]);
-								this.repeats.push(n);
-								n.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);
-							}
+								n.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);}
 							else {
 								if (att[1]) {
 									try {
-										n.removeAttribute(att[1]);
-									} 
-									catch (e) {
-									}
-								}
+										n.removeAttribute(att[1]);} 
+									catch (e) {}}
 								else {
-									this.nodeValues.push(n);
-									att.push('nodeValue')
-								};
+									att.push('nodeValue')};
 								if (!n.getAttribute(ns + att[1])) {
-									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);
-								}
-							}
-						}
-					}
-				}
-			}
-			else {
-				//autoRender == null
-				var isNodeValue = n.getAttribute(ns + 'nodeValue');
-				if (isNodeValue) 
-					this.nodeValues.push(n);
-				var isRepeat = n.getAttribute(ns + 'repeat');
-				if (isRepeat) 
-					this.repeats.push(n);
-			}
-
-		},
+									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}}}
+			//flag the nodeValue and repeat attributes
+			var isNodeValue = n.getAttribute(ns + 'nodeValue');
+			if (isNodeValue) this.nodeValues.push(n);
+			var isRepeat = n.getAttribute(ns + 'repeat');
+			if (isRepeat) this.repeats.push(n);},
 
 		nodeWalk:function(node, ns, context, autoRenderAtt){
 			this.repeats = []; this.nodeValues = [];
@@ -167,14 +175,12 @@ var pure  = window.$p = window.pure ={
 					this.autoMap(c, ns, autoRender, context, autoRenderAtt, openArray);
 				n = c.firstChild;
 				if (n == null) {
-					// visit c
 					n = c.nextSibling;}
 				if (n == null) {
 					var tmp = c;
 					do {
 						n = tmp.parentNode;
 						if (n == node) break;
-						// visit n
 						tmp = n;
 						n = n.nextSibling;}
 					while (n == null)}
@@ -195,7 +201,7 @@ var pure  = window.$p = window.pure ={
 					catch (e) {}}}
 			if (this.repeats.length>0){
 				for(var i=0; i<this.repeats.length;i++){
-					n = this.repeats[this.repeats.length -i -1];
+					n = this.repeats[this.repeats.length -i -1];//start from inside the tree
 					try {
 						replacedSrc = n.getAttribute(repeatAtt); //wrap in tags for easy string find
 						if (replacedSrc) {
@@ -431,11 +437,8 @@ try{ if (jQuery){
 	// jQuery chaining functions
 	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));};
 	$.fn.$pTransform = function(context, directive, target){ 
-		$(this).each( function(){
-			if (target) {
-				target.html( $p.transform($(this)[0], context, directive));}
-			else {
-				$(this).replaceWith($p.transform($(this)[0], context, directive));}});};
+		$(this).each( function(){ 
+			$p.transform($(this)[0], context, directive, target)});};
 				
 	$.fn.$pCompile = function(fName, noEval){return $p.compile($(this), fName, false, noEval);};
 	$.fn.$pRender = function(context, target){return $p.render($(this), context, target);}

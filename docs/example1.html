@@ -11,21 +11,14 @@
 		<script type="text/javascript">
 			function transform(){
 				var html = document.getElementById('hello');
-				var context = { "name": "Mary" };
-				var directive = {"span.who":"name"};
-				html = $p.map( directive, html );
-				var target = document.getElementById('transform1');
-				$p.render(html, context, target);}
+				var context = { "who": "Mary" };
+				$p.transform(html, context);}
 
 			function libraryTransform(){
-				$('#target').html( 
-					$('#hello')
-					.$pMap({"span.who":"name"})
-					.$pRender({"name":"Mary"}) )
-			}
+				$('#hello').$pTransform({ "who": "Mary" });}
 		</script>
 	</head>
-	<body onload="transform()">
+	<body onload="$('#transform1').hide();">
  		<div class="links"><a href="#" onclick="setActiveStyleSheet('black');return false;">Dark Night</a><span style="color:#52ABFF"> | </span><a href="#" onclick="setActiveStyleSheet('white');return false;">Bright Day</a>
 				<br /><a href="quickStart.html">Quick Start</a><br />
 				<a href="example1.html">Example 1</a><br />
@@ -48,7 +41,7 @@
   Hello &lt;span class="who">World&lt;/span>
 &lt;/div></pre>
 		Which should look like this in your web browser:
-		<div id="hello">Hello <span class="who">World</span></div>
+		<div id="hello2">Hello <span class="who">World</span></div>
 		<p class="note">This HTML needs to be somewhere in your page while you develop.<br />In fact, and this is rather important, any portion of your static HTML page can be "activated" and become dynamic.</p>
 		We're done with our HTML and we can now start the javascript part.<br />We select this HTML by its Id.<br />
 		<pre>var html = document.getElementById( 'hello' );</pre>
@@ -60,35 +53,18 @@
 		It has the JSON format.<br />
 		In general, the context will come from an AJAX call.<br />
 		
-		<pre>var context = {"name":"Mary"}</pre>
+		<pre>var context = {"who":"Mary"}</pre>
 		<p class="note">It means: the var "context" has a property called "name" that has the value "Mary".<br />
 		<p class="note">JSON, to put it short, can be seen as a javascript equivalent of XML.<br />If you are not familiar with it, have a look at the <a href="http://www.json.org/" target="_blank">JSON site</a></p>
 		<p class="note">The rendering of XML data will be implemented <a href="http://code.google.com/p/pure/issues/detail?id=9" target="_blank">later</a></p>
 
 		
-		<h2>Mapping the context to the HTML</h2>
-		Here is the tricky part. We will now set a directive to link the data and the HTML.
-		<p>It has the format { <a href="http://www.w3.org/TR/css3-selectors/#selectors" target="_blank">selector</a> : data-path, ... }<br />
-		<pre>var directive = { "span.who" : "name" };</pre>
-		<p class="note">It means: we link the tag &lt;span&gt; having the class "who" to the property called "name" of our data.</p>
-		And we apply this directive to our HTML with the function $p.map( ).
-		<pre>html = $p.map( html, directive );</pre>
-		<p class="note">$p is the prefix for all PURE functions.<br />For this step a JS library is required such as <a href="http://dojotoolkit.org/" target="_blank">dojo</a>, <a href="http://www.domassistant.com/" target="_blank">domAssistant</a>, <a href="http://jquery.com/" target="_blank">jQuery</a>, <a href="http://mootools.net/" target="_blank">Mootools</a>, <a href="http://www.prototypejs.org/" target="_blank">prototype</a>,... with a valid CSS/DOM selector function.<br />
-		PURE needs this JS library only during the build phase. Only the jQuery interface is implemented so far.<br />
-		Hopefully the next release of the popular browsers should have the selectors implemented natively.</p>
-
-		
-		<h2>Rendering</h2>
-		In our page, we will now choose a site where we want to render our HTML.<br />
-		Here the &lt;div&gt; with the id "target".
-		<pre>&lt;div id="target"&gt;&lt;/div&gt;</pre>
-		We select it in our javascript by its Id.
-		<pre>var target = document.getElementById('target');</pre>
-		And finally, with the function $p.render( ) below, we apply the HTML to the context and place the result in the "target" element.
-		<pre>$p.render( html, context, target )</pre>
-		And we get this amazing ;) result:
+		<h2>Transformation</h2>
+		We will now apply the data to our HTML using the function $p.transform()
+		<pre>$p.transform( html, context )</pre>
 		<div id="transform1"><span class="oops">Oops! Either your javascript is disabled or something is broken...</span></div>
-		<p class="note">This "Hello Mary", was actually rendered by PURE running on this page.</p>
+		<input type="button" value="Click Here" onclick="transform();"/> to run PURE right now, and transform the template below with the data:
+		<div id="hello">Hello <span class="who">World</span></div>
 
 		
 		<h2>Putting all the JS commands together</h2>
@@ -96,18 +72,12 @@
 		The function transform( ) below has a classical javascript syntax.
 		<pre>function transform(){
   var html = document.getElementById('hello');
-  var context = { "name": "Mary" };
-  var directive = {"span.who":"name"};
-  html = $p.map( directive, html);
-  var target = document.getElementById('target');
-  $p.render(html, context, target);
+  var context = {"who": "Mary"};
+  $p.transform(html, context);
 }</pre>
 		While the one below is a JS library kind of syntax (here it's jQuery)
 		<pre id="jQueryCode">function libraryTransform() {
-  $("#target").html(
-    $("#hello")
-    .$pMap({ "span.who": "name" })
-    .$pRender({ "name": "Mary" }));
+  $("#hello").$pTransform( {"who": "Mary"} );
 }</pre>
 
 		
