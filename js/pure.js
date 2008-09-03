@@ -374,7 +374,7 @@ var pure  = window.$p = window.pure ={
 
 				var attName = 'nodeValue'; //default
 				var repetition = -1;
-				if (isAttr){
+                if (isAttr){
 					//the directive points to an attribute
 					attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
 					if(attName.indexOf(this.ns) > -1) 
