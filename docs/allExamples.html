@@ -43,14 +43,7 @@
 						"name": "BeeLit", "url": "http://beeLit.com"}, {
 						"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 				
-/*				var beeboleSites = $('ol.teamList')
-				    .$pMap( {'li' : 'beeboleSite <- sites'})
-				    .$pMap( {'a' : 'beeboleSite.name', 'a[href]':function(context, items, pos){return items[pos].url}}); //show an example of [ ] within ( ) and as the ( ) are not necessary
-
-		        $p.compile(beeboleSites, 'f3');
-		        $('#render3').html( $p.render('f3', context) );*/
-				$('ol.teamList').$pTransform(context);
-				}
+				$('ol.teamList').$pTransform(context);}
 
 			function render4(){
 				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
@@ -162,10 +155,7 @@
 			Mouse over the lines of the rendered table, and click on a line.<br/>
 			<div class="htmlDoc">
 				<a href="#" onclick="render2();return false;">render</a>
-                <table class="players">
-                    <thead><tr><th class="player">Player</th></tr></thead>
-                    <tbody><tr><td class="player">Chloe</td></tr></tbody>
-                </table>
+                <table class="players"><thead><tr><th class="player">Player</th></tr></thead><tbody><tr><td class="player">Chloe</td></tr></tbody></table>
 			</div>
 			<div class="transformation">
 				<div id="render2"></div>

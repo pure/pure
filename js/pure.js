@@ -92,175 +92,143 @@ var pure  = window.$p = window.pure ={
 		{what:/^\s+/, by:''},//clean leading white spaces in the html
 		{what:/\n/g, by:''},//may be too strong check with and pre, textarea,...
 		{what:/\<\?xml:namespace[^>]*beebole[^\>]*\>/gi, by:''}],//remove pure ns (IE)
-	
-	compile: function(HTML, fName, context, noEval){
-		function out(content){ return ['output.push(', content, ');'].join('')};
-		function strOut(content){ return ['output.push(', "'", content, "');"].join('')};
-		function outputFn(attValue, currentLoop){ return out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')};
-		function contextOut(path){ return ['output.push($p.$c(context, ', path, '));'].join('')};
-		function att2node(node, ns, context, autoRenderAtt){
-			var autoRender = node.getAttribute(ns + 'autoRender');
-			node.removeAttribute(ns + 'autoRender');
-			var currentNode = node, openArray=[];
-			while (currentNode != null) {
-				autoMap(currentNode, autoRender, context, autoRenderAtt, openArray);
-				var nextNode = currentNode.firstChild;
-				if (nextNode != null) {
-					currentNode = nextNode;
-					continue;}
-				while (currentNode != null) {
-					nextNode = currentNode.nextSibling;
-					if (nextNode != null) {
-						currentNode = nextNode;
-						break;}
-					if (currentNode = node) 
-						currentNode = null;
-					else 
-						currentNode = currentNode.parentNode;}}
-			function autoMap(node, autoRender, context, autoRenderAtt, openArray){
-				if (node.nodeType == 1) {
-					var repeatAtt = ns + 'repeat';
-					var nodeValueAtt = ns + 'nodeValue';
-					var replaced, replacer, replacedSrc, nodeValueSrc, toMap, inContext, k, j, i, att;
-					if (autoRender == 'true') {
-						toMap = node.getAttribute(autoRenderAtt);
-						if (toMap) {
-							inContext = false;
-							toMap = toMap.split(/\s+/);
-							for (j = 0; j < toMap.length; j++) {
-								att = toMap[j].split(/@/);
-								if (openArray.length == 0) {
-									prop = context[att[0]]
+
+	utils:{
+		nodeValues:[],
+		repeats:[],
+		autoMap: function(n, ns, autoRender, context, autoRenderAtt, openArray){
+			var repeatAtt = ns + 'repeat';
+			var nodeValueAtt = ns + 'nodeValue';
+			var replaced, replacer, replacedSrc, nodeValueSrc, toMap, k, j, i, att, repeatPrefix, prop;
+			if (autoRender == 'true') {
+				toMap = n.getAttribute(autoRenderAtt);
+				if (toMap) {
+					toMap = toMap.split(/\s+/);
+					for (j = 0; j < toMap.length; j++) {
+						repeatPrefix = '';
+						att = toMap[j].split(/@/);
+						prop = context[att[0]];
+						if (!prop && openArray.length > 0) {
+							for (k = 0; k < openArray.length; k++) {
+								prop = context[openArray[k]][0][att[0]];
+								if (prop) 
+									repeatPrefix = openArray[k];
+								k = openArray.length + 1;
+								continue
+							}
+						}
+						if (prop) {
+							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
+								openArray.push(att[0]);
+								this.repeats.push(n);
+								n.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);
+							}
+							else {
+								if (att[1]) {
+									try {
+										n.removeAttribute(att[1]);
+									} 
+									catch (e) {
+									}
 								}
 								else {
-									for (k = 0; k < openArray.length; k++) {
-										prop = context[openArray[k]][0][att[0]];
-										if (prop) 
-											k = openArray.length + 1;
-										continue
-									}
-								}
-								if (prop) {
-									if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
-										openArray.push(att[0]);
-										node.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);
-									}
-									else {
-										if (att[1]) {
-											try {
-												node.removeAttribute(att[1]);
-											} 
-											catch (e) {
-											}
-										}
-										else {
-											att.push('nodeValue')
-										};
-										
-										if (!node.getAttribute(ns + att[1])) {
-											node.setAttribute(ns + att[1], att[0]);
-										};
-									}
+									this.nodeValues.push(n);
+									att.push('nodeValue')
+								};
+								if (!n.getAttribute(ns + att[1])) {
+									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);
 								}
 							}
 						}
 					}
 				}
 			}
-		}
+			else {
+				//autoRender == null
+				var isNodeValue = n.getAttribute(ns + 'nodeValue');
+				if (isNodeValue) 
+					this.nodeValues.push(n);
+				var isRepeat = n.getAttribute(ns + 'repeat');
+				if (isRepeat) 
+					this.repeats.push(n);
+			}
 
+		},
 
-/*					try {
-						replacedSrc = obj.getAttribute(repeatAtt); //wrap to find the end easily
+		nodeWalk:function(node, ns, context, autoRenderAtt){
+			this.repeats = []; this.nodeValues = [];
+			var autoRender = node.getAttribute(ns + 'autoRender');
+			node.removeAttribute(ns + 'autoRender');
+			var openArray=[];
+			//memory safe tree traverse
+			var c = node, n = null;
+			do {
+				if (c.nodeType == 1) 
+					this.autoMap(c, ns, autoRender, context, autoRenderAtt, openArray);
+				n = c.firstChild;
+				if (n == null) {
+					// visit c
+					n = c.nextSibling;}
+				if (n == null) {
+					var tmp = c;
+					do {
+						n = tmp.parentNode;
+						if (n == node) break;
+						// visit n
+						tmp = n;
+						n = n.nextSibling;}
+					while (n == null)}
+				c = n;}
+			while (c != node);
+
+			var repeatAtt = ns + 'repeat';
+			var nodeValueAtt = ns + 'nodeValue';
+			var replaced, replacer, replacedSrc, nodeValueSrc;
+			if (this.nodeValues.length>0){
+				for (var j = 0; j < this.nodeValues.length; j++) {
+					try {
+						n = this.nodeValues[j];
+						nodeValueSrc = n.getAttribute(nodeValueAtt); // put the node value in place
+						if (nodeValueSrc) {
+							n.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
+							n.removeAttribute(nodeValueAtt);}} 
+					catch (e) {}}}
+			if (this.repeats.length>0){
+				for(var i=0; i<this.repeats.length;i++){
+					n = this.repeats[this.repeats.length -i -1];
+					try {
+						replacedSrc = n.getAttribute(repeatAtt); //wrap in tags for easy string find
 						if (replacedSrc) {
-							replaced = obj.cloneNode(true);
+							replaced = n.cloneNode(true);
 							replaced.removeAttribute(repeatAtt);
 							replacer = document.createElement(repeatAtt);
 							replacer.appendChild(replaced);
 							replacer.setAttribute('source', "" + replacedSrc);
-							obj.parentNode.replaceChild(replacer, obj);}
-						else {
-							nodeValueSrc = obj.getAttribute(nodeValueAtt); // put the node value in place
-							if (nodeValueSrc) {
-								obj.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
-								obj.removeAttribute(nodeValueAtt);}}}
-					catch (e) {}}};*/
+							n.parentNode.replaceChild(replacer, n);}}
+					catch (e) {}}}},
 
+		out:function(content){ return ['output.push(', content, ');'].join('')},
+		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
+		outputFn:function (attValue, currentLoop){ return this.out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')},
+		contextOut:function(path){ return ['output.push($p.$c(context, ', path, '));'].join('')},
 
-
-/*			function navTree(obj, openArray){
-				var kid, i, prop;
-				if (obj.nodeType == 1) {
-					if(!openArray){openArray = []};
-						var repeatAtt = ns + 'repeat';
-						var nodeValueAtt = ns + 'nodeValue';
-						var replaced, replacer, replacedSrc, nodeValueSrc, toMap, inContext, k, j, i, att;
-						if (autoRender == 'true') {
-							toMap = obj.getAttribute(autoRenderAtt);
-							if (toMap) {
-								inContext = false;
-								toMap = toMap.split(/\s+/);
-								for (j = 0; j < toMap.length; j++) {
-									att = toMap[j].split(/@/);
-									if (openArray.length == 0) {
-										prop = context[att[0]]}
-									else {
-										for (k = 0; k < openArray.length; k++) {
-											prop = context[openArray[k]][0][att[0]];
-											if (prop) 
-												k = openArray.length + 1; continue}}
-									if (prop) {
-										if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
-											openArray.push(att[0]);
-											obj.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);}
-										else {
-											if (att[1]) {
-												try {
-													obj.removeAttribute(att[1]);} 
-												catch (e) {}}
-											else {
-												att.push('nodeValue')
-											};
-
-											if (!obj.getAttribute(ns+att[1])) {
-											obj.setAttribute(ns + att[1], att[0]);};}}}}};
-						try {
-							replacedSrc = obj.getAttribute(repeatAtt); //wrap to find the end easily
-							if (replacedSrc) {
-								replaced = obj.cloneNode(true);
-								replaced.removeAttribute(repeatAtt);
-								replacer = document.createElement(repeatAtt);
-								replacer.appendChild(replaced);
-								replacer.setAttribute('source', "" + replacedSrc);
-								obj.parentNode.replaceChild(replacer, obj);}
-							else {
-								nodeValueSrc = obj.getAttribute(nodeValueAtt); // put the node value in place
-								if (nodeValueSrc) {
-									obj.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
-									obj.removeAttribute(nodeValueAtt);}}}
-						catch (e) {};
-					var kids = obj.childNodes;
-					for (i = 0; i < kids.length; i++) {
-						kid = kids[i];
-						if (kid.nodeType == 1) {
-							navTree(kid, openArray);}}}};
-*/
-
-		function isArray(attValue, openArrays){ //check if it is an array reference either [] or an open loop
+		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
 			var arrIndex = /\[[^\]]*]/.test(attValue);
 			var objProp  = attValue.replace(/(")|(')/g,'').split(/\./);
-			return (arrIndex || openArrays[objProp[0]]) ? true: false;}
+			return (arrIndex || openArrays[objProp[0]]) ? true: false;},
 
-		function arrayName(pName){
+		arrayName:function(pName){
 			var name=pName.match(/\w*/)[0] || ''; 
 			var subIndex= pName.substring(name.length).replace(/\[\s*]/,''); // take the tail and replace [ ] by ''
-			return name + '[' + name + 'Index]' + subIndex;}
+			return name + '[' + name + 'Index]' + subIndex;}},
+
+	compile: function(HTML, fName, context, noEval){
 
 		//convert to string, clean the HTML and convert to a js function
 		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
 		
 		//node manipulation before conversion to string
-		att2node(clone, this.ns, context, this.autoRenderAtt[0]);
+		this.utils.nodeWalk(clone, this.ns, context, this.autoRenderAtt[0]);
 		
 		//convert the HTML to a string
 		var str = this.outerHTML( clone );
@@ -284,7 +252,7 @@ var pure  = window.$p = window.pure ={
 			wrkStr = aDom[j];
 			if (j==0){
 				//push the first line as it is HTML
-				aJS.push(strOut(wrkStr.substring(0, wrkStr.length)));}
+				aJS.push(this.utils.strOut(wrkStr.substring(0, wrkStr.length)));}
 			else{
 				if (/^repeat[^\>]*\>/i.test(wrkStr)){
 					rTag = wrkStr.match(/^repeat[^\>]*>/i);
@@ -294,9 +262,9 @@ var pure  = window.$p = window.pure ={
 						subSrc = rSrc.split(/\<-/);
 						currentLoop = subSrc[0];
 						var arrSrc = subSrc[1] || '';
-						if ( isArray(arrSrc, openArrays) ){
+						if ( this.utils.isArray(arrSrc, openArrays) ){
 							//reference to an open array
-							aJS.push('var ' + currentLoop + '=' + arrayName(arrSrc) + ';');}
+							aJS.push('var ' + currentLoop + '=' + this.utils.arrayName(arrSrc) + ';');}
 						else{
 							if (arrSrc.search(/context/i) > -1 || arrSrc.length == 0)
 								aJS.push('var ' + currentLoop + '= context;');
@@ -304,7 +272,7 @@ var pure  = window.$p = window.pure ={
 								aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
 						
 						aJS.push('for('+currentLoop+'Index in '+currentLoop+'){');
-						aJS.push(strOut(wrkStr.substring(rTag[0].length)));
+						aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length)));
 						openArrays[currentLoop] = cnt++;}
 				
 					else{ //end of loop;
@@ -316,7 +284,7 @@ var pure  = window.$p = window.pure ={
 							if( curr > max){
 							max = curr;
 							currentLoop = key;}}
-						aJS.push(strOut(wrkStr.substring(rTag[0].length, wrkStr.length)));}
+						aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length, wrkStr.length)));}
 
 					rTag = false;
 					continue;}
@@ -330,23 +298,23 @@ var pure  = window.$p = window.pure ={
 						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
 
 					isNodeValue = /^nodeValue/i.test(wrkStr);	
-					(isNodeValue) ? attName = 'nodeValue': aJS.push(strOut(attName + '="'));
+					(isNodeValue) ? attName = 'nodeValue': aJS.push(this.utils.strOut(attName + '="'));
 
 					if(/\$p\.\$f\[[0-9]]/.test(attValue)){//function reference
-						aJS.push(outputFn(attValue, currentLoop));}
+						aJS.push(this.utils.outputFn(attValue, currentLoop));}
 					else if(isStr){ //a string, strip the quotes
-						aJS.push(strOut(attValue.substr(1, attValue.length-2)));}
-					else if(isArray(attValue, openArrays)){ //iteration reference
-						aJS.push(out(arrayName(attValue)));}
+						aJS.push(this.utils.strOut(attValue.substr(1, attValue.length-2)));}
+					else if(this.utils.isArray(attValue, openArrays)){ //iteration reference
+						aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
 					else{ //context data
-						aJS.push(contextOut("'"+attValue+"'"));}
+						aJS.push(this.utils.contextOut("'"+attValue+"'"));}
 
 					if (!isNodeValue) { //close the attribute string
-						aJS.push(strOut('"'));}}
+						aJS.push(this.utils.strOut('"'));}}
 					
 				//output the remaining if any	
 				wrkStr = wrkStr.substr(offset);
-				if(wrkStr != '') aJS.push(strOut(wrkStr));}}
+				if(wrkStr != '') aJS.push(this.utils.strOut(wrkStr));}}
 	
 		aJS.push( 'return output.join("");}' );
 		var js = aJS.join('');
@@ -416,7 +384,7 @@ var pure  = window.$p = window.pure ={
 				target.setAttribute( this.ns + attName, currentDir);
 					if(isAttr && attName != 'nodeValue' && repetition < 0){
 						try{ //some special attributes do not like it so try & catch
-							target[attName]=''; //IE
+							//target[attName]=''; //IE
 							target.removeAttribute(attName);}
 						catch(e){}}}
 
