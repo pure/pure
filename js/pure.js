@@ -12,7 +12,7 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var pure  = window.$p = window.pure ={
-	ns: 'pure:',
+	ns: (/MSIE/.test(navigator.userAgent))? 'pure_':'pure:',//IE namespace :(
 	
 	find: function(){
 		this.msg('library_needed')},
@@ -57,12 +57,13 @@ var pure  = window.$p = window.pure ={
 		if (!value && value!=0) value = '""';
 	return value;},
 
-	autoRenderAtt: ['class'],
+	autoRenderAtt: [(/MSIE/.test(navigator.userAgent))? 'className':'class'],
 	
 	transform:function(html, context, directives, target){
 		//if attribute not already there false or true add it to trigger auto rendering
-		if(!html.getAttribute(this.ns+'autoRender'))
-			html.setAttribute(this.ns+'autoRender', true); 
+        var ns = this.ns;
+		if(!html.getAttribute(ns+'autoRender'));
+			html.setAttribute(ns+'autoRender', 'true'); 
 		//map the directives if any
 		if(directives){ this.map(directives, html, true);}
 		//compile
@@ -158,9 +159,9 @@ var pure  = window.$p = window.pure ={
 								if (!n.getAttribute(ns + att[1])) {
 									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}}}
 			//flag the nodeValue and repeat attributes
-			var isNodeValue = n.getAttribute(ns + 'nodeValue');
+			var isNodeValue = n.getAttribute(ns+'nodeValue');
 			if (isNodeValue) this.nodeValues.push(n);
-			var isRepeat = n.getAttribute(ns + 'repeat');
+			var isRepeat = n.getAttribute(ns+'repeat');
 			if (isRepeat) this.repeats.push(n);},
 
 		nodeWalk:function(node, ns, context, autoRenderAtt){
@@ -234,12 +235,13 @@ var pure  = window.$p = window.pure ={
 		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
 		
 		//node manipulation before conversion to string
-		this.utils.nodeWalk(clone, this.ns, context, this.autoRenderAtt[0]);
+		var ns = this.ns;
+		this.utils.nodeWalk(clone, ns, context, this.autoRenderAtt[0]);
 		
 		//convert the HTML to a string
 		var str = this.outerHTML( clone );
 		//avoid shifting lines remove the > and </ around pure:repeat tags
-		str = str.replace(/\<pure:repeat/gi, 'pure:repeat').replace(/\<\/pure:repeat/gi, 'pure:repeat');
+	    str = str.replace(new RegExp('\<\/?:?'+ns+'repeat', 'gi'), ns+'repeat');// :? -> from bug in IE
 		
 		//clean the dom string, based on rules in $p.domCleaningRules
 		var rules = this.domCleaningRules;
@@ -251,7 +253,7 @@ var pure  = window.$p = window.pure ={
 			return false}
 		//start the js generation
 		var aJS = [[ '$p.compiledFunctions["', fName, '"]={};$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
-		var aDom = str.split(this.ns);
+		var aDom = str.split(ns);
 
 		var wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', currentLoop, isNodeValue, offset, isStr = false, attName = '', attValue = '';
 		for(var j = 0;j < aDom.length; j++){
@@ -373,12 +375,12 @@ var pure  = window.$p = window.pure ={
 
 
 				var attName = 'nodeValue'; //default
-				var repetition = -1;
+				var repetition = -1, ns = this.ns;
                 if (isAttr){
 					//the directive points to an attribute
 					attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
-					if(attName.indexOf(this.ns) > -1) 
-						attName = attName.substring(this.ns.length);}
+					if(attName.indexOf(ns) > -1) 
+						attName = attName.substring(ns.length);}
 				else{
 					//check if the directive is a repetition
 					repetition = currentDir.search(/w*<-w*/);
@@ -387,7 +389,7 @@ var pure  = window.$p = window.pure ={
 				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 
-				target.setAttribute( this.ns + attName, currentDir);
+				target.setAttribute( ns + attName, currentDir);
 					if(isAttr && attName != 'nodeValue' && repetition < 0){
 						try{ //some special attributes do not like it so try & catch
 							//target[attName]=''; //IE
