@@ -120,14 +120,15 @@ var pure  = window.$p = window.pure ={
 	utils:{
 		nodeValues:[],
 		repeats:[],
+		autoRenderAtts:[],
 		autoMap: function(n, ns, autoRender, context, autoRenderAtt, openArray){
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
-			var replaced, replacer, replacedSrc, nodeValueSrc, toMap, k, j, i, att, repeatPrefix, prop;
+			var replaced, replacer, replacedSrc, nodeValueSrc, toMap, k, j, i, att, repeatPrefix, prop, attValue;
 			if (autoRender == 'true') {
-				toMap = n.getAttribute(autoRenderAtt);
-				if (toMap) {
-					toMap = toMap.replace(/^\d|\s\d/g,'').split(/\s+/);//remove numeric classes as they mess up the array reference
+				attValue = n.getAttribute(autoRenderAtt);
+				if (attValue) {
+					toMap = attValue.replace(/^\d|\s\d/g,'').split(/\s+/);//remove numeric classes as they mess up the array reference
 					for (j = 0; j < toMap.length; j++) {
 						repeatPrefix = '';
 						att = toMap[j].split(/@/);
@@ -191,28 +192,31 @@ var pure  = window.$p = window.pure ={
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
 			var replaced, replacer, replacedSrc, nodeValueSrc;
-			if (this.nodeValues.length>0){
-				for (var j = 0; j < this.nodeValues.length; j++) {
-					try {
-						n = this.nodeValues[j];
-						nodeValueSrc = n.getAttribute(nodeValueAtt); // put the node value in place
-						if (nodeValueSrc) {
-							n.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
-							n.removeAttribute(nodeValueAtt);}} 
-					catch (e) {}}}
-			if (this.repeats.length>0){
-				for(var i=0; i<this.repeats.length;i++){
-					n = this.repeats[this.repeats.length -i -1];//start from inside the tree
-					try {
-						replacedSrc = n.getAttribute(repeatAtt); //wrap in tags for easy string find
-						if (replacedSrc) {
-							replaced = n.cloneNode(true);
-							replaced.removeAttribute(repeatAtt);
-							replacer = document.createElement(repeatAtt);
-							replacer.appendChild(replaced);
-							replacer.setAttribute('source', "" + replacedSrc);
-							n.parentNode.replaceChild(replacer, n);}}
-					catch (e) {}}}},
+			for (var k = 0; k < this.autoRenderAtts.length; k++) {//remove the autoRenderAtt if any specified in directives
+				try {
+					n = this.autoRenderAtts[k];
+					n.removeAttribute(autoRenderAtt);}catch (e) {}}
+				
+			for (var j = 0; j < this.nodeValues.length; j++) {
+				try {
+					n = this.nodeValues[j];
+					nodeValueSrc = n.getAttribute(nodeValueAtt); // put the node value in place
+					if (nodeValueSrc) {
+						n.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
+						n.removeAttribute(nodeValueAtt);}} 
+				catch (e) {}}
+			for(var i=0; i<this.repeats.length;i++){
+				n = this.repeats[this.repeats.length -i -1];//go inside out of the tree
+				try {
+					replacedSrc = n.getAttribute(repeatAtt); //wrap in tags for easy string find
+					if (replacedSrc) {
+						replaced = n.cloneNode(true);
+						replaced.removeAttribute(repeatAtt);
+						replacer = document.createElement(repeatAtt);
+						replacer.appendChild(replaced);
+						replacer.setAttribute('source', "" + replacedSrc);
+						n.parentNode.replaceChild(replacer, n);}}
+				catch (e) {}}},
 
 		out:function(content){ return ['output.push(', content, ');'].join('')},
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
@@ -230,7 +234,7 @@ var pure  = window.$p = window.pure ={
 			return name + '[' + name + 'Index]' + subIndex;}},
 
 	compile: function(HTML, fName, context, noEval){
-
+		//when the DOM will be as fast as innerHTML in major browsers, no compiling will be needed anymore...
 		//convert to string, clean the HTML and convert to a js function
 		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
 		
@@ -349,7 +353,8 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, currentDir;
+		var fnId, currentDir, autoRenderAtt = this.autoRenderAtt[0];
+;
 		var clone;
 		if (noClone){
 			clone = (HTML[0])? HTML[0] : HTML;}
@@ -390,11 +395,14 @@ var pure  = window.$p = window.pure ={
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 
 				target.setAttribute( ns + attName, currentDir);
-					if(isAttr && attName != 'nodeValue' && repetition < 0){
+				//if it is an attribute <> nodeValue, not a repetition and keep the key if in autorender
+				if(isAttr && attName != 'nodeValue' && repetition < 0){
+					if(clone.getAttribute(ns+'autoRender') =='true' && attName==autoRenderAtt && target.getAttribute(autoRenderAtt)){
+						this.utils.autoRenderAtts.push(target);
+					}else{
 						try{ //some special attributes do not like it so try & catch
-							//target[attName]=''; //IE
 							target.removeAttribute(attName);}
-						catch(e){}}}
+						catch(e){}}}}
 
 			else{ // target not found
 				var parentName = [clone.nodeName];

@@ -11,8 +11,8 @@
 		<script type="text/javascript">
 			function transform(){
 				var html = document.getElementById('hello');
-				var context = { "who": "Mary" };
-				$p.transform(html, context);}
+				var data = { "who": "Mary" };
+				$p.transform(html, data);}
 
 			function libraryTransform(){
 				$('#hello').$pTransform({ "who": "Mary" });}
@@ -45,25 +45,25 @@
 		<p class="note">This HTML needs to be somewhere in your page while you develop.<br />In fact, and this is rather important, any portion of your static HTML page can be "activated" and become dynamic.</p>
 		We're done with our HTML and we can now start the javascript part.<br />We select this HTML by its Id.<br />
 		<pre>var html = document.getElementById( 'hello' );</pre>
-		<p class="note">To make it simple in these examples, we use the Id, but using other selectors is way more flexible.</p>
+		<p class="note">To make it simple in these examples, we use the Id, but using other <a href="http://www.w3.org/TR/css3-selectors/#selectors" target="_blank">selectors</a> is way more flexible.</p>
 
 		
-		<h2>The context</h2>
-		We will apply our HTML to some data to render it. We call this data the context.<br />
-		It has the JSON format.<br />
-		In general, the context will come from an AJAX call.<br />
+		<h2>The data</h2>
+		We will transform our HTML with some data.<br />
+		The data has the JSON format.<br />
+		And, in general, coming from an AJAX call.<br />
 		
-		<pre>var context = {"who":"Mary"}</pre>
-		<p class="note">It means: the var "context" has a property called "name" that has the value "Mary".<br />
+		<pre>var data = {"who":"Mary"}</pre>
+		<p class="note">It means: the var "data" has a property called "name" that has the value "Mary".<br />
 		<p class="note">JSON, to put it short, can be seen as a javascript equivalent of XML.<br />If you are not familiar with it, have a look at the <a href="http://www.json.org/" target="_blank">JSON site</a></p>
 		<p class="note">The rendering of XML data will be implemented <a href="http://code.google.com/p/pure/issues/detail?id=9" target="_blank">later</a></p>
 
 		
 		<h2>Transformation</h2>
-		We will now apply the data to our HTML using the function $p.transform()
-		<pre>$p.transform( html, context )</pre>
+		We will now apply the HTML to the data using the function $p.transform()
+		<pre>$p.transform( html, data )</pre>
 		<div id="transform1"><span class="oops">Oops! Either your javascript is disabled or something is broken...</span></div>
-		<input type="button" value="Click Here" onclick="transform();"/> to run PURE right now, and transform the template below with the data:
+		PURE is loaded in this page <input type="button" value="Click Here" onclick="transform();"/> to run it right now, and transform the template below with the data:
 		<div id="hello">Hello <span class="who">World</span></div>
 
 		
@@ -72,8 +72,8 @@
 		The function transform( ) below has a classical javascript syntax.
 		<pre>function transform(){
   var html = document.getElementById('hello');
-  var context = {"who": "Mary"};
-  $p.transform(html, context);
+  var data = {"who": "Mary"};
+  $p.transform(html, data);
 }</pre>
 		While the one below is a JS library kind of syntax (here it's jQuery)
 		<pre id="jQueryCode">function libraryTransform() {

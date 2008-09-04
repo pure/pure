@@ -13,9 +13,17 @@
 		<script type="text/javascript" src="../js/jqueryMin.js"></script>
 		<script type="text/javascript" src="../js/pure.js"></script>
 		<script type="text/javascript">
+
+		/* * * * * * * * * * * * * * * * * * * * * *
+		 *     E X A M P L E      1 
+		 * * * * * * * * * * * * * * * * * * * * * */			
 			function render1(){
 				$('#hello').$pTransform( { "firstName": "Mary" } );}
-				
+
+
+		/* * * * * * * * * * * * * * * * * * * * * *
+		 *     E X A M P L E      2 
+		 * * * * * * * * * * * * * * * * * * * * * */			
 			function lineClick(name){ alert(name); } // example1 of event attachment, still some research needed
 
 			function swapStyle(obj, inOut){ // example2 for mouseover, mouseout
@@ -23,15 +31,18 @@
 				
 			function render2(){
 				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-				var directives = {
+				var directive = {
 					'tbody tr td[onclick]':function(context,items, pos){ return 'lineClick(\''+items[pos]+'\');'},
 					'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
 					'tbody tr td[onmouseout]' : '"swapStyle(this, false);"', //both '"..."' and "'...'" work now
 					'tbody tr td[style]':"'cursor:pointer'"};
 
-					$('table.players.1').$pTransform(context, directives);
-				}
+					$('table.players.1').$pTransform(context, directive);}
 
+
+		/* * * * * * * * * * * * * * * * * * * * * *
+		 *     E X A M P L E      3 
+		 * * * * * * * * * * * * * * * * * * * * * */			
 			function render3(){
 				var context = {
 					"id": "3456",
@@ -42,17 +53,22 @@
 				
 				$('ol.teamList').$pTransform( context, {'[id]':'id'});}
 
+
+		/* * * * * * * * * * * * * * * * * * * * * *
+		 *     E X A M P L E      4 
+		 * * * * * * * * * * * * * * * * * * * * * */			
 			function render4(){
-				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-				
-				var players2 = $('table.players.2')
-				.$pMap( {'tbody tr' : 'player <- context',
-					'tbody tr td' : 'player[]',
-					'tbody tr[class]': function(context, items, pos){return (pos % 2 == 0) ? 'even' : 'odd';}});
-		        $p.compile(players2, 'f4');
-				$('#render4').html( $p.render('f4', context) );}
+				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
+				var directive = {
+					'tbody tr[class]': function(context, items, pos){
+						return (pos % 2 == 0) ? 'even' : 'odd';}}
+
+					$('table.players.2').$pTransform(context, directive);}
 
 
+		/* * * * * * * * * * * * * * * * * * * * * *
+		 *     E X A M P L E      5 
+		 * * * * * * * * * * * * * * * * * * * * * */			
 			var row = {
 				odd: 'odd',
 				even:'even',
@@ -61,16 +77,17 @@
 					
 			function lineNb(context, items, pos){
 				return pos+1;}
-				
+
 			function render5(){
 				var context = {
 					'list': [['Cats', 
-								[["Alice Keasler", 14], 
-								["Charles LeGrand", 13], 
-								["Gary Bitemning", 20], 
-								["Helen Moren", 5]]], 
-					
-							['Cows', [["Mary Cain", 15], ["Vicky Benoit", 5], ["Wayne Dartt", 11]]], ['Dogs', [["Ray Braun", 13], ["Aaron Ben", 24], ["Steven Smith", 1], ["Kim Caffey", 19]]], ['Donkeys', [["Natalie Kinney", 16], ["Caren Cohen", 3]]]]};
+								[["Alice Keasler", 14], ["Charles LeGrand", 13],["Gary Bitemning", 20],["Helen Moren", 5]]], 
+							['Cows', 
+								[["Mary Cain", 15], ["Vicky Benoit", 5], ["Wayne Dartt", 11]]],
+							 ['Dogs', 
+							 	[["Ray Braun", 13], ["Aaron Ben", 24], ["Steven Smith", 1], ["Kim Caffey", 19]]], 
+							['Donkeys', 
+								[["Natalie Kinney", 16], ["Caren Cohen", 3]]]]};
 				
 				var scoreBoard = $('table.scoreBoard').$pMap({
 					'tbody tr': 'teams <- list',
@@ -85,10 +102,14 @@
 						'td.position': lineNb, //passing the pointer of a function that does not use "this"
 						'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
 				
-				$('td.teamPlace', scoreBoard).html(teamList);
-				$p.compile(scoreBoard, 'f5');
-		        $('#render5').html( $p.render('f5', context) );}
-				
+				$('td.teamPlace', scoreBoard).html(teamList); //place sub-template teamList in scoreBoard
+				$p.compile(scoreBoard, 'f5'); //compile to a function
+		        $('div#render5').html( $p.render('f5', context) );} //place the result of the transformation to the innerHTML of div#render5
+
+
+		/* * * * * * * * * * * * * * * * * * * * * *
+		 *     E X A M P L E      6 
+		 * * * * * * * * * * * * * * * * * * * * * */			
 			function render6(){
 				var context = [ 
 					{"name" : "Home", "url" : "#ho"}, 
@@ -117,6 +138,7 @@
 				  "ul.nav2 li a[href]" : "sub2.url"};
 				
 				$('ul#nav').$pTransform(context, directive);}
+
 		</script>
 	</head>
 	<body>
@@ -130,6 +152,11 @@
 				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
 			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
 		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      1 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
 		<h3>Example 1: Hello Who?</h3>
 		<div class="demo">
 			<input type="button" onclick="render1();" value="render" />
@@ -139,6 +166,11 @@
 				</div>
 			</div>
 		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      2 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
 		<h3>Example 2: Iteration on a table</h3>
 		<div class="demo">
 			<div class="htmlDoc">
@@ -153,29 +185,42 @@
 			In addition to the iteration, this example shows a way to attach events by a directive.<br />
 			Mouse over the lines of the rendered table, and click on a line.<br/>
 		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      3 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
 		<h3>Example 3: Iteration on a list</h3>
 		<div class="demo">
 			<div class="htmlDoc">
 				<input type="button" onclick="render3();this.disabled=true;this.value='Refresh the page to render again.'" value="render" />
-				<ol class="teamList id@id">
+				<ol class="teamList id@id"><!-- pay attention to the notation "data property"@"attribute name"-->
 					<li class="player sites"><a class="name url@href" href="http://beebole.com">Beebole</a></li>
 				</ol>
 			</div>
 		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      4 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
 		<h3>Example 4: Passing a JS function as a directive (Iteration on a table zebra like)</h3>
 		<div class="demo">
 			<div class="htmlDoc">
 				<input type="button" onclick="render4();this.disabled=true;this.value='Refresh the page to render again.'" value="render" />
-			</div>
-			<div class="transformation">
-				<div id="render4">
-	                <table class="players 2">
-	                    <thead><tr><th class="player">Player</th></tr></thead>
-	                    <tbody><tr><td class="player">Chloe</td></tr></tbody>
-	                </table>
-				</div>
+                <table class="players 2">
+                	<thead><tr><th class="player">Player</th></tr></thead>
+					<tbody><tr class="context">
+						<td class="player context">Chloe</td></tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      5 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
 		<h3>Example 5: Nested Iteration</h3>
 		This was not explained in the examples. The objective here is to have a double iteration. First on teams, then on players.<br />
 		It shows the nested iteration and as well how a template can be included in another.
@@ -200,6 +245,11 @@
 				<div id="render5"></div>
 			</div>
 		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      6 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
 		<h3>Example 6: Recursive List - the recursion is not (yet) dynamic :(</h3>
 		<div class="demo">
 			<div class="htmlDoc">
@@ -218,6 +268,6 @@
 			</div>
 		</div>
 		<p></p>
-		<h3><a href="howToCompile.html">See how you can compile</a> templates to gain on performance and bandwith.</h3>
+		<h3><a href="howToCompile.html">See how you can compile templates</a> to gain on performance and bandwith.</h3>
 	</body>
 </html>
