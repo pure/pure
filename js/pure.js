@@ -158,7 +158,9 @@ var pure  = window.$p = window.pure ={
 								else {
 									att.push('nodeValue')};
 								if (!n.getAttribute(ns + att[1])) {
-									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}}}
+									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}
+					if (/\|(a|p)\|/.test(n.getAttribute(ns+autoRenderAtt))) n.removeAttribute(autoRenderAtt);
+				}}
 			//flag the nodeValue and repeat attributes
 			var isNodeValue = n.getAttribute(ns+'nodeValue');
 			if (isNodeValue) this.nodeValues.push(n);
@@ -188,15 +190,10 @@ var pure  = window.$p = window.pure ={
 					while (n == null)}
 				c = n;}
 			while (c != node);
-
+			//post process the repeat and nodeValue for easier compiling
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
 			var replaced, replacer, replacedSrc, nodeValueSrc;
-			for (var k = 0; k < this.autoRenderAtts.length; k++) {//remove the autoRenderAtt if any specified in directives
-				try {
-					n = this.autoRenderAtts[k];
-					n.removeAttribute(autoRenderAtt);}catch (e) {}}
-				
 			for (var j = 0; j < this.nodeValues.length; j++) {
 				try {
 					n = this.nodeValues[j];
@@ -312,6 +309,16 @@ var pure  = window.$p = window.pure ={
 					isNodeValue = /^nodeValue/i.test(wrkStr);	
 					(isNodeValue) ? attName = 'nodeValue': aJS.push(this.utils.strOut(attName + '="'));
 
+					var attOut = attValue.match(/\|(a|p)\|/);
+					var suffix = false; 
+					var spc = (isNodeValue)?'':' ';
+					if (attOut) {
+						if(attOut[1] =='a') 
+							aJS.push(this.utils.strOut(attValue.substring(0, attOut.index)+spc));
+						else // |a|
+							suffix = attValue.substring(0, attOut.index);
+						attValue = attValue.substring(attOut.index + 3);}
+
 					if(/\$p\.\$f\[[0-9]]/.test(attValue)){//function reference
 						aJS.push(this.utils.outputFn(attValue, currentLoop));}
 					else if(isStr){ //a string, strip the quotes
@@ -320,6 +327,8 @@ var pure  = window.$p = window.pure ={
 						aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
 					else{ //context data
 						aJS.push(this.utils.contextOut("'"+attValue+"'"));}
+
+					if(suffix!='') aJS.push(this.utils.strOut(spc+"'"+suffix+"'"));
 
 					if (!isNodeValue) { //close the attribute string
 						aJS.push(this.utils.strOut('"'));}}
@@ -362,6 +371,13 @@ var pure  = window.$p = window.pure ={
 			clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);}
 			
 		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
+			currentDir = directives[selector];
+			var prepend, append;
+			if( prepend = /^\+/.test(selector)){
+				selector.shift()};
+			if(append = /\+$/.test(selector)){
+				selector = selector.substring(0,selector.length-1)};
+
 			var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
 			if(/^\[/.test(selector)){ //attribute of the selected node
 				target = clone;}
@@ -372,12 +388,9 @@ var pure  = window.$p = window.pure ={
 					target = this.find(selector.substr(0, isAttr.index), clone);}}
 					
 			if ( target ){  //target found
-				currentDir = directives[selector];
-	
 				if (typeof currentDir == 'function'){
 					fnId = this.$f.push(currentDir) -1;
 					currentDir = '$p.$f['+fnId+']';}
-
 
 				var attName = 'nodeValue'; //default
 				var repetition = -1, ns = this.ns;
@@ -393,16 +406,18 @@ var pure  = window.$p = window.pure ={
 				
 				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
-
+				
+				var original = target.getAttribute(attName);
+				if(append && original){
+					currentDir = original + '|a|' + currentDir;}
+				else if(prepend && original){
+					currentDir = original + '|p|' + currentDir;}
+				
 				target.setAttribute( ns + attName, currentDir);
-				//if it is an attribute <> nodeValue, not a repetition and keep the key if in autorender
-				if(isAttr && attName != 'nodeValue' && repetition < 0){
-					if(clone.getAttribute(ns+'autoRender') =='true' && attName==autoRenderAtt && target.getAttribute(autoRenderAtt)){
-						this.utils.autoRenderAtts.push(target);
-					}else{
-						try{ //some special attributes do not like it so try & catch
-							target.removeAttribute(attName);}
-						catch(e){}}}}
+				if(isAttr && attName != 'nodeValue' && repetition < 0 && !append && !prepend){
+					try{ //some cross browser attributes issues -> try catch nothing
+						target.removeAttribute(attName);}
+					catch(e){}}}
 
 			else{ // target not found
 				var parentName = [clone.nodeName];

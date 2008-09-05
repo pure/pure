@@ -60,7 +60,7 @@
 			function render4(){
 				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
 				var directive = {
-					'tbody tr[class]': function(context, items, pos){
+					'tbody tr[class]+': function(context, items, pos){
 						return (pos % 2 == 0) ? 'even' : 'odd';}}
 
 					$('table.players.2').$pTransform(context, directive);}
