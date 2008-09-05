@@ -59,10 +59,11 @@ var pure  = window.$p = window.pure ={
 
 	autoRenderAtt: [(/MSIE/.test(navigator.userAgent))? 'className':'class'],
 	
-	transform:function(html, context, directives, target){
+	transform:function(html, context, directives){
 		//if attribute not already there false or true add it to trigger auto rendering
-        var ns = this.ns;
-		if(!html.getAttribute(ns+'autoRender'));
+		var ns = this.ns;
+		var auto = (arguments.length < 3) ? true : arguments[3];
+		if(!html.getAttribute(ns+'autoRender') && auto == true);
 			html.setAttribute(ns+'autoRender', 'true'); 
 		//map the directives if any
 		if(directives){ this.map(directives, html, true);}
@@ -70,21 +71,7 @@ var pure  = window.$p = window.pure ={
 		var fn = this.compiledFunctions.length || 0;
 		this.compile(html, fn, context, false);
 		//transform
-		var str = this.compiledFunctions[fn].compiled(context);
-		var replaced;
-		if(target){
-			//if a target is provided either obj or innerHTML
-			if (typeof target == 'string') {
-				target = str;
-				return;}
-			else 
-				replaced = target;
-		}else{
-			replaced = html;}
-		//no target, replace html by itself
-		var div = document.createElement('DIV');
-		div.innerHTML = str;
-		replaced.parentNode.replaceChild(div.firstChild, replaced);},
+		return this.compiledFunctions[fn].compiled(context)},
 
 	render: function(fName, context, target){
 		// apply the HTML to the context and return the innerHTML string
@@ -315,7 +302,7 @@ var pure  = window.$p = window.pure ={
 					if (attOut) {
 						if(attOut[1] =='a') 
 							aJS.push(this.utils.strOut(attValue.substring(0, attOut.index)+spc));
-						else // |a|
+						else // |p|
 							suffix = attValue.substring(0, attOut.index);
 						attValue = attValue.substring(attOut.index + 3);}
 
@@ -328,7 +315,7 @@ var pure  = window.$p = window.pure ={
 					else{ //context data
 						aJS.push(this.utils.contextOut("'"+attValue+"'"));}
 
-					if(suffix!='') aJS.push(this.utils.strOut(spc+"'"+suffix+"'"));
+					if(suffix!='') aJS.push(this.utils.strOut(spc+suffix));
 
 					if (!isNodeValue) { //close the attribute string
 						aJS.push(this.utils.strOut('"'));}}
@@ -374,7 +361,7 @@ var pure  = window.$p = window.pure ={
 			currentDir = directives[selector];
 			var prepend, append;
 			if( prepend = /^\+/.test(selector)){
-				selector.shift()};
+				selector = selector.substring(1, selector.length)};
 			if(append = /\+$/.test(selector)){
 				selector = selector.substring(0,selector.length-1)};
 
@@ -461,10 +448,17 @@ try{ if (jQuery){
 		return (found[0]) ? found[0]:false}}
 	// jQuery chaining functions
 	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));};
-	$.fn.$pTransform = function(context, directive, target){ 
-		$(this).each( function(){ 
-			$p.transform($(this)[0], context, directive, target)});};
-				
+	$.fn.transform = function(){ //context, directives, target
+		var context = arguments[0];
+		var directives = arguments[1] || false;
+		var target = arguments[2] || false;
+		var auto = (arguments.length < 3) ? true : arguments[3];
+		if (!target && directives && directives.jquery || directives.nodeType) {
+			target = directives[0];
+			directives = false;}
+		var replaced = (target) ? target : $(this)[0]; 
+		return $(replaced).replaceWith($p.transform($(this)[0], context, directives, auto));};
+
 	$.fn.$pCompile = function(fName, noEval){return $p.compile($(this), fName, false, noEval);};
 	$.fn.$pRender = function(context, target){return $p.render($(this), context, target);}
 
