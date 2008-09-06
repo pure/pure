@@ -12,8 +12,8 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var pure  = window.$p = window.pure ={
-	ns: (/MSIE/.test(navigator.userAgent))? 'pure_':'pure:',//IE namespace :(
-	
+	isIE: /MSIE/.test(navigator.userAgent),
+	ns: (this.isIE)? 'pure_':'pure:', //IE namespace :(
 	find: function(){
 		this.msg('library_needed')},
 	
@@ -57,8 +57,8 @@ var pure  = window.$p = window.pure ={
 		if (!value && value!=0) value = '""';
 	return value;},
 
-	autoRenderAtt: [(/MSIE/.test(navigator.userAgent))? 'className':'class'],
-	
+	autoRenderAtt: [(this.isIE)? 'className':'class'],
+
 	transform:function(html, context, directives){
 		//if attribute not already there false or true add it to trigger auto rendering
 		var ns = this.ns;
@@ -127,10 +127,10 @@ var pure  = window.$p = window.pure ={
 									if (prop) {//found a repetition field, break
 										repeatPrefix = openArray[k];
 										break;}
-									else if (att[0] == 'context'){ //check if not root context field
+									else if (/context/i.test(att[0])){ //check if not root context field
 										prop = true; 
 										j=100;}}}
-							else if (att[0] == 'context'){ //check if repeat on the context
+							else if (/context/i.test(att[0])){ //check if repeat on the context
 								prop = context;}}
 							
 						if (prop) {
@@ -146,7 +146,8 @@ var pure  = window.$p = window.pure ={
 									att.push('nodeValue')};
 								if (!n.getAttribute(ns + att[1])) {
 									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}
-					if (/\|(a|p)\|/.test(n.getAttribute(ns+autoRenderAtt))) n.removeAttribute(autoRenderAtt);
+					var ieGrr = {'className':'class'};
+					if (/\|(a|p)\|/.test(n.getAttribute(ns+(ieGrr[autoRenderAtt]||autoRenderAtt)))) n.removeAttribute(autoRenderAtt);
 				}}
 			//flag the nodeValue and repeat attributes
 			var isNodeValue = n.getAttribute(ns+'nodeValue');
@@ -350,7 +351,7 @@ var pure  = window.$p = window.pure ={
 			return false;}
 
 		var fnId, currentDir, autoRenderAtt = this.autoRenderAtt[0];
-;
+
 		var clone;
 		if (noClone){
 			clone = (HTML[0])? HTML[0] : HTML;}
@@ -393,7 +394,7 @@ var pure  = window.$p = window.pure ={
 				
 				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
-				
+				attName = ($p.isIE && attName == 'class')? 'className':attName;
 				var original = target.getAttribute(attName);
 				if(append && original){
 					currentDir = original + '|a|' + currentDir;}

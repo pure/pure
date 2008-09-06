@@ -11,8 +11,9 @@
 		<script type="text/javascript">
 			function transform(){
 				var html = document.getElementById('hello');
+				var target = document.getElementById('target');
 				var data = { "who": "Mary" };
-				$p.transform(html, data);}
+				target.innerHTML = $p.transform(html, data);}
 
 			function libraryTransform(){
 				$('#hello').transform({ "who": "Mary" });}
@@ -65,7 +66,7 @@
 		<div id="transform1"><span class="oops">Oops! Either your javascript is disabled or something is broken...</span></div>
 		PURE is loaded in this page <input type="button" value="Click Here" onclick="transform();"/> to run it right now, and transform the template below with the data:
 		<div id="hello">Hello <span class="who">World</span></div>
-
+		<div id="target"></div>
 		
 		<h2>Putting all the JS commands together</h2>
 		Now we can bring all the pieces together in a single function.<br />
