@@ -12,8 +12,7 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var pure  = window.$p = window.pure ={
-	isIE: /MSIE/.test(navigator.userAgent),
-	ns: (this.isIE)? 'pure_':'pure:', //IE namespace :(
+	ns: (/MSIE/.test(navigator.userAgent))? 'pure_':'pure:', //IE namespace :(
 	find: function(){
 		this.msg('library_needed')},
 	
@@ -57,7 +56,7 @@ var pure  = window.$p = window.pure ={
 		if (!value && value!=0) value = '""';
 	return value;},
 
-	autoRenderAtt: [(this.isIE)? 'className':'class'],
+	autoRenderAtt: [(/MSIE/.test(navigator.userAgent))? 'className':'class'],
 
 	transform:function(html, context, directives){
 		//if attribute not already there false or true add it to trigger auto rendering
@@ -146,8 +145,8 @@ var pure  = window.$p = window.pure ={
 									att.push('nodeValue')};
 								if (!n.getAttribute(ns + att[1])) {
 									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}
-					var ieGrr = {'className':'class'};
-					if (/\|(a|p)\|/.test(n.getAttribute(ns+(ieGrr[autoRenderAtt]||autoRenderAtt)))) n.removeAttribute(autoRenderAtt);
+					var fixAtt =  (/MSIE/.test(navigator.userAgent) &&  autoRenderAtt == 'className')? 'class':autoRenderAtt;
+					if (/\|(a|p)\|/.test(n.getAttribute(ns + fixAtt))) n.removeAttribute(autoRenderAtt);
 				}}
 			//flag the nodeValue and repeat attributes
 			var isNodeValue = n.getAttribute(ns+'nodeValue');
@@ -394,8 +393,8 @@ var pure  = window.$p = window.pure ={
 				
 				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
-				attName = ($p.isIE && attName == 'class')? 'className':attName;
-				var original = target.getAttribute(attName);
+				var fixAtt = (/MSIE/.test(navigator.userAgent) && attName == 'class')? 'className':attName;
+				var original = target.getAttribute(fixAtt);
 				if(append && original){
 					currentDir = original + '|a|' + currentDir;}
 				else if(prepend && original){

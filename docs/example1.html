@@ -62,19 +62,21 @@
 		
 		<h2>Transformation</h2>
 		We will now apply the HTML to the data using the function $p.transform()
-		<pre>$p.transform( html, data )</pre>
+		<pre>var target = document.getElementById('target');
+target.innerHTML = $p.transform(html, data);}</pre>
 		<div id="transform1"><span class="oops">Oops! Either your javascript is disabled or something is broken...</span></div>
 		PURE is loaded in this page <input type="button" value="Click Here" onclick="transform();"/> to run it right now, and transform the template below with the data:
-		<div id="hello">Hello <span class="who">World</span></div>
-		<div id="target"></div>
+		<div id="target"><div id="hello">Hello <span class="who">World</span></div>
+		</div>
 		
 		<h2>Putting all the JS commands together</h2>
 		Now we can bring all the pieces together in a single function.<br />
 		The function transform( ) below has a classical javascript syntax.
 		<pre>function transform(){
   var html = document.getElementById('hello');
-  var data = {"who": "Mary"};
-  $p.transform(html, data);
+  var data = { "who": "Mary" };
+  var target = document.getElementById('target');
+  target.innerHTML = $p.transform(html, data);}
 }</pre>
 		While the one below is a JS library kind of syntax (here it's jQuery)
 		<pre id="jQueryCode">function libraryTransform() {
