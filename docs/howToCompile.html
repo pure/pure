@@ -15,44 +15,6 @@
 		<script type="text/javascript">
 
 /* * * * * * * * * * * * * * * * *
- *			E X A M P L E   1 
- * * * * * * * * * * * * * * *  */
-			function render1(){ 
-				$('#hello').$pTransform( { "firstName": "Mary" } );}
-
-/* * * * * * * * * * * * * * * * *
- *			E X A M P L E   2 
- * * * * * * * * * * * * * * * * */
-			function lineClick(name){ alert(name); } // example1 of event attachment, still some research needed
-
-			function swapStyle(obj, inOut){ // example2 for mouseover, mouseout
-				obj.className = (inOut) ? 'player hover' : 'player';};
-				
-			function render2(){
-				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-				var directives = {
-					'tbody tr td[onclick]':function(context,items, pos){ return 'lineClick(\''+items[pos]+'\');'},
-					'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
-					'tbody tr td[onmouseout]' : '"swapStyle(this, false);"', //both '"..."' and "'...'" work now
-					'tbody tr td[style]':"'cursor:pointer'"};
-
-					$('table.players.1').$pTransform(context, directives);
-				}
-
-/* * * * * * * * * * * * * * * * *
- *			E X A M P L E   3 
- * * * * * * * * * * * * * * * * */
-			function render3(){
-				var context = {
-					"id": "3456",
-					sites: [{ 
-						"name": "Beebole","url": "http://beebole.com"}, {
-						"name": "BeeLit", "url": "http://beeLit.com"}, {
-						"name": "PURE",	  "url": "http://beebole.com/pure"}]};
-				
-				$('ol.teamList').$pTransform( context, {'[id]':'id'});}
-
-/* * * * * * * * * * * * * * * * *
  *			E X A M P L E   4 
  * * * * * * * * * * * * * * * * */
 			function render4(){
@@ -138,7 +100,7 @@
 				$p.compile(menu, 'f6');
 				$('ul#nav').replaceWith( $p.render('f6', context));}
 
-			function renderAll(){ $p.$f=[];$p.compiledFunctions={};render1();render2();render3();render4();render5();render6();}
+			function renderAll(){ $p.$f=[];$p.compiledFunctions={};render4();render5();render6();}
 		</script>
 	</head>
 	<body>
@@ -151,44 +113,6 @@
 				<a href="allExamples.html">All Examples</a><br />
 				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
 			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
-		</div>
-		<div class="demo">
-			<input type="button" onclick="render1();" value="render" />
-			<div class="htmlDoc">
-				<div id="hello"> 
-					Hello <span class="who firstName">World</span>
-				</div>
-			</div>
-			<div class="transformation">
-				<div id="render1"></div>
-			</div>
-		</div>
-		<div class="demo">
-			In addition to the iteration, this example shows a way to attach events by a directive.<br />
-			Mouse over the lines of the rendered table, and click on a line.<br/>
-			<div class="htmlDoc">
-				<input type="button" onclick="render2();this.disabled=true;this.value='Refresh the page to render again.'" value="render" />
-                <table class="players 1">
-                	<thead><tr><th class="player">Player</th></tr></thead>
-					<tbody><tr class="context">
-						<td class="player context">Chloe</td></tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="transformation">
-				<div id="render2"></div>
-			</div>
-		</div>
-		<div class="demo">
-			<div class="htmlDoc">
-				<input type="button" onclick="render3();this.disabled=true;this.value='Refresh the page to render again.'" value="render" />
-				<ol class="teamList id@id">
-					<li class="player sites"><a class="name url@href" href="http://beebole.com">Beebole</a></li>
-				</ol>
-			</div>
-			<div class="transformation">
-				<div id="render3"></div>
-			</div>
 		</div>
 		<div class="demo">
 			<div class="htmlDoc">
@@ -245,12 +169,14 @@
 		<h3>Compile your HTML's into Javascript and save some Kb</h3>
 
 		All the <a href="allExamples.html">examples</a> we provided are compiled on the fly, when you render them.<br />
-		It is possible to compile them all in a javascript file.<br />
-		Once you have this javascript version of your HTML templates, you can save it to a .js file and add it to your page using the &lt;script&gt; tag<br />
+		The time taken to transform is equal to the compilation time + the rendering time.<br />
+		This compilation takes some time. Altough it is very short, you may want to suppress this processing time in your production system.<br />
+		It is possible to compile all the HTMLs and then save them as JS functions in a javascript file.<br />
+		Once you have this .js file you can add it to your page using the &lt;script&gt; tag<br />
 		By doing this you:<br />
-		<ol><li><strong>Save some js processes:</strong> you can remove all the js related to the directives. And save the time spent on compiling.</li>
-		<li><strong>Save some Kb:</strong> The js file will be cached and you can remove the pure.js file from your page if you do not have to compile any template.</li></ol>
-		Click the button below to get all the HTML compiled and having the JS source code in the text area.<br />
+		<ol><li><strong>Remove all the js commands</strong> related to the directives. And save the time spent on compiling.</li>
+		<li><strong>Save some Kb:</strong> The js file will be cached and you can remove the pure.js file from your page if you do not have to compile any template on the fly.</li></ol>
+		Click the button below to get the examples 4, 5 and 6 compiled and get the JS source code in the text area.<br />
 		<input onclick="renderAll();$p.getRuntime(this);return false" value="get the PURE runtime file" type="button"></input></p>
 		<textarea id="pureRuntime"></textarea>
 		<p>Copy paste the content of the text area above to a JS file. Save it. You can even minify and/or gzip it.<br />

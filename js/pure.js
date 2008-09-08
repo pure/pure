@@ -107,6 +107,8 @@ var pure  = window.$p = window.pure ={
 		nodeValues:[],
 		repeats:[],
 		autoRenderAtts:[],
+		isTypeOfArray:function(obj){
+            return typeof obj.length === 'number' && !(obj.propertyIsEnumerable('length')) && typeof obj.splice === 'function';},
 		autoMap: function(n, ns, autoRender, context, autoRenderAtt, openArray){
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
@@ -349,7 +351,7 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, currentDir, autoRenderAtt = this.autoRenderAtt[0];
+		var fnId, multipleDir=[], currentDir, autoRenderAtt = this.autoRenderAtt[0];
 
 		var clone;
 		if (noClone){
@@ -359,58 +361,65 @@ var pure  = window.$p = window.pure ={
 			
 		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
 			currentDir = directives[selector];
-			var prepend, append;
-			if( prepend = /^\+/.test(selector)){
-				selector = selector.substring(1, selector.length)};
-			if(append = /\+$/.test(selector)){
-				selector = selector.substring(0,selector.length-1)};
-
-			var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
-			if(/^\[/.test(selector)){ //attribute of the selected node
-				target = clone;}
+			if(this.utils.isTypeOfArray(currentDir)){//check if an array of directives is provided
+				multipleDir = currentDir;}
 			else{
-				var target = this.find(selector, clone);
-				if (!target && isAttr){
-					//if the attribute does not exist yet, select its containing element
-					target = this.find(selector.substr(0, isAttr.index), clone);}}
-					
-			if ( target ){  //target found
-				if (typeof currentDir == 'function'){
-					fnId = this.$f.push(currentDir) -1;
-					currentDir = '$p.$f['+fnId+']';}
+				multipleDir = []; 
+				multipleDir.push(currentDir);}
+			for(var i = 0; i<multipleDir.length;i++){
+				currentDir = multipleDir[i];
+				var prepend, append;
+				if( prepend = /^\+/.test(selector)){
+					selector = selector.substring(1, selector.length)};
+				if(append = /\+$/.test(selector)){
+					selector = selector.substring(0,selector.length-1)};
 
-				var attName = 'nodeValue'; //default
-				var repetition = -1, ns = this.ns;
-                if (isAttr){
-					//the directive points to an attribute
-					attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
+				var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
+				if(/^\[/.test(selector)){ //attribute of the selected node
+					target = clone;}
+				else{
+					var target = this.find(selector, clone);
+					if (!target && isAttr){
+						//if the attribute does not exist yet, select its containing element
+						target = this.find(selector.substr(0, isAttr.index), clone);}}
+
+				if ( target ){  //target found
+					if (typeof currentDir == 'function'){
+						fnId = this.$f.push(currentDir) -1;
+						currentDir = '$p.$f['+fnId+']';}
+
+					var attName = 'nodeValue'; //default
+					var repetition = -1, ns = this.ns;
+					if (isAttr){
+						//the directive points to an attribute
+						attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
 					if(attName.indexOf(ns) > -1) 
 						attName = attName.substring(ns.length);}
-				else{
-					//check if the directive is a repetition
-					repetition = currentDir.search(/w*<-w*/);
-					if(repetition > -1) attName = 'repeat';}
-				
-				if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
-					currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
-				var fixAtt = (/MSIE/.test(navigator.userAgent) && attName == 'class')? 'className':attName;
-				var original = target.getAttribute(fixAtt);
-				if(append && original){
-					currentDir = original + '|a|' + currentDir;}
-				else if(prepend && original){
-					currentDir = original + '|p|' + currentDir;}
-				
-				target.setAttribute( ns + attName, currentDir);
-				if(isAttr && attName != 'nodeValue' && repetition < 0 && !append && !prepend){
-					try{ //some cross browser attributes issues -> try catch nothing
-						target.removeAttribute(attName);}
-					catch(e){}}}
+					else{
+						//check if the directive is a repetition
+						repetition = currentDir.search(/w*<-w*/);
+						if(repetition > -1) attName = 'repeat';}
 
-			else{ // target not found
-				var parentName = [clone.nodeName];
-				if(clone.id != '') parentName.push('#' + clone.id);
-				if(clone.className !='') parentName.push('#' + clone.className);
-				this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}
+					if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
+						currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
+					var fixAtt = (/MSIE/.test(navigator.userAgent) && attName == 'class')? 'className':attName;
+					var original = target.getAttribute(fixAtt);
+					if(append && original){
+						currentDir = original + '|a|' + currentDir;}
+					else if(prepend && original){
+						currentDir = original + '|p|' + currentDir;}
+
+					target.setAttribute( ns + attName, currentDir);
+					if(isAttr && attName != 'nodeValue' && repetition < 0 && !append && !prepend){
+						try{ //some cross browser attributes issues -> try catch nothing
+							target.removeAttribute(attName);}
+						catch(e){}}}
+
+				else{ // target not found
+					var parentName = [clone.nodeName];
+					if(clone.id != '') parentName.push('#' + clone.id);
+					if(clone.className !='') parentName.push('#' + clone.className);
+					this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}}
 
 		return clone;},
 
