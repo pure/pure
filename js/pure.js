@@ -56,43 +56,24 @@ var pure  = window.$p = window.pure ={
 		if (!value && value!=0) value = '""';
 	return value;},
 
-	autoRenderAtt: [(/MSIE/.test(navigator.userAgent))? 'className':'class'],
-
-	transform:function(html, context, directives){
-		//if attribute not already there false or true add it to trigger auto rendering
-		var ns = this.ns;
-		var auto = (arguments.length < 3) ? true : arguments[3];
-		if(!html.getAttribute(ns+'autoRender') && auto == true);
-			html.setAttribute(ns+'autoRender', 'true'); 
-		//map the directives if any
-		if(directives){ this.map(directives, html, true);}
-		//compile
-		var fn = this.compiledFunctions.length || 0;
-		this.compile(html, fn, context, false);
-		//transform
-		return this.compiledFunctions[fn].compiled(context)},
-
-	render: function(fName, context, target){
-		// apply the HTML to the context and return the innerHTML string
-		if (typeof fName != 'string'){
-			//an HTML element is passed to render, so first compile it
-			var HTML = fName;
-			fName = this.compiledFunctions.length || 0;
-			this.compile(HTML, fName, context, false);}
-			
-		if(this.compiledFunctions[fName]){
-			var str = this.compiledFunctions[fName].compiled(context);
-			if (target) {
-				var div = document.createElement('DIV');
-				div.innerHTML = str;
-				target.parentNode.replaceChild(div.firstChild, target);}
-			else{
-				if (HTML) {
-					//if temp compilation delete it
-					delete this.compiledFunctions[fName];}}
-			return str;}
+	render: function(html, context, directives){
+		var fn;
+		if (typeof html != 'string'){
+			var mapped = (directives)? this.map(directives, html):html.cloneNode(true);
+			fn = this.compiledFunctions.length || 0;
+			this.compile(mapped, fn, context, false);}
+		else{ // call to an already compiled f()
+			fn = html;}
+		if (this.compiledFunctions[fn]){
+			return this.compiledFunctions[fn].compiled(context);} //transform and return an html string
 		else{
 			this.msg('HTML_does_not_exist', fName);}},
+
+	autoRenderAtt: (/MSIE/.test(navigator.userAgent))? 'className':'class',
+	autoRender:function(html, context, directives){
+		if (typeof html != 'string') {
+			html.setAttribute(this.ns + 'autoRender', 'true');}
+		return this.render(html, context, directives);},
 
 	compiledFunctions:{},
 
@@ -220,13 +201,12 @@ var pure  = window.$p = window.pure ={
 			return name + '[' + name + 'Index]' + subIndex;}},
 
 	compile: function(HTML, fName, context, noEval){
-		//when the DOM will be as fast as innerHTML in major browsers, no compiling will be needed anymore...
-		//convert to string, clean the HTML and convert to a js function
+		//DOM is slow, innerHTML is fast -> compile. Once browsers will be ok, no compilation will be needed anymore
 		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
 		
 		//node manipulation before conversion to string
 		var ns = this.ns;
-		this.utils.nodeWalk(clone, ns, context, this.autoRenderAtt[0]);
+		this.utils.nodeWalk(clone, ns, context, this.autoRenderAtt);
 		
 		//convert the HTML to a string
 		var str = this.outerHTML( clone );
@@ -351,7 +331,7 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, multipleDir=[], currentDir, autoRenderAtt = this.autoRenderAtt[0];
+		var fnId, multipleDir=[], currentDir, autoRenderAtt = this.autoRenderAtt;
 
 		var clone;
 		if (noClone){
@@ -456,30 +436,30 @@ try{ if (jQuery){
 		var found = jQuery.find(selector, context);
 		return (found[0]) ? found[0]:false}}
 	// jQuery chaining functions
-	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));};
-	$.fn.transform = function(){ //context, directives, target
-		var context = arguments[0];
-		var directives = arguments[1] || false;
-		var target = arguments[2] || false;
-		var auto = (arguments.length < 3) ? true : arguments[3];
-		if (!target && directives && directives.jquery || directives.nodeType) {
-			target = directives[0];
+	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));}
+	$.fn.$Pcompile = function(fName, noEval){return $p.compile($(this), fName, false, noEval);}
+	$.fn.render = function(context, directives, target){
+		var replaced = (target)? target:$(this)[0];
+		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));}
+	$.fn.autoRender = function(context, directives, target){
+		directives = directives || false;
+		target = target || false;
+		if (!target && directives && directives.jquery || directives.nodeType) { //target is provided instead of directives
+			target = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
-		var replaced = (target) ? target : $(this)[0]; 
-		return $(replaced).replaceWith($p.transform($(this)[0], context, directives, auto));};
-
-	$.fn.$pCompile = function(fName, noEval){return $p.compile($(this), fName, false, noEval);};
-	$.fn.$pRender = function(context, target){return $p.render($(this), context, target);}
+		var replaced = (target) ? target : $(this)[0];//if no target, self replace
+		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));}
 
 }catch(e){ try{ if (MooTools){
-	// mootools selector
+	// not implemented - please collaborate with us to make it working
 	$p.find = function(selector, context){
 		var found = $(context).getElements(selector);
 		return (found[0]) ? found[0]:false}}
 
 }catch(e){ try{ if (Prototype){
+	// not implemented - please collaborate with us to make it working
 	function $$(){
-		//make the $$ use another context than document if provided as first parameter
+		//make the $$ use another context than document if provided as first parameter(not working...)
 		var args = $A(arguments);
 		var context = args[0];
 		(typeof context == 'string') ? context = document : args.splice(0,1);

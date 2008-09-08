@@ -11,37 +11,41 @@
 			.demo{border:solid 1px #ccc;background-color:#def;padding:10px}
 		</style>
 		<script type="text/javascript" src="../js/jqueryMin.js"></script>
-		<script type="text/javascript" src="../js/purePacked.js"></script>
+		<script type="text/javascript" src="../js/pure.js"></script>
 		<script type="text/javascript">
 
 		/* * * * * * * * * * * * * * * * * * * * * *
 		 *     E X A M P L E      1 
 		 * * * * * * * * * * * * * * * * * * * * * */			
 			function render1(){
-			//  a) replacing the html by itself transformed
-				$('#hello').transform({ "firstName": "Mary" });}
+				$('#hello').autoRender({ "firstName": "Mary" });}
 
 			/* Note: 
-			  All the notation below are possible with different results				
+			  All the notation below are possible with different results:				
+
+				a) as above. replacing the html by itself transformed with the data
+					$('#hello').autoRender({ "firstName": "Mary" })
 
 				b) replacing the target by the html transformed
-					$('#hello').transform({ "firstName": "Mary" }, $('#target1'));
+					$('#hello').autoRender({ "firstName": "Mary" }, $('#target1'));
 				
 				
 				c) Replacing the content of a target
-					$('#target1').html( $p.transform($('#hello')[0], { "firstName": "Mary" }));
+					$('#target1').html( $p.autoRender($('#hello')[0], { "firstName": "Mary" }));
 
 
 				d) same a c) but without jQuery
-					document.getElementById('target1').innerHTML = 
-					$p.transform( document.getElementById('hello'), { "firstName": "Mary" });
+					var target = document.getElementById('target1'); 
+					var html = document.getElementById('hello');
+					var data = { "firstName": "Mary" };
+					target.innerHTML = $p.autoRender( html, data );
 			*/
 
 
 		/* * * * * * * * * * * * * * * * * * * * * *
 		 *     E X A M P L E      2 
 		 * * * * * * * * * * * * * * * * * * * * * */			
-			function lineClick(name){ alert(name); } // example1 of event attachment, still some research needed
+			function lineClick(name){ alert(name); } // example1 of event attachment
 
 			function swapStyle(obj, inOut){ // example2 for mouseover, mouseout
 				obj.className = (inOut) ? 'player hover' : 'player';};
@@ -54,12 +58,12 @@
 					'tbody tr td[onmouseout]' : '"swapStyle(this, false);"', //both '"..."' and "'...'" work now
 					'tbody tr td[style]':"'cursor:pointer'"};
 
-					$('table.players.1').transform(context, directive);}
+					$('table.players.1').autoRender(context, directive);}
 		
 			/* Note
 				Here is an example of attaching events to the HTML.
 				Not sure if there is another way of passing such objects to the transformation.
-				Anyway it has de advantage of not having to parse again the html to attach events after the transformation.
+				It has de advantage of not having to parse again the html to attach events after the transformation.
 			 */
 		
 		/* * * * * * * * * * * * * * * * * * * * * *
@@ -73,7 +77,7 @@
 						"name": "BeeLit", "url": "http://beeLit.com"}, {
 						"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 				
-				$('ol.teamList').transform( context, {'[id]':'id'});}
+				$('ol.teamList').autoRender( context, {'[id]':'id'});}
 
 			/* Note: 
 			 	to access the attributes of the root of the html use a directive as above for the id.
@@ -90,7 +94,7 @@
 				var directive = {
 					'tbody tr[class]+': function(context, items, pos){
 						return (pos % 2 == 0) ? 'even' : 'odd';}}
-				$('table.players.2').transform(context, directive);}
+				$('table.players.2').autoRender(context, directive);}
 
 			/*Note: 
 				by default a directive replace the content of the selected node or attribute
@@ -173,7 +177,7 @@
 				  "ul.nav1 li a[href]" : "sub1['url']", //other notration of sub1.url
 			     	  "ul.nav2 li" : [ "sub2 <- sub1.subMenu", "sub2['name']"]};
 				
-				$('ul#nav').transform(context, directive, false);}
+				$('ul#nav').autoRender(context, directive, false);}
 				
 		/*Note: 
 			the 3rd argument indicates PURE to not link automatically the html and the JSON
