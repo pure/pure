@@ -71,33 +71,14 @@
 		</script>
 	</head>
 	<body>
- 		<div class="links"><a href="#" onclick="setActiveStyleSheet('black');return false;">Dark Night</a><span style="color:#52ABFF"> | </span><a href="#" onclick="setActiveStyleSheet('white');return false;">Bright Day</a>
-				<br /><a href="quickStart.html">Quick Start</a><br />
-				<a href="example1.html">Example 1</a><br />
-				<a href="example2.html">Example 2</a><br />
-				<a href="example3.html">Example 3</a><br />
-				<a href="example4.html">Example 4</a><br />
-				<a href="allExamples.html">All Examples</a><br />
+ 		<div class="links"><a href="allExamples.html">All Examples</a><br />
+				<a href="howToCompile.html">How to compile your html</a><br />
 				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
 			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
 		</div>
-		<h3>This page uses HTML's compiled to Javascript functions.</h3>
-		<p>Except the first, the render links of the examples below are just calling the compiled function, instead of mapping and compiling as in the <a href="allExamples.html">all examples pages</a></p>
-		<h3>Example 1: Hello who?</h3>
-		<div class="demo">
-			<!--a href="#" onclick="transform1();return false;">render</a-->
-			This example wasn't compiled and saved, it was just rendered on the page allExample.html<br />
-			Have a look at the source code of allExample.html to see how the function render1() didn't use compile but directly rendered the HTML.<br />
-			It is then not available in this page.			
-			<div class="htmlDoc">
-				<div id="hello"> 
-					Hello <span class="who">World</span>
-				</div>
-			</div>
-			<div class="transformation">
-				<div id="transform1"></div>
-			</div>
-		</div>
+		<h1>Rendering with compiled html's</h1>
+		This page uses HTML's compiled to Javascript functions.<br />
+		The 'render' links below are just calling the compiled function, instead of compiling them on the fly as in the <a href="allExamples.html">all examples pages</a>
 		<h3>Example 2: Iteration on a table</h3>
 		<div class="demo">
 			<div class="htmlDoc">

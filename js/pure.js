@@ -438,9 +438,9 @@ try{ if (jQuery) {
 	// jQuery chaining functions
 	$.fn.$pMap = function(directives){
 		return $($p.map(directives, $(this)));};
-	$.fn.$Pcompile = function(fName, noEval){
+	$.fn.$pCompile = function(fName, noEval){
 		return $p.compile($(this), fName, false, noEval);};
-	$.fn.render = function(context, directives, target){
+	$.fn.$pRender =$.fn.render = function(context, directives, target){
 		var replaced = (target) ? target : $(this)[0];
 		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));};
 		
