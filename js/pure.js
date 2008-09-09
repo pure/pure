@@ -428,19 +428,22 @@ var pure  = window.$p = window.pure ={
 			msgDiv.innerHTML = [msg, '<br />', msgDiv.innerHTML].join('');}
 			else{ alert(msg);}}};
 
-try{ if (jQuery){
+try{ if (jQuery) {
 	//patch jQuery to read namespaced attributes see Ticket #3023 and clean html
 	jQuery.parse[0] = /^(\[) *@?([\w:-]+) *([!*$^~=]*) *('?"?)(.*?)\4 *\]/;
-	$p.domCleaningRules.push({what:/\s?jQuery[^\s]+\=\"[^\"]+\"/gi, by:''});
+	$p.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"[^\"]+\"/gi, by: ''});
 	$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
-		return (found[0]) ? found[0]:false}}
+		return (found[0]) ? found[0] : false;};
 	// jQuery chaining functions
-	$.fn.$pMap = function(directives){return $($p.map(directives, $(this)));}
-	$.fn.$Pcompile = function(fName, noEval){return $p.compile($(this), fName, false, noEval);}
+	$.fn.$pMap = function(directives){
+		return $($p.map(directives, $(this)));};
+	$.fn.$Pcompile = function(fName, noEval){
+		return $p.compile($(this), fName, false, noEval);};
 	$.fn.render = function(context, directives, target){
-		var replaced = (target)? target:$(this)[0];
-		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));}
+		var replaced = (target) ? target : $(this)[0];
+		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));};
+		
 	$.fn.autoRender = function(context, directives, target){
 		directives = directives || false;
 		target = target || false;
@@ -448,7 +451,7 @@ try{ if (jQuery){
 			target = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
 		var replaced = (target) ? target : $(this)[0];//if no target, self replace
-		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));}
+		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));}}
 
 }catch(e){ try{ if (MooTools){
 	// not implemented - please collaborate with us to make it working
@@ -463,7 +466,7 @@ try{ if (jQuery){
 		var args = $A(arguments);
 		var context = args[0];
 		(typeof context == 'string') ? context = document : args.splice(0,1);
-		return Selector.findChildElements(context, args);}
+		return Selector.findChildElements(context, args);};
 
 	$p.find = function(selector, context){
 		var found = $$(context, selector);
