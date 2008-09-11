@@ -27,11 +27,10 @@ h2{
 	font-weight:bold}
 pre {
 	font-family:"Andale Mono", Monaco, "Lucida Console","Bitstream Vera Sans Mono","Courier New",monospace;
-	font-size:130%;
-	
-	background-color:#DFEFFF;
+	font-size:110%;
+	color:#0B0;
+	background-color:#333;
 	line-height:1.5em;
-	width:90%;
 	padding:10px;
 	margin-left:20px;
 	border:solid 1px #AAA
@@ -118,3 +117,11 @@ td.teamPlace{padding:5px}
 table.teamList{
 	width:100%;
 	border-collapse:collapse}
+.showSource{
+	text-decoration:none;
+	font-size:80%;
+	color:#555;
+}
+.source{
+	padding-top:5px;
+}
