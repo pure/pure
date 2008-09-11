@@ -288,7 +288,7 @@ var pure  = window.$p = window.pure ={
 							suffix = attValue.substring(0, attOut.index);
 						attValue = attValue.substring(attOut.index + 3);}
 
-					if(/\$p\.\$f\[[0-9]]/.test(attValue)){//function reference
+					if(/\$p\.\$f\[[0-9]+]/.test(attValue)){//function reference
 						aJS.push(this.utils.outputFn(attValue, currentLoop));}
 					else if(isStr){ //a string, strip the quotes
 						aJS.push(this.utils.strOut(attValue.substr(1, attValue.length-2)));}
@@ -308,7 +308,7 @@ var pure  = window.$p = window.pure ={
 	
 		aJS.push( 'return output.join("");}' );
 		var js = aJS.join('');
-		
+		delete this.compiledFunctions[fName];
 		if(!noEval){
 			try{
 				eval(js);} 
@@ -440,18 +440,18 @@ try{ if (jQuery) {
 		return $($p.map(directives, $(this)));};
 	$.fn.$pCompile = function(fName, noEval){
 		return $p.compile($(this), fName, false, noEval);};
-	$.fn.$pRender =$.fn.render = function(context, directives, target){
-		var replaced = (target) ? target : $(this)[0];
-		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));};
+	$.fn.$pRender =$.fn.render = function(context, directives, html){
+		var source = (html) ? html : $(this)[0];
+		return $(this).replaceWith($p.autoRender(source, context, directives));};
 		
-	$.fn.autoRender = function(context, directives, target){
+	$.fn.autoRender = function(context, directives, html){
 		directives = directives || false;
-		target = target || false;
-		if (!target && directives && directives.jquery || directives.nodeType) { //target is provided instead of directives
-			target = directives[0] || directives; //ok for jQuery obj or html node
+		html = html || false;
+		if (!html && directives && directives.jquery || directives.nodeType) { //template is provided instead of directives
+			html = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
-		var replaced = (target) ? target : $(this)[0];//if no target, self replace
-		return $(replaced).replaceWith($p.autoRender($(this)[0], context, directives));}}
+		var source = (html) ? html : $(this)[0];//if no target, self replace
+		return $(this).replaceWith($p.autoRender(source, context, directives));}}
 
 }catch(e){ try{ if (MooTools){
 	// not implemented - please collaborate with us to make it working
