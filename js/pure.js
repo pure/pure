@@ -222,7 +222,8 @@ var pure  = window.$p = window.pure ={
 			this.msg( 'no_HTML_name_set_for_parsing', str, HTML);
 			return false}
 		//start the js generation
-		var aJS = [[ '$p.compiledFunctions["', fName, '"]={};$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
+		this.compiledFunctions[fName]={}; //clean the fct place if any
+		var aJS = [[ '$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 		var aDom = str.split(ns);
 
 		var wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', currentLoop, isNodeValue, offset, isStr = false, attName = '', attValue = '';
@@ -288,8 +289,12 @@ var pure  = window.$p = window.pure ={
 							suffix = attValue.substring(0, attOut.index);
 						attValue = attValue.substring(attOut.index + 3);}
 
-					if(/\$p\.\$f\[[0-9]+]/.test(attValue)){//function reference
-						aJS.push(this.utils.outputFn(attValue, currentLoop));}
+					if(/\$f\[([0-9]+)]/.test(attValue)){ //function reference
+						var fnId = attValue.match(/\[([0-9]+)/)[1];
+						this.compiledFunctions[fName]['$f'+fnId]=this.$f[fnId];
+						this.$f.splice(fnId,1);
+						aJS.push(this.utils.outputFn('this.$f'+fnId, currentLoop));}
+						
 					else if(isStr){ //a string, strip the quotes
 						aJS.push(this.utils.strOut(attValue.substr(1, attValue.length-2)));}
 					else if(this.utils.isArray(attValue, openArrays)){ //iteration reference
@@ -308,7 +313,6 @@ var pure  = window.$p = window.pure ={
 	
 		aJS.push( 'return output.join("");}' );
 		var js = aJS.join('');
-		delete this.compiledFunctions[fName];
 		if(!noEval){
 			try{
 				eval(js);} 
@@ -366,7 +370,7 @@ var pure  = window.$p = window.pure ={
 				if ( target ){  //target found
 					if (typeof currentDir == 'function'){
 						fnId = this.$f.push(currentDir) -1;
-						currentDir = '$p.$f['+fnId+']';}
+						currentDir = '$f['+fnId+']';}
 
 					var attName = 'nodeValue'; //default
 					var repetition = -1, ns = this.ns;

@@ -24,20 +24,20 @@
 			  All the notation below are possible with different results:				
 
 				a) as above. replacing the html by itself transformed with the data
-					$('#hello').autoRender({ "firstName": "Mary" })
+					$('#hello').autoRender({ "who": "Mary" })
 
 				b) replacing the target by the html transformed
-					$('#hello').autoRender({ "firstName": "Mary" }, $('#target1'));
+					$('#hello').autoRender({ "who": "Mary" }, $('#target1'));
 				
 				
 				c) Replacing the content of a target
-					$('#target1').html( $p.autoRender($('#hello')[0], { "firstName": "Mary" }));
+					$('#target1').html( $p.autoRender($('#hello')[0], { "who": "Mary" }));
 
 
-				d) same a c) but without jQuery
+				d) same as c) but without js framework (jQuery)
 					var target = document.getElementById('target1'); 
 					var html = document.getElementById('hello');
-					var data = { "firstName": "Mary" };
+					var data = { "who": "Mary" };
 					target.innerHTML = $p.autoRender( html, data );
 			*/
 
@@ -48,12 +48,6 @@
 			function render2(){
 				var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
 				$('table.players.1').autoRender(context);}
-		
-			/* Note
-				Here is an example of attaching events to the HTML.
-				Not sure if there is another way of passing such objects to the transformation.
-				It has de advantage of not having to parse again the html to attach events after the transformation.
-			 */
 		
 		/* * * * * * * * * * * * * * * * * * * * * *
 		 *     E X A M P L E      3 
@@ -66,11 +60,13 @@
 						"name": "BeeLit", "url": "http://beeLit.com"}, {
 						"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 				
-				$('ol.teamList').autoRender( context, {'[id]':'id'});}
+				$('ol.teamList').autoRender( context);}
 
 			/* Note: 
 			 	to access the attributes of the root of the html use a directive as above for the id.
 				Only the name of the attribute is provided between brackets
+				For auto-rendering use the @ symbol as: property@attribute
+				i.e: url@href
 			*/
 		
 		/* * * * * * * * * * * * * * * * * * * * * *
@@ -91,15 +87,22 @@
 					'tbody tr td[onmouseout]' : '"swapStyle(this, false);"', //both '"..."' and "'...'" work now
 					'tbody tr td[style]':"'cursor:pointer'",
 					'tbody tr[class]+': function(context, items, pos){
-						return (pos % 2 == 0) ? 'even' : 'odd';}}
+											var oe =  (pos % 2 == 0) ? 'even' : 'odd';
+											var fe = (pos == 0) ? 'first': (pos == items.length -1) ? 'last':'';
+											return oe + ' ' + fe; }}
+
 				$('table.players.2').autoRender(context, directive);}
 
 			/*Note: 
 				by default a directive replace the content of the selected node or attribute
 				If an append or prepend is necessary we use +
-				+<selector> means prepend the directive to the existing content
-				<selector>+ means append the directive to the existing content
-			*/
+				+<selector> means prepend the directive to the existing selected content
+				<selector>+ means append the directive to the existing selected content
+
+				Here as well is an example of attaching events to the HTML.
+				Not sure if there is another way of passing such objects to the transformation.
+				It has de advantage of not having to parse again the html to attach events after the transformation.
+			 */
 			
 		/* * * * * * * * * * * * * * * * * * * * * *
 		 *     E X A M P L E      5 
@@ -182,13 +185,19 @@
 			when we want to set various directives on the same node.
 		*/
 		
-		//nothing with PURE here, just an utility for cross browser button quirks
+		//nothing with PURE here, just some utility for this page
 			function clickButton(obj){
 				obj.disabled = true;
 				obj.value = 'Refresh the page to render again.';
 				if(arguments[1]) $(arguments[1]).remove();
 				if (/Firefox/i.test(navigator.userAgent)) obj.type = 'submit';}//to have buttons back when refreshing the page in FF
-				
+			function showSource(obj){
+				if(typeof obj == 'function'){
+					alert('js');
+				}else{
+					alert('html');
+				}
+			}
 		</script>
 	</head>
 	<body>
@@ -231,6 +240,10 @@
 						<td class="player context">Chloe</td></tr>
 					</tbody>
 				</table>
+			</div>
+			<div class="js">
+				<a href="#" onclick="show(render2);">Show js</a> - 
+				<a href="#" onclick="show($('table.player.1'));">Show HTML</a>
 			</div>
 		</div>
 		<!-- 
@@ -277,7 +290,7 @@
 		It shows the nested iteration and as well how a template can be included in another.
 		<div class="demo">
 			<div class="htmlDoc">
-				<input type="button" onclick="render5();//clickButton(this);render5();" value="render" />
+				<input type="button" onclick="render5();" value="render" />
 				<table class="scoreBoard">
 				    <tbody>
 				        <tr>
@@ -319,6 +332,6 @@
 			</div>
 		</div>
 		<p></p>
-		<h3><a href="howToCompile.html">See how you can compile templates</a> to gain on performance and bandwith.</h3>
+		<h3><a href="howToCompile.html">See how you can compile templates</a> to gain on performance and bandwidth.</h3>
 	</body>
 </html>

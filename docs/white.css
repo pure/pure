@@ -89,19 +89,23 @@ td.score, th.score, td.position, th.position{
 }
 td.player, th.player{
 	text-align:left;
-	border:solid 1px #aaa;
+	border:solid 1px #AAA;
 	padding:3px;
 }
 th.score, th.player, th.position, .hover{
 	background-color:#DA7600;
 	color:#eee;
 }
-/*example 3*/
+/*example 4*/
 tr.odd{ 
 	background-color: #FFF}
 tr.even{
 	background-color: #DFEFFF;
 	color:#222}
+tr.first{ 
+	border-top: solid 2px #FA0}
+tr.last{
+	border-bottom:solid 2px #FA0}
 /*example 4*/
 table.scoreBoard{
 	border-collapse:collapse;
