@@ -36,7 +36,7 @@ var pure  = window.$p = window.pure ={
 		document.body.appendChild(txt);
 		txt.select();}},
 
-	$f:[],
+	$f:{cnt:0},
 
 	$c:function(context, path){
 	if(!context) context ={};
@@ -226,7 +226,7 @@ var pure  = window.$p = window.pure ={
 		var aJS = [[ '$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 		var aDom = str.split(ns);
 
-		var wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', currentLoop, isNodeValue, offset, isStr = false, attName = '', attValue = '';
+		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', arrSrc;
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
 			if (j==0){
@@ -240,7 +240,7 @@ var pure  = window.$p = window.pure ={
 						rSrc = rSrc[0].replace(/&lt;/,'<').replace(/"/g,'').replace(/\s/g,'');
 						subSrc = rSrc.split(/\<-/);
 						currentLoop = subSrc[0];
-						var arrSrc = subSrc[1] || '';
+						arrSrc = subSrc[1] || '';
 						if ( this.utils.isArray(arrSrc, openArrays) ){
 							//reference to an open array
 							aJS.push('var ' + currentLoop + '=' + this.utils.arrayName(arrSrc) + ';');}
@@ -257,7 +257,7 @@ var pure  = window.$p = window.pure ={
 					else{ //end of loop;
 						aJS.push('}');
 						delete openArrays[currentLoop];
-						var max = 0, curr, key;
+						max = 0;
 						for (key in openArrays){
 							curr = openArrays[key];
 							if( curr > max){
@@ -279,9 +279,9 @@ var pure  = window.$p = window.pure ={
 					isNodeValue = /^nodeValue/i.test(wrkStr);	
 					(isNodeValue) ? attName = 'nodeValue': aJS.push(this.utils.strOut(attName + '="'));
 
-					var attOut = attValue.match(/\|(a|p)\|/);
-					var suffix = false; 
-					var spc = (isNodeValue)?'':' ';
+					attOut = attValue.match(/\|(a|p)\|/);
+					suffix = false; 
+					spc = (isNodeValue)?'':' ';
 					if (attOut) {
 						if(attOut[1] =='a') 
 							aJS.push(this.utils.strOut(attValue.substring(0, attOut.index)+spc));
@@ -289,11 +289,11 @@ var pure  = window.$p = window.pure ={
 							suffix = attValue.substring(0, attOut.index);
 						attValue = attValue.substring(attOut.index + 3);}
 
-					if(/\$f\[([0-9]+)]/.test(attValue)){ //function reference
-						var fnId = attValue.match(/\[([0-9]+)/)[1];
-						this.compiledFunctions[fName]['$f'+fnId]=this.$f[fnId];
-						this.$f.splice(fnId,1);
-						aJS.push(this.utils.outputFn('this.$f'+fnId, currentLoop));}
+					if(/\$f\[(f[0-9]+)]/.test(attValue)){ //function reference
+						fnId = attValue.match(/\[(f[0-9]+)/)[1];
+						this.compiledFunctions[fName]['$'+fnId]=this.$f[fnId];
+						delete this.$f[fnId];this.$f.cnt--;
+						aJS.push(this.utils.outputFn('this.$'+fnId, currentLoop));}
 						
 					else if(isStr){ //a string, strip the quotes
 						aJS.push(this.utils.strOut(attValue.substr(1, attValue.length-2)));}
@@ -310,9 +310,8 @@ var pure  = window.$p = window.pure ={
 				//output the remaining if any	
 				wrkStr = wrkStr.substr(offset);
 				if(wrkStr != '') aJS.push(this.utils.strOut(wrkStr));}}
-	
 		aJS.push( 'return output.join("");}' );
-		var js = aJS.join('');
+		js = aJS.join('');
 		if(!noEval){
 			try{
 				eval(js);} 
@@ -369,7 +368,8 @@ var pure  = window.$p = window.pure ={
 
 				if ( target ){  //target found
 					if (typeof currentDir == 'function'){
-						fnId = this.$f.push(currentDir) -1;
+						fnId = 'f'+this.$f.cnt++;
+						this.$f[fnId] = currentDir;
 						currentDir = '$f['+fnId+']';}
 
 					var attName = 'nodeValue'; //default
@@ -442,11 +442,16 @@ try{ if (jQuery) {
 	// jQuery chaining functions
 	$.fn.$pMap = function(directives){
 		return $($p.map(directives, $(this)));};
-	$.fn.$pCompile = function(fName, noEval){
-		return $p.compile($(this), fName, false, noEval);};
+	$.fn.$pCompile = $.fn.compile = function(fName, directives){
+		if(directives) $p.map( directives, $(this), true);
+		$p.compile($(this), fName, false, false);
+		return $(this);};
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
+		if (typeof directives == 'string') { // a compiled template is passed
+			html = directives;
+			directives = false;}
 		var source = (html) ? html : $(this)[0];
-		return $(this).replaceWith($p.autoRender(source, context, directives));};
+		return $(this).replaceWith($p.render(source, context, directives));};
 		
 	$.fn.autoRender = function(context, directives, html){
 		directives = directives || false;

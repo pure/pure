@@ -3,7 +3,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<title>The Features of PURE Unobtrusive Rendering Engine for HTML</title>
-	    <link href="white.css" rel="stylesheet" type="text/css" title="black"/>
+	    <link href="white.css" rel="stylesheet" type="text/css" />
 		<style type="text/css">
 			#pureRuntime{width:100%;height:200px;background-color:#DEF}
 			.htmlDoc{width:90%;background-color:#def;}
@@ -183,7 +183,8 @@
 				  "ul.nav1 li a[href]" : "sub1['url']", //other notation of sub1.url
 			     	  "ul.nav2 li" : [ "sub2 <- sub1.subMenu", "sub2['name']"]};
 				
-				$('ul#nav').render(context, directive, false);}
+				$('ul#nav').compile('f6', directive);
+				$('ul#nav').render(context, 'f6');}
 				
 		/*Note: 
 			the last directive is an array instead of a string. This is useful
