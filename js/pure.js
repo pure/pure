@@ -440,7 +440,7 @@ try{ if (jQuery) {
 		var found = jQuery.find(selector, context);
 		return (found[0]) ? found[0] : false;};
 	// jQuery chaining functions
-	$.fn.$pMap = function(directives){
+	$.fn.$pMap = $.fn.setDirectives = function(directives){
 		return $($p.map(directives, $(this)));};
 	$.fn.$pCompile = $.fn.compile = function(fName, directives){
 		if(directives) $p.map( directives, $(this), true);
