@@ -64,7 +64,7 @@
 	function render4(button){
 		// simulate a ajax-jsonp call, that will load here a static js, and call the example4CallBack function
 		button.value = 'loading data...';
-		var script = (button.id == 'b4_2') ? 'jsonBig.js':'jsonSmall.js';
+		var script = (button.id == 'b4_2') ? 'http://beebole.com/pure/gitHubWiki/docs/js/jsonBig.js':'http://beebole.com/pure/gitHubWiki/docs/js/jsonSmall.js';
 		$.getJSON(script, function(context){
 
 			var directive = {

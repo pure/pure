@@ -433,25 +433,29 @@ var pure  = window.$p = window.pure ={
 			else{ alert(msg);}}};
 
 try{ if (jQuery) {
-	//patch jQuery to read namespaced attributes see Ticket #3023 and clean html
+	//patch jQuery to read namespaced attributes see Ticket #3023
 	jQuery.parse[0] = /^(\[) *@?([\w:-]+) *([!*$^~=]*) *('?"?)(.*?)\4 *\]/;
 	$p.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"[^\"]+\"/gi, by: ''});
 	$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
 		return (found[0]) ? found[0] : false;};
+	
 	// jQuery chaining functions
-	$.fn.$pMap = $.fn.setDirectives = function(directives){
+	$.fn.$pMap = $.fn.mapDirective = function(directives){
 		return $($p.map(directives, $(this)));};
+	
 	$.fn.$pCompile = $.fn.compile = function(fName, directives){
 		if(directives) $p.map( directives, $(this), true);
 		$p.compile($(this), fName, false, false);
 		return $(this);};
+		
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;
 			directives = false;}
 		var source = (html) ? html : $(this)[0];
-		return $(this).replaceWith($p.render(source, context, directives));};
+		var newThis = $(this).replaceWith($p.render(source, context, directives));
+		return newThis;};
 		
 	$.fn.autoRender = function(context, directives, html){
 		directives = directives || false;
@@ -460,7 +464,8 @@ try{ if (jQuery) {
 			html = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
 		var source = (html) ? html : $(this)[0];//if no target, self replace
-		return $(this).replaceWith($p.autoRender(source, context, directives));}}
+		var newThis = $(this).replaceWith($p.autoRender(source, context, directives));
+		return newThis;}}
 
 }catch(e){ try{ if (MooTools){
 	// not implemented - please collaborate with us to make it working
@@ -470,13 +475,6 @@ try{ if (jQuery) {
 
 }catch(e){ try{ if (Prototype){
 	// not implemented - please collaborate with us to make it working
-	function $$(){
-		//make the $$ use another context than document if provided as first parameter(not working...)
-		var args = $A(arguments);
-		var context = args[0];
-		(typeof context == 'string') ? context = document : args.splice(0,1);
-		return Selector.findChildElements(context, args);};
-
 	$p.find = function(selector, context){
-		var found = $$(context, selector);
+		var found = $(context).select(selector);
 		return (found[0]) ? found[0]:false}}}catch(e){}}}
