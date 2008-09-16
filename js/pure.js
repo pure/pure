@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    version: 1.4
+    version: 1.5
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
