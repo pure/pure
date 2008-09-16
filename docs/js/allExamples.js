@@ -56,10 +56,11 @@
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      4 
  * * * * * * * * * * * * * * * * * * * * * */			
-	function lineClick(name){ alert(name); } // example1 of event attachment
-
-	function swapStyle(obj, inOut){ // example2 for mouseover, mouseout
+	function swapStyle(obj, inOut){
 		obj.className = (inOut) ? 'player hover' : 'player';};
+ 
+	function clickLine(obj){ 
+		alert(obj.innerHTML)};
 
 	function render4(button){
 		// simulate a ajax-jsonp call, that will load here a static js, and call the example4CallBack function
@@ -68,19 +69,20 @@
 		$.getJSON(script, function(context){
 
 			var directive = {
-			'tbody tr td[onclick]':function(context,items, pos){ return 'lineClick(\''+items[pos]+'\');'},
-			'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
-			'tbody tr td[onmouseout]' : '"swapStyle(this, false);"', //both '"..."' and "'...'" work now
-			'tbody tr td[style]':"'cursor:pointer'",
-			'tbody tr[class]+': function(context, items, pos){
-									var oddEven =  (pos % 2 == 0) ? 'even' : 'odd';
-									var firstLast = (pos == 0) ? 'first': (pos == items.length -1) ? 'last':'';
-									return oddEven + ' ' + firstLast; }}
-
+			'tbody tr td[onclick]':'"clickLine(this)"',
+			'tbody tr td[onmouseover]': '"swapStyle(this, true);"', 
+			'tbody tr td[onmouseout]' : '"swapStyle(this, false);"',
+			'tbody tr td[style]':'\'cursor:pointer\'',
+			
+			'tbody tr[class]+': 
+				function(context, items, pos){
+					var oddEven =  (pos % 2 == 0) ? 'even' : 'odd';
+					var firstLast = (pos == 0) ? 'first': (pos == items.length -1) ? 'last':'';
+					return oddEven + ' ' + firstLast; }}
+	
 			$('table.players.2').autoRender(context, directive);
-
+	
 			button.value = 'Refresh the page to render again.';});}
-
 
 	/*Note: 
 		by default a directive replace the content of the selected node or attribute

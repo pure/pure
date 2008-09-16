@@ -1,1 +1,1 @@
-["Adrian Meador","Bryan Thomas","Corey Moren","Ivan Nassar","John Cavallaro","Lisa Hochman","Rick Leslie","Scott Cave","Tatiana Brooks","Todd Swift","Valerie Paige","Walter Hagelstein","Wendy Leatherbury"]
+["Adrian Meador","Bryan O'Connor","Michèle Noïjû","تصبح عالميا مع يونيكود","Γέφυρα γρύλων","Chloé Ellemême","глобальных масштабах","יוצא לשוק העולמי","La \"volante\"","Todd Swift","Valerie Paige","Walter Hagelstein","Wendy Leatherbury"]

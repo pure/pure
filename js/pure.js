@@ -142,7 +142,7 @@ var pure  = window.$p = window.pure ={
 			var autoRender = node.getAttribute(ns + 'autoRender');
 			node.removeAttribute(ns + 'autoRender');
 			var openArray=[];
-			//memory safe tree traverse
+			//memory safe non-recursive tree traverse
 			var c = node, n = null;
 			do {
 				if (c.nodeType == 1) 
@@ -444,9 +444,9 @@ try{ if (jQuery) {
 	$.fn.$pMap = $.fn.mapDirective = function(directives){
 		return $($p.map(directives, $(this)));};
 	
-	$.fn.$pCompile = $.fn.compile = function(fName, directives){
+	$.fn.$pCompile = $.fn.compile = function(fName, directives, context){
 		if(directives) $p.map( directives, $(this), true);
-		$p.compile($(this), fName, false, false);
+		$p.compile($(this), fName, context||false, false);
 		return $(this);};
 		
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
