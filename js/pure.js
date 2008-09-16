@@ -454,8 +454,7 @@ try{ if (jQuery) {
 			html = directives;
 			directives = false;}
 		var source = (html) ? html : $(this)[0];
-		var newThis = $(this).replaceWith($p.render(source, context, directives));
-		return newThis;};
+		return $(this).replaceWith($p.render(source, context, directives));};
 		
 	$.fn.autoRender = function(context, directives, html){
 		directives = directives || false;
@@ -464,8 +463,7 @@ try{ if (jQuery) {
 			html = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
 		var source = (html) ? html : $(this)[0];//if no target, self replace
-		var newThis = $(this).replaceWith($p.autoRender(source, context, directives));
-		return newThis;}}
+		return $(this).after($p.autoRender(source, context, directives));}}
 
 }catch(e){ try{ if (MooTools){
 	// not implemented - please collaborate with us to make it working
