@@ -463,8 +463,9 @@ try{ if (jQuery) {
 			html = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
 		var source = (html) ? html : $(this)[0];//if no target, self replace
-		return $(this).after($p.autoRender(source, context, directives));}}
+		return $(this).replaceWith($p.autoRender(source, context, directives));}}
 
+}catch(e){ try{ if (DOMAssistant){}
 }catch(e){ try{ if (MooTools){}
 }catch(e){ try{ if (Prototype){}
-}catch(e){}}}
+}catch(e){}}}}

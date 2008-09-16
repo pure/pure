@@ -22,10 +22,10 @@
 		<h1>What are the features available in PURE today ?</h1>
 		This page groups all the features available in the last release.<br />
 		Click the render buttons to see the result.<br />
-		Look at the source of the page to see comments and usage.
+		Look at the source of the page to see comments and usage or <a href="http://github.com/pure/pure/wikis/">have a look at the wiki</a>.
 		<h3>Example 1: Hello Who?</h3>
 		<div class="demo">
-			<input type="button" onclick="render1();" value="render" />
+			<input type="button" onclick="clickButton(this, render1);" value="render" />
 			<div class="htmlDoc">
 				<div id="hello">
 					Hello <span class="who">World</span>
@@ -105,7 +105,7 @@
 		It shows the nested iteration and as well how a template can be included in another.
 		<div class="demo">
 			<div class="htmlDoc">
-				<input type="button" onclick="render5();" value="render" />
+				<input type="button" onclick="clickButton(this, render5);" value="render" />
 				<table class="scoreBoard">
 					<tbody>
 						<tr>
