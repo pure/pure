@@ -465,14 +465,6 @@ try{ if (jQuery) {
 		var source = (html) ? html : $(this)[0];//if no target, self replace
 		return $(this).after($p.autoRender(source, context, directives));}}
 
-}catch(e){ try{ if (MooTools){
-	// not implemented - please collaborate with us to make it working
-	$p.find = function(selector, context){
-		var found = $(context).getElements(selector);
-		return (found[0]) ? found[0]:false}}
-
-}catch(e){ try{ if (Prototype){
-	// not implemented - please collaborate with us to make it working
-	$p.find = function(selector, context){
-		var found = $(context).select(selector);
-		return (found[0]) ? found[0]:false}}}catch(e){}}}
+}catch(e){ try{ if (MooTools){}
+}catch(e){ try{ if (Prototype){}
+}catch(e){}}}

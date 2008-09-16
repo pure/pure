@@ -161,13 +161,13 @@
 					{"name" : "Development", "url" : "http://dev..."}]}];
 	               
 		var directive = {
-		  "li" : "menu <-",
-		  "a" : "menu.name", 
-		  "a[href]" : "menu.url",
-	     	  "ul.nav1 li" : "sub1 <- menu.subMenu",
-	     	  "ul.nav1 li a" : "sub1.name", 
-		  "ul.nav1 li a[href]" : "sub1['url']", //other notation of sub1.url
-	     	  "ul.nav2 li" : [ "sub2 <- sub1.subMenu", "sub2['name']"]};
+			'li' : 'level1 <-',
+			'a' : 'level1.name', 
+			'a[href]' : 'level1.url',
+			'ul.nav1 li' : 'level2 <- level1.subMenu',
+				'ul.nav1 li a' : 'level2.name', 
+				'ul.nav1 li a[href]' : 'level2.url',
+					'ul.nav2 li' : [ 'level3 <- level2.subMenu', 'level3.name']};
 		
 		$('ul#nav').compile('f6', directive);
 		$('ul#nav').render(context, 'f6');}
