@@ -74,7 +74,7 @@
 			'tbody tr td[onmouseout]' : '"swapStyle(this, false);"',
 			'tbody tr td[style]':'\'cursor:pointer\'',
 			
-			'tbody tr[class]+': 
+			'tbody tr[class]': 
 				function(context, items, pos){
 					var oddEven =  (pos % 2 == 0) ? 'even' : 'odd';
 					var firstLast = (pos == 0) ? 'first': (pos == items.length -1) ? 'last':'';

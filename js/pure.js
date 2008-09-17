@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    version: 1.5
+    version: 1.5+
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -327,21 +327,21 @@ var pure  = window.$p = window.pure ={
 		div.appendChild(elm);
 		return div.innerHTML;})();},
 
-	map:function(directives, HTML, noClone){
+	map:function(directives, html, noClone){
 		// a directive is a tuple{ dom selector, value }
-		// returns the HTML with the directives as pure:<attr>="..."
-		if(!HTML[0] && HTML.length == 0){
+		// returns the html with the directives as pure:<attr>="..."
+		if(!html[0] && html.length == 0){
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, multipleDir=[], currentDir, autoRenderAtt = this.autoRenderAtt;
-
+		var fnId, multipleDir=[], currentDir;
 		var clone;
 		if (noClone){
-			clone = (HTML[0])? HTML[0] : HTML;}
+			clone = (html[0])? html[0] : html;}
 		else{
-			clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);}
+			clone = (html[0])? html[0].cloneNode(true) : html.cloneNode(true);}
 			
+		autoRender = clone.getAttribute(ns + 'autoRender')||false;
 		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
 			currentDir = directives[selector];
 			if(this.utils.isTypeOfArray(currentDir)){//check if an array of directives is provided
@@ -394,7 +394,8 @@ var pure  = window.$p = window.pure ={
 						currentDir = original + '|p|' + currentDir;}
 
 					target.setAttribute( ns + attName, currentDir);
-					if(isAttr && attName != 'nodeValue' && repetition < 0 && !append && !prepend){
+					//hello
+					if(isAttr && attName != 'nodeValue' && (attName!='class' && autoRender) && repetition < 0 && !append && !prepend){
 						try{ //some cross browser attributes issues -> try catch nothing
 							target.removeAttribute(attName);}
 						catch(e){}}}
