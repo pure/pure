@@ -82,7 +82,7 @@
 	
 			$('table.players.2').autoRender(context, directive);
 	
-			button.value = 'Refresh the page to render again.';});}
+			button.value = 'Refresh the page to render again';});}
 
 	/*Note: 
 		by default a directive replace the content of the selected node or attribute
@@ -109,25 +109,36 @@
 
 	function render5(){
 		var context = {
-			'list': [['Cats', 
-						[["Alice Keasler", 14], ["Charles LeGrand", 13],["Gary Bitemning", 20],["Helen Moren", 5]]], 
-					['Cows', 
-						[["Mary Cain", 15], ["Vicky Benoit", 5], ["Wayne Dartt", 11]]],
-					 ['Dogs', 
-					 	[["Ray Braun", 13], ["Aaron Ben", 24], ["Steven Smith", 1], ["Kim Caffey", 19]]], 
-					['Donkeys', 
-						[["Natalie Kinney", 16], ["Caren Cohen", 3]]]]};
-		
+			'teams': [{
+				'name':'Cats',
+				'players':[	
+					{"name":"Alice Keasler", "score":14}, 
+					{"name":"Mary Cain", "score":15}, 
+					{"name":"Vicky Benoit", "score":5}, 
+					{"name":"Wayne Dartt", "score":11}]},{
+				
+				'name':'Dogs',
+				'players': [
+					{"name":"Ray Braun", "score":14}, 
+					{"name":"Aaron Ben", "score":24}, 
+					{"name":"Steven Smith", "score":1}, 
+					{"name":"Kim Caffey", "score":19}]},{
+				
+				'name':'Mices',
+				'players': [
+					{"name":"Natalie Kinney", "score":16}, 
+					{"name":"Caren Cohen", "score":3}]}]}
+
 		var scoreBoard = $('table.scoreBoard').$pMap({
-			'tbody tr': 'teams <- list',
-			'td.teamName': 'teams[0]'
+			'tbody tr': 'team <- teams',
+			'td.teamName': 'team.name'
 		});
 		
 		var teamList = $('table.teamList', scoreBoard)
 			.$pMap({
-				'tbody tr': 'player <- teams[1]',
-				'td.player': 'player[0]',
-				'td.score': 'player[1]',
+				'tbody tr': 'player <- team.players',
+				'td.player': 'player.name',
+				'td.score': 'player.score',
 				'td.position': lineNb, //passing the pointer of a function that does not use "this"
 				'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
 		
@@ -173,8 +184,8 @@
 		var directive = {
 			'li+':function(context, items, pos){
 				if(items[pos].children){
-					return $p.compiledFunctions['tree'].compiled(items[pos]);}}};
-					
+					return $p.compiledFunctions.tree.compiled(items[pos]);}}};
+
 		$('ul.treeItem').compile('tree', directive, context);
 		$('ul.treeItem').render(context, 'tree');}
 		
@@ -187,7 +198,7 @@
 //nothing with PURE here, just some utility for this page
 	function clickButton(obj, render){
 		obj.disabled = true;
-		obj.value = 'Refresh the page to render again.';
+		obj.value = 'Refresh the page to render again';
 		if (arguments[2]) 
 			$(arguments[2]).remove();
 		if (/Firefox/i.test(navigator.userAgent)) 
