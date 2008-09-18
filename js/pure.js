@@ -129,7 +129,7 @@ var pure  = window.$p = window.pure ={
 								if (!n.getAttribute(ns + att[1])) {
 									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}
 					var fixAtt =  (/MSIE/.test(navigator.userAgent) &&  autoRenderAtt == 'className')? 'class':autoRenderAtt;
-					if (/\|(a|p)\|/.test(n.getAttribute(ns + fixAtt))) n.removeAttribute(autoRenderAtt);
+					if (n.getAttribute(ns + fixAtt) && !/\|(a|p)\|/.test(n.getAttribute(ns + fixAtt))) n.removeAttribute(autoRenderAtt);
 				}}
 			//flag the nodeValue and repeat attributes
 			var isNodeValue = n.getAttribute(ns+'nodeValue');
