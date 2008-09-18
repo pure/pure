@@ -148,40 +148,28 @@
 
 		var context = {
 			children: [{
-				url:'http://localhost/?eu',
 				name:'Europe',
 				children:[{
-					url:'http://localhost/?be',
 					name:'Belgium', 
 					children:[{
-						url:'http://localhost/?bru',
 						name:'Brussels'},{
-						url:'http://localhost/?nam',
 						name:'Namur'},{
-						url:'http://localhost/?ant',
 						name:'Antwerpen'}]},{
 					name:'Germany'},{
 					name:'UK'}
 				]},{
-				url:'http://localhost/?am',
 				name:'America',
 				children:[{
-					url:'http://localhost/?us',
 					name:'US',
 					children:[{
-						url:'http://localhost/?al',
 						name:'Alabama'},{
-						url:'http://localhost/?ga',
 						name:'Georgia'}
 					]},{
-						url:'http://localhost/?ca',
 						name:'Canada'},{
-						url:'http://localhost/?ar',
 						name:'Argentina'}]},{
 				name:'Asia'},{
 				name:'Africa'},{
 				name:'Antartica'}]};
-				
 		var directive = {
 			'li+':function(context, items, pos){
 				if(items[pos].children){

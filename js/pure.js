@@ -129,12 +129,13 @@ var pure  = window.$p = window.pure ={
 								if (!n.getAttribute(ns + att[1])) {
 									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}
 					var fixAtt =  (/MSIE/.test(navigator.userAgent) &&  autoRenderAtt == 'className')? 'class':autoRenderAtt;
-					if (n.getAttribute(ns + fixAtt) && !/\|(a|p)\|/.test(n.getAttribute(ns + fixAtt))) n.removeAttribute(autoRenderAtt);
+					if (n.getAttribute(ns+fixAtt) && n.getAttribute(autoRenderAtt))
+							n.removeAttribute(autoRenderAtt);
 				}}
 			//flag the nodeValue and repeat attributes
-			var isNodeValue = n.getAttribute(ns+'nodeValue');
+			var isNodeValue = n.getAttribute(nodeValueAtt);
 			if (isNodeValue) this.nodeValues.push(n);
-			var isRepeat = n.getAttribute(ns+'repeat');
+			var isRepeat = n.getAttribute(repeatAtt);
 			if (isRepeat) this.repeats.push(n);},
 
 		nodeWalk:function(node, ns, context, autoRenderAtt){
@@ -174,7 +175,7 @@ var pure  = window.$p = window.pure ={
 							if (ap[1] == 'a')
 								n.innerHTML += nodeValueAtt + '="' + nodeValueSrc.substring(ap.index+3) + '"';
 							else
-								n.innerHTML =+ nodeValueAtt + '="' + nodeValueSrc.substring(ap.index+3) + '"';}
+								n.innerHTML = nodeValueAtt + '="' + nodeValueSrc.substring(ap.index+3) + '"' + n.innerHTML;}
 						else 	n.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
 						
 						n.removeAttribute(nodeValueAtt);}} 
@@ -398,7 +399,7 @@ var pure  = window.$p = window.pure ={
 					if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 						currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 					var fixAtt = (/MSIE/.test(navigator.userAgent) && attName == 'class')? 'className':attName;
-					var original = target.getAttribute(fixAtt) || ('nodeValue'==attName)?'nodeValue':false;
+					var original = target.getAttribute(fixAtt) || (('nodeValue'==attName)?'nodeValue':false);
 					if(append && original){
 						currentDir = original + '|a|' + currentDir;}
 					else if(prepend && original){
