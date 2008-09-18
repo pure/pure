@@ -39,22 +39,22 @@ var pure  = window.$p = window.pure ={
 	$f:{cnt:0},
 
 	$c:function(context, path){
-	if(!context) context ={};
-	if(typeof context == 'object'){
-		//context is a JSON
-		var aPath = path.split(/\./);
-		var value = context[aPath[0]];
-		if(value == 'undefined') value = window[aPath[0]];
+		if(!context) context ={};
+		if(typeof context == 'object'){
+			//context is a JSON
+			var aPath = path.split(/\./);
+			var value = context[aPath[0]];
+			if(value == 'undefined') value = window[aPath[0]];
 
-		for (var i=1; i<aPath.length; i++){
-			if (!value){
-				i = aPath.length;
-				continue;}
+			for (var i=1; i<aPath.length; i++){
+				if (!value){
+					i = aPath.length;
+					continue;}
 
-		value = value[aPath[i]];}}
+			value = value[aPath[i]];}}
 
-		if (!value && value!=0) value = '""';
-	return value;},
+			if (!value && value!=0) value = '""';
+		return value;},
 
 	render: function(html, context, directives){
 		var fn;
@@ -166,10 +166,17 @@ var pure  = window.$p = window.pure ={
 			var replaced, replacer, replacedSrc, nodeValueSrc;
 			for (var j = 0; j < this.nodeValues.length; j++) {
 				try {
-					n = this.nodeValues[j];
+					n = this.nodeValues[this.nodeValues.length -j -1];
 					nodeValueSrc = n.getAttribute(nodeValueAtt); // put the node value in place
 					if (nodeValueSrc) {
-						n.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
+						var ap = nodeValueSrc.match(/\|(a|p)\|/);
+						if (ap) {
+							if (ap[1] == 'a')
+								n.innerHTML += nodeValueAtt + '="' + nodeValueSrc.substring(ap.index+3) + '"';
+							else
+								n.innerHTML =+ nodeValueAtt + '="' + nodeValueSrc.substring(ap.index+3) + '"';}
+						else 	n.innerHTML = nodeValueAtt + '="' + nodeValueSrc + '"';
+						
 						n.removeAttribute(nodeValueAtt);}} 
 				catch (e) {}}
 			for(var i=0; i<this.repeats.length;i++){
@@ -187,7 +194,11 @@ var pure  = window.$p = window.pure ={
 
 		out:function(content){ return ['output.push(', content, ');'].join('')},
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
-		outputFn:function (attValue, currentLoop){ return this.out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))')},
+		outputFn:function (attValue, currentLoop){
+			if (currentLoop) 
+				return this.out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))');
+			else
+				return this.out(attValue + '(context)');},
 		contextOut:function(path){ return ['output.push($p.$c(context, ', path, '));'].join('')},
 
 		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
@@ -250,7 +261,7 @@ var pure  = window.$p = window.pure ={
 							else 
 								aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
 						
-						aJS.push('for('+currentLoop+'Index in '+currentLoop+'){');
+						aJS.push('for(var '+currentLoop+'Index in '+currentLoop+'){');
 						aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length)));
 						openArrays[currentLoop] = cnt++;}
 				
@@ -387,7 +398,7 @@ var pure  = window.$p = window.pure ={
 					if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 						currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
 					var fixAtt = (/MSIE/.test(navigator.userAgent) && attName == 'class')? 'className':attName;
-					var original = target.getAttribute(fixAtt);
+					var original = target.getAttribute(fixAtt) || ('nodeValue'==attName)?'nodeValue':false;
 					if(append && original){
 						currentDir = original + '|a|' + currentDir;}
 					else if(prepend && original){
@@ -447,6 +458,7 @@ try{ if (jQuery) {
 	
 	$.fn.$pCompile = $.fn.compile = function(fName, directives, context){
 		if(directives) $p.map( directives, $(this), true);
+		if(context) $(this)[0].setAttribute($p.ns + 'autoRender', 'true');
 		$p.compile($(this), fName, context||false, false);
 		return $(this);};
 		

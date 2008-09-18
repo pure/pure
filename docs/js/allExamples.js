@@ -145,32 +145,50 @@
  *     E X A M P L E      6 
  * * * * * * * * * * * * * * * * * * * * * */			
 	function render6(){
-		var context = [ 
-			{"name" : "Home", "url" : "#ho"}, 
-			{"name" : "About", "url" : "http://about...", 
-				"subMenu" : [
-					{"name" : "History", "url" : "http://history..."},
-					{"name" : "Team", "url" : "http://team..."},
-					{"name" : "Offices", "url" : "http://offices...",
-						"subMenu" : [
-							{"name" : "Brussels", "url" : "http://brussels..."},
-							{"name" : "New Delhi", "url" : "http://newdelhi..."}]}]},
-	        {"name" : "Services", "url" : "http://services...",
-				"subMenu" : [
-					{"name" : "Web Design", "url" : "http://web..."},
-					{"name" : "Development", "url" : "http://dev..."}]}];
-	               
+
+		var context = {
+			children: [{
+				url:'http://localhost/?eu',
+				name:'Europe',
+				children:[{
+					url:'http://localhost/?be',
+					name:'Belgium', 
+					children:[{
+						url:'http://localhost/?bru',
+						name:'Brussels'},{
+						url:'http://localhost/?nam',
+						name:'Namur'},{
+						url:'http://localhost/?ant',
+						name:'Antwerpen'}]},{
+					name:'Germany'},{
+					name:'UK'}
+				]},{
+				url:'http://localhost/?am',
+				name:'America',
+				children:[{
+					url:'http://localhost/?us',
+					name:'US',
+					children:[{
+						url:'http://localhost/?al',
+						name:'Alabama'},{
+						url:'http://localhost/?ga',
+						name:'Georgia'}
+					]},{
+						url:'http://localhost/?ca',
+						name:'Canada'},{
+						url:'http://localhost/?ar',
+						name:'Argentina'}]},{
+				name:'Asia'},{
+				name:'Africa'},{
+				name:'Antartica'}]};
+				
 		var directive = {
-			'li' : 'level1 <-',
-			'a' : 'level1.name', 
-			'a[href]' : 'level1.url',
-			'ul.nav1 li' : 'level2 <- level1.subMenu',
-				'ul.nav1 li a' : 'level2.name', 
-				'ul.nav1 li a[href]' : 'level2.url',
-					'ul.nav2 li' : [ 'level3 <- level2.subMenu', 'level3.name']};
-		
-		$('ul#nav').compile('f6', directive);
-		$('ul#nav').render(context, 'f6');}
+			'li+':function(context, items, pos){
+				if(items[pos].children){
+					return $p.compiledFunctions['tree'].compiled(items[pos]);}}};
+					
+		$('ul.treeItem').compile('tree', directive, context);
+		$('ul.treeItem').render(context, 'tree');}
 		
 /*Note: 
 	the last directive is an array instead of a string. This is useful

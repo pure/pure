@@ -5,7 +5,7 @@
 		<title>The Features of PURE Unobtrusive Rendering Engine for HTML</title>
 	    <link href="css/white.css" rel="stylesheet" type="text/css" />
 		<script type="text/javascript" src="../js/jqueryPacked.js"></script>
-		<script type="text/javascript" src="../js/purePacked.js"></script>
+		<script type="text/javascript" src="../js/pure.js"></script>
 		<script type="text/javascript" src="js/allExamples.js"></script>
 	</head>
 	<body class="allExamples">
@@ -133,20 +133,12 @@
 	 *     E X A M P L E      6 
 	 * * * * * * * * * * * * * * * * * * * * * */			
 		-->
-		<h3>Example 6: Recursive List - the recursion is not (yet) dynamic :(</h3>
+		<h3>Example 6: Recursive List</h3>
 		<div class="demo">
 			<div class="htmlDoc">
 				<input type="button" onclick="clickButton(this, render6);" value="render" />
-				<ul id="nav"> 
-					<li><a href="#">About</a> 
-						<ul class="nav1"> 
-							<li><a href="#">Offices</a>
-								<ul class="nav2">
-									<li><a href="#">Brussels</a></li> 
-								</ul>
-							</li> 
-						</ul> 
-					</li> 
+				<ul class="treeItem">
+					<li class="children"><a class="name url@href" href="#">name</a></li>
 				</ul>
 			</div>
 		</div>
