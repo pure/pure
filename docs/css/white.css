@@ -131,3 +131,19 @@ table.teamList{
 .transformation{width:90%;background-color:#DEF;}
 .demo{border:solid 1px #ccc;background-color:#def;padding:10px}
 
+/*timer*/
+.timerMsg{padding:3px;}
+.timerTime, .timerDuration{
+	border-left:solid 1px #CCC;
+	padding:3px;
+	text-align:right;}
+th.timerMsg, th.timerTime, th.timerDuration{
+	border-bottom:solid 1px #CCC;
+}
+.timerTraceTable{
+	border-collapse:collapse;}
+
+.timerTrace{
+	padding:10px}
+.templates{
+	display:none}

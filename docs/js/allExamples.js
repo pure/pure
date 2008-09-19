@@ -1,8 +1,8 @@
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      1 
  * * * * * * * * * * * * * * * * * * * * * */			
-	function render1(){
-		$('#hello').autoRender({ "who": "Mary" });}
+function render1(){
+	$('#hello').autoRender({ "who": "Mary" });}
 
 	/* Note: 
 	  All the notation below are possible with different results:				
@@ -29,22 +29,22 @@
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      2 
  * * * * * * * * * * * * * * * * * * * * * */			
-	function render2(){
-		var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-		$('table.players.1').autoRender(context);}
+function render2(){
+	var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
+	$('table.players.1').autoRender(context);}
 
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      3 
  * * * * * * * * * * * * * * * * * * * * * */			
-	function render3(){
-		var context = {
-			"id": "3456",
-			sites: [{ 
-				"name": "Beebole","url": "http://beebole.com"}, {
-				"name": "BeeLit", "url": "http://beeLit.com"}, {
-				"name": "PURE",	  "url": "http://beebole.com/pure"}]};
-		
-		$('ol.teamList').autoRender( context);}
+function render3(){
+	var context = {
+		"id": "3456",
+		sites: [{ 
+			"name": "Beebole","url": "http://beebole.com"}, {
+			"name": "BeeLit", "url": "http://beeLit.com"}, {
+			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
+	
+	$('ol.teamList').autoRender( context);}
 
 	/* Note: 
 	 	to access the attributes of the root of the html use a directive as above for the id.
@@ -56,19 +56,20 @@
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      4 
  * * * * * * * * * * * * * * * * * * * * * */			
-	function swapStyle(obj, inOut){
-		obj.className = (inOut) ? 'player hover' : 'player';};
- 
-	function clickLine(obj){ 
-		alert(obj.innerHTML)};
+function swapStyle(obj, inOut){
+	obj.className = (inOut) ? 'player hover' : 'player';};
 
-	function render4(button){
-		// simulate a ajax-jsonp call, that will load here a static js, and call the example4CallBack function
-		button.value = 'loading data...';
-		var script = (button.id == 'b4_2') ? 'js/jsonBig.js':'js/jsonSmall.js';
-		$.getJSON(script, function(context){
+function clickLine(obj){ 
+	alert(obj.innerHTML)};
 
-			var directive = {
+function render4(button){
+	// simulate a ajax-jsonp call, that will load here a static js, and call the example4CallBack function
+	button.value = 'loading data...';
+    timer.begin('loading data');
+	var script = (button.id == 'b4_2') ? 'js/jsonBig.js':'js/jsonSmall.js';
+	$.getJSON(script, function(context){
+	    timer.log('Rendering');
+		var directive = {
 			'tbody tr td[onclick]':'"clickLine(this)"',
 			'tbody tr td[onmouseover]': '"swapStyle(this, true);"', 
 			'tbody tr td[onmouseout]' : '"swapStyle(this, false);"',
@@ -79,10 +80,10 @@
 					var oddEven =  (pos % 2 == 0) ? 'even' : 'odd';
 					var firstLast = (pos == 0) ? 'first': (pos == items.length -1) ? 'last':'';
 					return oddEven + ' ' + firstLast; }}
-	
-			$('table.players.2').autoRender(context, directive);
-	
-			button.value = 'Refresh the page to render again';});}
+
+		$('table.players.2').autoRender(context, directive);
+		$('table.players.2').before(timer.end());
+		button.value = 'Refresh the page to render again';});}
 
 	/*Note: 
 		by default a directive replace the content of the selected node or attribute
@@ -98,53 +99,53 @@
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      5 
  * * * * * * * * * * * * * * * * * * * * * */			
-	var row = {
-		odd: 'odd',
-		even:'even',
-		decorator: function(context, items, pos){
-			return (pos % 2 == 1) ? this.even : this.odd;}}
+var row = {
+	odd: 'odd',
+	even:'even',
+	decorator: function(context, items, pos){
+		return (pos % 2 == 1) ? this.even : this.odd;}}
+		
+function lineNb(context, items, pos){
+	return pos+1;}
+
+function render5(){
+	var context = {
+		'teams': [{
+			'name':'Cats',
+			'players':[	
+				{"name":"Alice Keasler", "score":14}, 
+				{"name":"Mary Cain", "score":15}, 
+				{"name":"Vicky Benoit", "score":15}, 
+				{"name":"Wayne Dartt", "score":11}]},{
 			
-	function lineNb(context, items, pos){
-		return pos+1;}
+			'name':'Dogs',
+			'players': [
+				{"name":"Ray Braun", "score":14}, 
+				{"name":"Aaron Ben", "score":24}, 
+				{"name":"Steven Smith", "score":1}, 
+				{"name":"Kim Caffey", "score":19}]},{
+			
+			'name':'Mices',
+			'players': [
+				{"name":"Natalie Kinney", "score":16}, 
+				{"name":"Caren Cohen", "score":3}]}]}
 
-	function render5(){
-		var context = {
-			'teams': [{
-				'name':'Cats',
-				'players':[	
-					{"name":"Alice Keasler", "score":14}, 
-					{"name":"Mary Cain", "score":15}, 
-					{"name":"Vicky Benoit", "score":5}, 
-					{"name":"Wayne Dartt", "score":11}]},{
-				
-				'name':'Dogs',
-				'players': [
-					{"name":"Ray Braun", "score":14}, 
-					{"name":"Aaron Ben", "score":24}, 
-					{"name":"Steven Smith", "score":1}, 
-					{"name":"Kim Caffey", "score":19}]},{
-				
-				'name':'Mices',
-				'players': [
-					{"name":"Natalie Kinney", "score":16}, 
-					{"name":"Caren Cohen", "score":3}]}]}
-
-		var scoreBoard = $('table.scoreBoard').$pMap({
-			'tbody tr': 'team <- teams',
-			'td.teamName': 'team.name'
-		});
-		
-		var teamList = $('table.teamList', scoreBoard)
-			.$pMap({
-				'tbody tr': 'player <- team.players',
-				'td.player': 'player.name',
-				'td.score': 'player.score',
-				'td.position': lineNb, //passing the pointer of a function that does not use "this"
-				'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
-		
-		$('td.teamPlace', scoreBoard).html(teamList); //place sub-template teamList in scoreBoard
-		$p.compile(scoreBoard, 'f5'); //compile to a function
-        $('div#render5').html( $p.render('f5', context) );} //place the result of the transformation to the innerHTML of div#render5
+	var scoreBoard = $('table.scoreBoard').$pMap({
+		'tbody tr': 'team <- teams',
+		'td.teamName': 'team.name'
+	});
+	
+	var teamList = $('table.teamList', scoreBoard)
+		.$pMap({
+			'tbody tr': 'player <- team.players',
+			'td.player': 'player.name',
+			'td.score': 'player.score',
+			'td.position': lineNb, //passing the pointer of a function that does not use "this"
+			'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
+	
+	$('td.teamPlace', scoreBoard).html(teamList); //place sub-template teamList in scoreBoard
+	$p.compile(scoreBoard, 'f5'); //compile to a function
+    $('div#render5').html( $p.render('f5', context) );} //place the result of the transformation to the innerHTML of div#render5
 
 /* Note: 
 	Here we compile the HTML to a function called f5.
@@ -155,39 +156,39 @@
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      6 
  * * * * * * * * * * * * * * * * * * * * * */			
-	function render6(){
+function render6(){
 
-		var context = {
-			children: [{
-				name:'Europe',
+	var context = {
+		children: [{
+			name:'Europe',
+			children:[{
+				name:'Belgium', 
 				children:[{
-					name:'Belgium', 
-					children:[{
-						name:'Brussels'},{
-						name:'Namur'},{
-						name:'Antwerpen'}]},{
-					name:'Germany'},{
-					name:'UK'}
+					name:'Brussels'},{
+					name:'Namur'},{
+					name:'Antwerpen'}]},{
+				name:'Germany'},{
+				name:'UK'}
+			]},{
+			name:'America',
+			children:[{
+				name:'US',
+				children:[{
+					name:'Alabama'},{
+					name:'Georgia'}
 				]},{
-				name:'America',
-				children:[{
-					name:'US',
-					children:[{
-						name:'Alabama'},{
-						name:'Georgia'}
-					]},{
-						name:'Canada'},{
-						name:'Argentina'}]},{
-				name:'Asia'},{
-				name:'Africa'},{
-				name:'Antartica'}]};
-		var directive = {
-			'li+':function(context, items, pos){
-				if(items[pos].children){
-					return $p.compiledFunctions.tree.compiled(items[pos]);}}};
+					name:'Canada'},{
+					name:'Argentina'}]},{
+			name:'Asia'},{
+			name:'Africa'},{
+			name:'Antartica'}]};
+	var directive = {
+		'li+':function(context, items, pos){
+			if(items[pos].children){
+				return $p.compiledFunctions.tree.compiled(items[pos]);}}};
 
-		$('ul.treeItem').compile('tree', directive, context);
-		$('ul.treeItem').render(context, 'tree');}
+	$('ul.treeItem').compile('tree', directive, context);
+	$('ul.treeItem').render(context, 'tree');}
 		
 /*Note: 
 	the last directive is an array instead of a string. This is useful
@@ -196,12 +197,42 @@
 
 
 //nothing with PURE here, just some utility for this page
-	function clickButton(obj, render){
-		obj.disabled = true;
-		obj.value = 'Refresh the page to render again';
-		if (arguments[2]) 
-			$(arguments[2]).remove();
-		if (/Firefox/i.test(navigator.userAgent)) 
-			obj.type = 'submit';//to have buttons back when refreshing the page in FF
-		render(obj);
-	}
+function clickButton(obj, render){
+	obj.disabled = true;
+	obj.value = 'Refresh the page to render again';
+	if (arguments[2]) 
+		$(arguments[2]).remove();
+	if (/Firefox/i.test(navigator.userAgent)) 
+		obj.type = 'submit';//to have buttons back when refreshing the page in FF
+	render(obj);
+}
+var timer = {
+	trace: [],
+	begin:function(msg){
+		this.start = 0;
+		this.log(msg);},
+
+	end: function(msg){
+		this.log(msg||'end');
+		if(!$p.compiledFunctions.timerTraceTable);
+			$p.autoCompile($('table.timerTraceTable')[0], 'timerTraceTable', this.trace);
+		return $p.render('timerTraceTable', this.trace);},
+
+	log: function(msg){
+		var now = function(){
+			var now = new Date();
+			return now.getTime();}
+		
+		if (this.start) 
+			this.diff = now() - this.start;
+		else {
+			this.diff = 0;
+			this.acc = 0;}
+		this.acc += this.diff;
+		this.start = now();
+		if(this.trace[this.trace.length-1]) this.trace[this.trace.length-1].timerDuration = this.diff;
+		this.trace.push({timerMsg:msg, timerDuration: 0, timerTime: this.acc});}}
+
+
+	
+	

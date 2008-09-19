@@ -12,7 +12,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var pure  = window.$p = window.pure ={
-	ns: (/MSIE/.test(navigator.userAgent))? 'pure_':'pure:', //IE namespace :(
 	find: function(){
 		this.msg('library_needed')},
 	
@@ -36,10 +35,12 @@ var pure  = window.$p = window.pure ={
 		document.body.appendChild(txt);
 		txt.select();}},
 
+	ns: /MSIE/.test(navigator.userAgent) ? 'pure_':'pure:', //IE namespace :(
+
 	$f:{cnt:0},
 
 	$c:function(context, path){
-		if(!context) context ={};
+		if(path == 'context') return context;
 		if(typeof context == 'object'){
 			//context is a JSON
 			var aPath = path.split(/\./);
@@ -51,7 +52,7 @@ var pure  = window.$p = window.pure ={
 					i = aPath.length;
 					continue;}
 
-			value = value[aPath[i]];}}
+				value = value[aPath[i]];}}
 
 			if (!value && value!=0) value = '""';
 		return value;},
@@ -59,7 +60,7 @@ var pure  = window.$p = window.pure ={
 	render: function(html, context, directives){
 		var fn;
 		if (typeof html != 'string'){
-			var mapped = (directives)? this.map(directives, html):html.cloneNode(true);
+			var mapped = directives ? this.map(directives, html):html.cloneNode(true);
 			fn = this.compiledFunctions.length || 0;
 			this.compile(mapped, fn, context, false);}
 		else{ // call to an already compiled f()
@@ -67,11 +68,12 @@ var pure  = window.$p = window.pure ={
 		if (this.compiledFunctions[fn]){
 			return this.compiledFunctions[fn].compiled(context);} //transform and return an html string
 		else{
-			this.msg('HTML_does_not_exist', fName);}},
+			this.msg('HTML_does_not_exist', fn);}},
 
-	autoRenderAtt: (/MSIE/.test(navigator.userAgent))? 'className':'class',
+	autoRenderAtt: /MSIE/.test(navigator.userAgent) ? 'className':'class',
 	autoRender:function(html, context, directives){
 		if (typeof html != 'string') {
+			if (!html) { this.msg('wrong_html_source');return false;};
 			html.setAttribute(this.ns + 'autoRender', 'true');}
 		return this.render(html, context, directives);},
 
@@ -93,42 +95,40 @@ var pure  = window.$p = window.pure ={
 		autoMap: function(n, ns, autoRender, context, autoRenderAtt, openArray){
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
-			var replaced, replacer, replacedSrc, nodeValueSrc, toMap, k, j, i, att, repeatPrefix, prop, attValue;
+			var replaced, replacer, replacedSrc, nodeValueSrc, toMap, k, j, i, att, repeatPrefix, prop, attValue, ap;
 			if (autoRender == 'true') {
 				attValue = n.getAttribute(autoRenderAtt);
 				if (attValue) {
 					toMap = attValue.replace(/^\d|\s\d/g,'').split(/\s+/);//remove numeric classes as they mess up the array reference
 					for (j = 0; j < toMap.length; j++) {
 						repeatPrefix = '';
-						att = toMap[j].split(/@/);
-						prop = context[att[0]];
-						if(!prop){
+						ap = this.appendPrepend.check(toMap[j]);
+						att = ap.clean.split(/@/);
+						prop = att[0] != 'context' ? $p.$c(context, att[0]) : !/context/.test(openArray.join('')) ? context: true;						
+						if(prop=='""'){
 							if (openArray.length > 0) {
 								for (k = 0; k < openArray.length; k++) {
-									prop = (openArray[k] == 'context')?context[0][att[0]]:context[openArray[k]][0][att[0]];
-									if (prop) {//found a repetition field, break
+									prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0]);
+									if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
 										repeatPrefix = openArray[k];
-										break;}
-									else if (/context/i.test(att[0])){ //check if not root context field
-										prop = true; 
-										j=100;}}}
-							else if (/context/i.test(att[0])){ //check if repeat on the context
-								prop = context;}}
+										break;}}}}
 							
-						if (prop) {
+						if ((prop || prop==0) && prop!='""') {
 							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
 								openArray.push(att[0]);
 								n.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);}
 							else {
-								if (att[1]) {
-									try {
-										n.removeAttribute(att[1]);} 
-									catch (e) {}}
-								else {
-									att.push('nodeValue')};
-								if (!n.getAttribute(ns + att[1])) {
-									(repeatPrefix == '') ? n.setAttribute(ns + att[1], att[0]) : n.setAttribute(ns + att[1], repeatPrefix + '.' + att[0]);}}}}
-					var fixAtt =  (/MSIE/.test(navigator.userAgent) &&  autoRenderAtt == 'className')? 'class':autoRenderAtt;
+								if(repeatPrefix != '') 
+									att[0] = repeatPrefix + '.' + att[0];
+								if(!att[1]) //not an attribute
+									att.push('nodeValue');
+								if(ap.type) //append or prepend ?
+									att[0] = this.appendPrepend.format(att[0], att[1], n, ap.type);
+								if (att[1]!='nodeValue') // remove the existing attribute if any
+									this.removeAtt(n, att[1]);
+								if (!n.getAttribute(ns + att[1])) { //don't overwrite a directive if any
+									n.setAttribute(ns + att[1], att[0]);}}}}
+					var fixAtt =  /MSIE/.test(navigator.userAgent) &&  autoRenderAtt == 'className' ? 'class':autoRenderAtt; //clean the auto-rendering att
 					if (n.getAttribute(ns+fixAtt) && n.getAttribute(autoRenderAtt))
 							n.removeAttribute(autoRenderAtt);
 				}}
@@ -164,7 +164,7 @@ var pure  = window.$p = window.pure ={
 			//post process the repeat and nodeValue for easier compiling
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
-			var replaced, replacer, replacedSrc, nodeValueSrc;
+			var replaced, replacer, replacedSrc, nodeValueSrc, str = false;
 			for (var j = 0; j < this.nodeValues.length; j++) {
 				try {
 					n = this.nodeValues[this.nodeValues.length -j -1];
@@ -190,8 +190,31 @@ var pure  = window.$p = window.pure ={
 						replacer = document.createElement(repeatAtt);
 						replacer.appendChild(replaced);
 						replacer.setAttribute('source', "" + replacedSrc);
-						n.parentNode.replaceChild(replacer, n);}}
-				catch (e) {}}},
+						if(node == n) 
+							str = $p.outerHTML(replacer);
+						else
+							n.parentNode.replaceChild(replacer, n);}}
+				catch (e) {}}
+				return (str) ? str : false;},
+		appendPrepend: {
+			format:function(attValue, attName, node, ap){
+					if(!attName) attName = 'nodeValue';
+					if (ap) {
+						var fixAtt = /MSIE/.test(navigator.userAgent) && attName == 'class' ? 'className' : attName;
+						var original = node.getAttribute(fixAtt) || ('nodeValue' == attName ? 'nodeValue' : false);
+						if (original) 
+							return original + '|' + ap + '|' + attValue;}
+						else
+							return attValue;},
+							
+			check: function(str){
+				var prepend, append;
+				str = (prepend = /^\+/.test(str)) ? str.substring(1, str.length) : (append = /\+$/.test(str)) ? str.substring(0, str.length - 1) : str;
+				return {type:(append) ? 'a' : (prepend) ? 'p' : false, clean:str}
+			}
+		},
+		removeAtt:function(node, att){
+			try{ node.removeAttribute(att);}catch(e){}}, //cross browser
 
 		out:function(content){ return ['output.push(', content, ');'].join('')},
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
@@ -205,25 +228,28 @@ var pure  = window.$p = window.pure ={
 		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
 			var arrIndex = /\[[^\]]*]/.test(attValue);
 			var objProp  = attValue.replace(/(")|(')/g,'').split(/\./);
-			return (arrIndex || openArrays[objProp[0]]) ? true: false;},
+			return arrIndex || openArrays[objProp[0]] ? true: false;},
 
 		arrayName:function(pName){
 			var name=pName.match(/\w*/)[0] || ''; 
 			var subIndex= pName.substring(name.length).replace(/\[\s*]/,''); // take the tail and replace [ ] by ''
 			return name + '[' + name + 'Index]' + subIndex;}},
-
-	compile: function(HTML, fName, context, noEval){
+	autoCompile:function(html, fName, context, noEval){
+		html.setAttribute(this.ns + 'autoRender', 'true');
+		return this.compile(html, fName, context, noEval);
+	},
+	compile: function(html, fName, context, noEval){
 		//DOM is slow, innerHTML is fast -> compile. Once browsers will be ok, no compilation will be needed anymore
-		var clone = (HTML[0])? HTML[0].cloneNode(true) : HTML.cloneNode(true);
+		var clone = html[0] ? html[0].cloneNode(true) : html.cloneNode(true);
 		
 		//node manipulation before conversion to string
 		var ns = this.ns;
-		this.utils.nodeWalk(clone, ns, context, this.autoRenderAtt);
-		
+		var str = this.utils.nodeWalk(clone, ns, context, this.autoRenderAtt);
 		//convert the HTML to a string
-		var str = this.outerHTML( clone );
+		if(!str) str = this.outerHTML( clone );
+
 		//avoid shifting lines remove the > and </ around pure:repeat tags
-	    str = str.replace(new RegExp('\<\/?:?'+ns+'repeat', 'gi'), ns+'repeat');// :? -> from bug in IE
+		str = str.replace(new RegExp('\<\/?:?'+ns+'repeat', 'gi'), ns+'repeat');// :? -> from bug in IE
 		
 		//clean the dom string, based on rules in $p.domCleaningRules
 		var rules = this.domCleaningRules;
@@ -231,7 +257,7 @@ var pure  = window.$p = window.pure ={
 		str = str.replace(rules[i].what ,rules[i].by);}
 		
 		if(!fName && typeof fName != 'number'){
-			this.msg( 'no_HTML_name_set_for_parsing', str, HTML);
+			this.msg( 'no_HTML_name_set_for_parsing', str, html);
 			return false}
 		//start the js generation
 		this.compiledFunctions[fName]={}; //clean the fct place if any
@@ -289,11 +315,11 @@ var pure  = window.$p = window.pure ={
 						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
 
 					isNodeValue = /^nodeValue/i.test(wrkStr);	
-					(isNodeValue) ? attName = 'nodeValue': aJS.push(this.utils.strOut(attName + '="'));
+					isNodeValue ? attName = 'nodeValue': aJS.push(this.utils.strOut(attName + '="'));
 
 					attOut = attValue.match(/\|(a|p)\|/);
 					suffix = false; 
-					spc = (isNodeValue)?'':' ';
+					spc = isNodeValue ? '':' ';
 					if (attOut) {
 						if(attOut[1] =='a') 
 							aJS.push(this.utils.strOut(attValue.substring(0, attOut.index)+spc));
@@ -346,34 +372,29 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, multipleDir=[], currentDir;
-		var clone;
+		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, fixAtt, original, parentName, selector, i;
 		if (noClone){
-			clone = (html[0])? html[0] : html;}
+			clone = html[0] ? html[0] : html;}
 		else{
-			clone = (html[0])? html[0].cloneNode(true) : html.cloneNode(true);}
+			clone = html[0] ? html[0].cloneNode(true) : html.cloneNode(true);}
 			
-		autoRender = clone.getAttribute(ns + 'autoRender')||false;
-		for (var selector in directives){ // for each directive set the corresponding pure:<attr>
+		autoRender = clone.getAttribute(this.ns + 'autoRender')||false;
+		for (selector in directives){ // for each directive set the corresponding pure:<attr>
 			currentDir = directives[selector];
 			if(this.utils.isTypeOfArray(currentDir)){//check if an array of directives is provided
 				multipleDir = currentDir;}
 			else{
 				multipleDir = []; 
 				multipleDir.push(currentDir);}
-			for(var i = 0; i<multipleDir.length;i++){
+			for(i = 0; i<multipleDir.length;i++){
 				currentDir = multipleDir[i];
-				var prepend, append;
-				if( prepend = /^\+/.test(selector)){
-					selector = selector.substring(1, selector.length)};
-				if(append = /\+$/.test(selector)){
-					selector = selector.substring(0,selector.length-1)};
-
-				var isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
+				ap = this.utils.appendPrepend.check(selector);
+				selector = ap.clean;
+				isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
 				if(/^\[/.test(selector)){ //attribute of the selected node
 					target = clone;}
 				else{
-					var target = this.find(selector, clone);
+					target = this.find(selector, clone);
 					if (!target && isAttr){
 						//if the attribute does not exist yet, select its containing element
 						target = this.find(selector.substr(0, isAttr.index), clone);}}
@@ -384,8 +405,8 @@ var pure  = window.$p = window.pure ={
 						this.$f[fnId] = currentDir;
 						currentDir = '$f['+fnId+']';}
 
-					var attName = 'nodeValue'; //default
-					var repetition = -1, ns = this.ns;
+					attName = 'nodeValue'; //default
+					repetition = -1, ns = this.ns;
 					if (isAttr){
 						//the directive points to an attribute
 						attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
@@ -398,22 +419,15 @@ var pure  = window.$p = window.pure ={
 
 					if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
 						currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
-					var fixAtt = (/MSIE/.test(navigator.userAgent) && attName == 'class')? 'className':attName;
-					var original = target.getAttribute(fixAtt) || (('nodeValue'==attName)?'nodeValue':false);
-					if(append && original){
-						currentDir = original + '|a|' + currentDir;}
-					else if(prepend && original){
-						currentDir = original + '|p|' + currentDir;}
+
+					currentDir = this.utils.appendPrepend.format(currentDir, attName, target, ap.type);
 
 					target.setAttribute( ns + attName, currentDir);
 					//hello
-					if(isAttr && attName != 'nodeValue' && (attName!='class' && autoRender) && repetition < 0 && !append && !prepend){
-						try{ //some cross browser attributes issues -> try catch nothing
-							target.removeAttribute(attName);}
-						catch(e){}}}
-
+					if(isAttr && attName != 'nodeValue' && (attName!='class' && autoRender) && repetition < 0 && !ap.type){
+						this.utils.removeAtt(target, attName)}}
 				else{ // target not found
-					var parentName = [clone.nodeName];
+					parentName = [clone.nodeName];
 					if(clone.id != '') parentName.push('#' + clone.id);
 					if(clone.className !='') parentName.push('#' + clone.className);
 					this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}}
@@ -421,6 +435,7 @@ var pure  = window.$p = window.pure ={
 		return clone;},
 
 	messages:{
+		'wrong_html_source':'The source HTML provided to autoRender does not exist. Check your selector syntax.',
 		'element_to_map_not_found':"PURE - Cannot find the element \"&\" in \"&\"",
 		'place_runtime_container':'To collect the PURE runtime, place a <textarea id=\"pureRuntime\"></textarea> in your document.',
 		'no_HTML_selected':'The map function didn\'t receive a valid HTML element',
@@ -432,15 +447,15 @@ var pure  = window.$p = window.pure ={
 	msg:function(msgId, msgParams, where){
 		// find the msg in local labels repository or in this.messages
 		var msg = this.messages[msgId] || msgId;
-		var re = /&/;
+		var re = /&/, i, msgDiv;
 		if(msg != msgId && msgParams){
 			if (typeof msgParams == 'string'){
 				msg = msg.replace(re, msgParams);}
 			else{
-				for(var i=0; i<msgParams.length;i++ ){
+				for(i=0; i<msgParams.length;i++ ){
 					msg = msg.replace(re, msgParams[i]);}}}
 
-		var msgDiv = document.getElementById('pureMsg');
+		msgDiv = document.getElementById('pureMsg');
 		if(msgDiv){
 			msgDiv.innerHTML = [msg, '<br />', msgDiv.innerHTML].join('');}
 			else{ alert(msg);}}};
@@ -451,7 +466,7 @@ try{ if (jQuery) {
 	$p.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"[^\"]+\"/gi, by: ''});
 	$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
-		return (found[0]) ? found[0] : false;};
+		return found[0] ? found[0] : false;};
 	
 	// jQuery chaining functions
 	$.fn.$pMap = $.fn.mapDirective = function(directives){
@@ -467,7 +482,7 @@ try{ if (jQuery) {
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;
 			directives = false;}
-		var source = (html) ? html : $(this)[0];
+		var source = html ? html : $(this)[0];
 		return $(this).replaceWith($p.render(source, context, directives));};
 		
 	$.fn.autoRender = function(context, directives, html){
@@ -476,7 +491,7 @@ try{ if (jQuery) {
 		if (!html && directives && directives.jquery || directives.nodeType) { //template is provided instead of directives
 			html = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
-		var source = (html) ? html : $(this)[0];//if no target, self replace
+		var source = html ? html : $(this)[0];//if no target, self replace
 		return $(this).replaceWith($p.autoRender(source, context, directives));}}
 
 }catch(e){ try{ if (DOMAssistant){}
