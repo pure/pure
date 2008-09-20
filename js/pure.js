@@ -470,29 +470,39 @@ try{ if (jQuery) {
 	
 	// jQuery chaining functions
 	$.fn.$pMap = $.fn.mapDirective = function(directives){
-		return $($p.map(directives, $(this)));};
+		return $($p.map(directives, this));};
 	
 	$.fn.$pCompile = $.fn.compile = function(fName, directives, context){
-		if(directives) $p.map( directives, $(this), true);
-		if(context) $(this)[0].setAttribute($p.ns + 'autoRender', 'true');
-		$p.compile($(this), fName, context||false, false);
-		return $(this);};
-		
+		if(directives) $p.map( directives, this, true);
+		if(context) this[0].setAttribute($p.ns + 'autoRender', 'true');
+		$p.compile(this, fName, context||false, false);
+		return this;};
+
+	$.fn.replaceWithAndReturnNew = function(html){
+		var div = document.createElement('div');
+		var replaced = this[0];
+		replaced.parentNode.replaceChild(div, replaced);
+		div.innerHTML = html;
+		var replacer = div.firstChild;
+		div.parentNode.replaceChild(replacer, div);
+		return $(replacer);};
+
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;
 			directives = false;}
-		var source = html ? html : $(this)[0];
-		return $(this).replaceWith($p.render(source, context, directives));};
+		var source = html ? html : this[0];
+		return this.replaceWithAndReturnNew($p.render(source, context, directives));};
 		
 	$.fn.autoRender = function(context, directives, html){
+		var replaced = this[0];
 		directives = directives || false;
 		html = html || false;
 		if (!html && directives && directives.jquery || directives.nodeType) { //template is provided instead of directives
 			html = directives[0] || directives; //ok for jQuery obj or html node
 			directives = false;}
-		var source = html ? html : $(this)[0];//if no target, self replace
-		return $(this).replaceWith($p.autoRender(source, context, directives));}}
+		var source = html ? html : replaced;//if no target, self replace
+		return this.replaceWithAndReturnNew( $p.autoRender(source, context, directives));}}
 
 }catch(e){ try{ if (DOMAssistant){}
 }catch(e){ try{ if (MooTools){}
