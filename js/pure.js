@@ -220,9 +220,9 @@ var pure  = window.$p = window.pure ={
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
 		outputFn:function (attValue, currentLoop){
 			if (currentLoop) 
-				return this.out(attValue + '(context,' + currentLoop + ',parseInt(' + currentLoop + 'Index))');
+				return this.out(attValue + '({context:context, items:' + currentLoop + ',pos:parseInt(' + currentLoop + 'Index), item:' + currentLoop + '[parseInt(' + currentLoop + 'Index)]})');
 			else
-				return this.out(attValue + '(context)');},
+				return this.out(attValue + '({context:context})');},
 		contextOut:function(path){ return ['output.push($p.$c(context, ', path, '));'].join('')},
 
 		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
@@ -478,7 +478,7 @@ try{ if (jQuery) {
 		$p.compile(this, fName, context||false, false);
 		return this;};
 
-﻿	$.fn.replaceWithAndReturnNew = function(html){
+	$.fn.replaceWithAndReturnNew = function(html){
 		var div = document.createElement('div');
 		var replaced = this[0];
 		replaced.parentNode.replaceChild(div, replaced);

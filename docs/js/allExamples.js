@@ -69,17 +69,16 @@ function render4(button){
 	var script = (button.id == 'b4_2') ? 'js/jsonBig.js':'js/jsonSmall.js';
 	$.getJSON(script, function(context){
 	    timer.log('Rendering');
+		//var $a = {context:context, items:items, pos:pos, item:items[pos]};
 		var directive = {
-			'tbody tr td[onclick]':'"clickLine(this)"',
-			'tbody tr td[onmouseover]': '"swapStyle(this, true);"', 
-			'tbody tr td[onmouseout]' : '"swapStyle(this, false);"',
-			'tbody tr td[style]':'\'cursor:pointer\'',
-			
-			'tbody tr[class]': 
-				function(context, items, pos){
-					var oddEven =  (pos % 2 == 0) ? 'even' : 'odd';
-					var firstLast = (pos == 0) ? 'first': (pos == items.length -1) ? 'last':'';
-					return oddEven + ' ' + firstLast; }}
+			'tbody tr td[onclick]': '"clickLine(this)"',
+			'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
+			'tbody tr td[onmouseout]': '"swapStyle(this, false);"',
+			'tbody tr td[style]': '\'cursor:pointer\'',
+			'tbody tr[class]': function(arg){
+				var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
+				var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.items.length - 1) ? 'last' : '';
+				return oddEven + ' ' + firstLast;}}
 
 		$('table.players.2').autoRender(context, directive);
 		$('table.players.2').before(timer.end());
@@ -102,11 +101,11 @@ function render4(button){
 var row = {
 	odd: 'odd',
 	even:'even',
-	decorator: function(context, items, pos){
-		return (pos % 2 == 1) ? this.even : this.odd;}}
+	decorator: function(arg){
+		return (arg.pos % 2 == 1) ? this.even : this.odd;}}
 		
-function lineNb(context, items, pos){
-	return pos+1;}
+function lineNb(arg){
+	return arg.pos+1;}
 
 function render5(){
 	var context = {
@@ -141,7 +140,7 @@ function render5(){
 			'td.player': 'player.name',
 			'td.score': 'player.score',
 			'td.position': lineNb, //passing the pointer of a function that does not use "this"
-			'tbody tr[class]': function(context, items, pos){ return row.decorator(context, items, pos) } }); //show how to wrap a method and not breack the use of "this"
+			'tbody tr[class]': function(arg){ return row.decorator(arg) } }); //show how to wrap a method and not breack the use of "this"
 	
 	$('td.teamPlace', scoreBoard).html(teamList); //place sub-template teamList in scoreBoard
 	$p.compile(scoreBoard, 'f5'); //compile to a function
@@ -183,9 +182,9 @@ function render6(){
 			name:'Africa'},{
 			name:'Antartica'}]};
 	var directive = {
-		'li+':function(context, items, pos){
-			if(items[pos].children){
-				return $p.compiledFunctions.tree.compiled(items[pos]);}}};
+		'li+':function(arg){
+			if(arg.item.children){
+				return $p.compiledFunctions.tree.compiled(arg.item);}}};
 
 	$('ul.treeItem').compile('tree', directive, context);
 	$('ul.treeItem').render(context, 'tree');}
