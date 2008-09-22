@@ -478,7 +478,7 @@ try{ if (jQuery) {
 		$p.compile(this, fName, context||false, false);
 		return this;};
 
-	$.fn.replaceWithAndReturnNew = function(html){
+﻿	$.fn.replaceWithAndReturnNew = function(html){
 		var div = document.createElement('div');
 		var replaced = this[0];
 		replaced.parentNode.replaceChild(div, replaced);
@@ -504,7 +504,50 @@ try{ if (jQuery) {
 		var source = html ? html : replaced;//if no target, self replace
 		return this.replaceWithAndReturnNew( $p.autoRender(source, context, directives));}}
 
-}catch(e){ try{ if (DOMAssistant){}
+}catch(e){ try{ if (DOMAssistant){
+	DOMAssistant.pure = function () {
+		return {
+			publicMethods : [ 'mapDirective', 'compile', 'render', 'autoRender', '$pMap', '$pCompile', '$pRender'],
+			
+			init : function () {
+				$p.find = function (selector, context) {
+					var found = $(context).cssSelect(selector);
+					return found[0] || false;};},
+			
+			mapDirective : function (directives) {
+				return $($p.map(directives, this));},
+
+			compile : function (fName, directives, context) {
+				if (directives) $p.map(directives, this, true);
+				if (context) (this[0] || this).setAttribute($p.ns + 'autoRender', 'true');
+				$p.compile(this, fName, context || false, false);
+				return this;},
+
+			render : function (context, directives, html) {
+				if (typeof directives === 'string') { // a compiled template is passed
+					html = directives;
+					directives = false;}
+				var source = html || this[0] || this;
+				return $(this).replace($p.render(source, context, directives), true);},
+
+			autoRender : function (context, directives, html) {
+				directives = directives || false;
+				html = html || false;
+				if (!html && directives || directives.nodeType) {
+					html = directives[0] || directives;
+					directives = false;}
+				var source = html || this[0] || this;
+				return $(this).replace($p.autoRender(source, context, directives), true);},
+			
+			$pMap : function (directives) {
+				return $(this).mapDirective(directives);},
+			
+			$pCompile : function (fName, directives, context) {
+				return $(this).compile(fName, directives, context);},
+			
+			$pRender : function (context, directives, html) {
+				return $(this).render(context, directives, html);}};}();
+	DOMAssistant.attach(DOMAssistant.pure);}
 }catch(e){ try{ if (MooTools){}
 }catch(e){ try{ if (Prototype){}
 }catch(e){}}}}
