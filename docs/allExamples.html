@@ -14,6 +14,14 @@
 				<a href="allExamplesCompiled.html">All Examples Compiled</a><br />
 			<a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine/post">Post</a> or <a href="mailto:Pure-Unobtrusive-Rendering-Engine@googlegroups.com">mail us</a><br /> your feedback
 		</div>
+		<!--div><h3>Please select your Javascript Library</h3>
+			<label style="font-weight:bold"><input name="jslib" type="radio"></input> DOMAssistant</label>
+			<label style="font-weight:bold"><input name="jslib" type="radio"></input> jQuery</label>
+			<label><input disabled="" name="jslib" type="radio"></input> dojo</label>
+			<label><input disabled="" name="jslib" type="radio"></input> prototype</label>
+			<label><input disabled="" name="jslib" type="radio"></input> mootools</label><p>&nbsp;</p>
+			<div class="demo" style="width:50%">If you feel expert in dojo, mootools or prototype. Please help us adding the 15-20 lines of code to make it compatible.</div>
+		</div-->
 		<!-- 
 	/* * * * * * * * * * * * * * * * * * * * * *
 	 *     E X A M P L E      1 
@@ -42,7 +50,7 @@
 		<div class="demo">
 			<div class="htmlDoc">
 				<input type="button" onclick="clickButton(this, render2);" value="render" />
-				<table class="players 1">
+				<table id="players1" class="players 1">
 					<thead>
 						<tr><th class="player">Player</th></tr>
 					</thead>
@@ -64,7 +72,7 @@
 			<div class="htmlDoc">
 				<input type="button" onclick="clickButton(this, render3);" value="render" />
 				<!-- note the notation "data property"@"attribute name"-->
-				<ol class="teamList id@id">
+				<ol id="siteList" class="teamList id@id">
 					<li class="player sites"><a class="name url@href" href="http://beebole.com">Beebole</a></li>
 				</ol>
 			</div>
@@ -72,14 +80,14 @@
 		<!-- 
 	/* * * * * * * * * * * * * * * * * * * * * *
 	 *     E X A M P L E      4 
-	 * * * * * * * * * * * * * * * * * * * * * */			
+	 * * * * * * * * * * * * * * * * * * * * * */
 		-->
 		<h3>Example 4: Passing JS Functions as a Directive (Iteration on a table zebra like and attach events)</h3>
 		<div class="demo">
 			<div class="htmlDoc">
 				<input id="b4_1" type="button" onclick="clickButton(this, render4, '#b4_2');" value="render" />
 				<input id="b4_2" type="button" onclick="clickButton(this, render4, '#b4_1');" value="render with 500 lines..." />
-				<table class="players 2">
+				<table id="players2" class="players 2">
 					<thead>
 						<tr>
 							<th class="player">Player</th>

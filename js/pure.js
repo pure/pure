@@ -267,7 +267,7 @@ var pure  = window.$p = window.pure ={
 		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', arrSrc;
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
-			if (j==0){
+			if (j==0 && wrkStr!=""){
 				//push the first line as it is HTML
 				aJS.push(this.utils.strOut(wrkStr.substring(0, wrkStr.length)));}
 			else{
@@ -283,12 +283,12 @@ var pure  = window.$p = window.pure ={
 							//reference to an open array
 							aJS.push('var ' + currentLoop + '=' + this.utils.arrayName(arrSrc) + ';');}
 						else{
-							if (arrSrc.search(/context/i) > -1 || arrSrc.length == 0)
-								aJS.push('var ' + currentLoop + '= context;');
+							if (/context/i.test(arrSrc) || arrSrc.length == 0) {
+								if (!/context/i.test(currentLoop)) // avoid var context = context 
+									aJS.push('var ' + currentLoop + '= context;');}
 							else 
 								aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
-						
-						aJS.push('for(var '+currentLoop+'Index in '+currentLoop+'){');
+						aJS.push('for(var '+currentLoop+'Index=0;'+currentLoop+'Index < '+currentLoop+'.length;'+currentLoop+'Index++){');
 						aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length)));
 						openArrays[currentLoop] = cnt++;}
 				
@@ -504,49 +504,69 @@ try{ if (jQuery) {
 		var source = html ? html : replaced;//if no target, self replace
 		return this.replaceWithAndReturnNew( $p.autoRender(source, context, directives));}}
 
-}catch(e){ try{ if (DOMAssistant){
+}catch(e){ try{ if (DOMAssistant) {
 	DOMAssistant.pure = function () {
 		return {
-			publicMethods : [ 'mapDirective', 'compile', 'render', 'autoRender', '$pMap', '$pCompile', '$pRender'],
+			publicMethods : [
+				'mapDirective',
+				'compile',
+				'render',
+				'autoRender',
+				'$pMap',
+				'$pCompile',
+				'$pRender'
+			],
 			
 			init : function () {
 				$p.find = function (selector, context) {
 					var found = $(context).cssSelect(selector);
-					return found[0] || false;};},
+					return found[0] || false;
+				};
+			},
 			
 			mapDirective : function (directives) {
-				return $($p.map(directives, this));},
+				return $($p.map(directives, this));
+			},
 
 			compile : function (fName, directives, context) {
 				if (directives) $p.map(directives, this, true);
 				if (context) (this[0] || this).setAttribute($p.ns + 'autoRender', 'true');
 				$p.compile(this, fName, context || false, false);
-				return this;},
+				return this;
+			},
 
 			render : function (context, directives, html) {
 				if (typeof directives === 'string') { // a compiled template is passed
 					html = directives;
-					directives = false;}
+					directives = false;
+				}
 				var source = html || this[0] || this;
-				return $(this).replace($p.render(source, context, directives), true);},
+				return $(this).replace($p.render(source, context, directives), true);
+			},
 
 			autoRender : function (context, directives, html) {
 				directives = directives || false;
 				html = html || false;
-				if (!html && directives || directives.nodeType) {
+				if (!html && directives && directives.cssSelect || directives.nodeType) {
 					html = directives[0] || directives;
 					directives = false;}
 				var source = html || this[0] || this;
-				return $(this).replace($p.autoRender(source, context, directives), true);},
+				return $(this).replace($p.autoRender(source, context, directives), true);
+			},
 			
 			$pMap : function (directives) {
-				return $(this).mapDirective(directives);},
+				return $(this).mapDirective(directives);
+			},
 			
 			$pCompile : function (fName, directives, context) {
-				return $(this).compile(fName, directives, context);},
+				return $(this).compile(fName, directives, context);
+			},
 			
 			$pRender : function (context, directives, html) {
-				return $(this).render(context, directives, html);}};}();
+				return $(this).render(context, directives, html);
+			}
+		};	
+	}();
 	DOMAssistant.attach(DOMAssistant.pure);}
 }catch(e){ try{ if (MooTools){}
 }catch(e){ try{ if (Prototype){}

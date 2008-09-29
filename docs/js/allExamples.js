@@ -2,7 +2,8 @@
  *     E X A M P L E      1 
  * * * * * * * * * * * * * * * * * * * * * */			
 function render1(){
-	$('#hello').autoRender({ "who": "Mary" });}
+	var hello = document.getElementById('hello');
+	replace(hello, $p.autoRender(hello, {"who": "Mary"}));}
 
 	/* Note: 
 	  All the notation below are possible with different results:				
@@ -31,7 +32,11 @@ function render1(){
  * * * * * * * * * * * * * * * * * * * * * */			
 function render2(){
 	var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-	$('table.players.1').autoRender(context);}
+	var players1 = document.getElementById('players1');
+	replace(players1, $p.autoRender(players1, context));}
+	
+	// jQuery syntax
+	//$('table.players.1').autoRender(context);}
 
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      3 
@@ -44,7 +49,12 @@ function render3(){
 			"name": "BeeLit", "url": "http://beeLit.com"}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 	
-	$('ol.teamList').autoRender( context);}
+	var siteList = document.getElementById('siteList');
+	replace(siteList, $p.autoRender(siteList, context));}
+	
+
+	// jQuery syntax
+	//$('ol.teamList').autoRender( context);}
 
 	/* Note: 
 	 	to access the attributes of the root of the html use a directive as above for the id.
@@ -69,18 +79,23 @@ function render4(button){
 	var script = (button.id == 'b4_2') ? 'js/jsonBig.js':'js/jsonSmall.js';
 	$.getJSON(script, function(context){
 	    timer.log('Rendering');
-		//var $a = {context:context, items:items, pos:pos, item:items[pos]};
 		var directive = {
 			'tbody tr td[onclick]': '"clickLine(this)"',
 			'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
 			'tbody tr td[onmouseout]': '"swapStyle(this, false);"',
 			'tbody tr td[style]': '\'cursor:pointer\'',
 			'tbody tr[class]': function(arg){
+				//arg => {context:context, items:items, pos:pos, item:items[pos]};
 				var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
 				var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.items.length - 1) ? 'last' : '';
 				return oddEven + ' ' + firstLast;}}
 
-		$('table.players.2').autoRender(context, directive);
+		var table2 = document.getElementById('players2');
+		replace(table2, $p.autoRender(table2, context, directive));
+		
+		//jQuery syntax
+		//$('table.players.2').autoRender(context, directive);
+		
 		$('table.players.2').before(timer.end());
 		button.value = 'Refresh the page to render again';});}
 
@@ -194,7 +209,6 @@ function render6(){
 	when we want to set various directives on the same node.
 */
 
-
 //nothing with PURE here, just some utility for this page
 function clickButton(obj, render){
 	obj.disabled = true;
@@ -232,6 +246,12 @@ var timer = {
 		if(this.trace[this.trace.length-1]) this.trace[this.trace.length-1].timerDuration = this.diff;
 		this.trace.push({timerMsg:msg, timerDuration: 0, timerTime: this.acc});}}
 
-
+function replace(replaced, html){
+	var div = document.createElement('div');
+	replaced.parentNode.replaceChild(div, replaced);
+	div.innerHTML = html;
+	var replacer = div.firstChild;
+	div.parentNode.replaceChild(replacer, div);
+	return replacer;}
 	
 	
