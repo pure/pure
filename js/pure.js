@@ -165,9 +165,9 @@ var pure  = window.$p = window.pure ={
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
 			var replaced, replacer, replacedSrc, nodeValueSrc, str = false;
-			for (var j = 0; j < this.nodeValues.length; j++) {
+			for (var j = this.nodeValues.length; j > 0; j--) {
 				try {
-					n = this.nodeValues[this.nodeValues.length -j -1];
+					n = this.nodeValues[j-1];
 					nodeValueSrc = n.getAttribute(nodeValueAtt); // put the node value in place
 					if (nodeValueSrc) {
 						var ap = nodeValueSrc.match(/\|(a|p)\|/);
@@ -180,8 +180,8 @@ var pure  = window.$p = window.pure ={
 						
 						n.removeAttribute(nodeValueAtt);}} 
 				catch (e) {}}
-			for(var i=0; i<this.repeats.length;i++){
-				n = this.repeats[this.repeats.length -i -1];//go inside out of the tree
+			for(var i=this.repeats.length; i>0;i--){
+				n = this.repeats[i-1];//go inside out of the tree
 				try {
 					replacedSrc = n.getAttribute(repeatAtt); //wrap in tags for easy string find
 					if (replacedSrc) {
@@ -267,9 +267,9 @@ var pure  = window.$p = window.pure ={
 		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', arrSrc;
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
-			if (j==0 && wrkStr!=""){
+			if (j==0){
 				//push the first line as it is HTML
-				aJS.push(this.utils.strOut(wrkStr.substring(0, wrkStr.length)));}
+				if(wrkStr!="") aJS.push(this.utils.strOut(wrkStr.substring(0, wrkStr.length)));}
 			else{
 				if (/^repeat[^\>]*\>/i.test(wrkStr)){
 					rTag = wrkStr.match(/^repeat[^\>]*>/i);
@@ -479,13 +479,17 @@ try{ if (jQuery) {
 		return this;};
 
 	$.fn.replaceWithAndReturnNew = function(html){
-		var div = document.createElement('div');
-		var replaced = this[0];
-		replaced.parentNode.replaceChild(div, replaced);
+		var div, replaced, parent, replacers, i;
+		div = document.createElement('div');
+		replaced = this[0];
+		parent = replaced.parentNode;
+		parent.insertBefore(div, replaced);//avoid IE mem leak
 		div.innerHTML = html;
-		var replacer = div.firstChild;
-		div.parentNode.replaceChild(replacer, div);
-		return $(replacer);};
+		replacers = div.childNodes;
+		for (i=replacers.length-1; i>=0; i--) {
+			replaced.parentNode.insertBefore( replacers[i], replaced.nextSibling );}
+		parent.removeChild(replaced);
+		parent.removeChild(div);}		
 
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
