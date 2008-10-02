@@ -309,7 +309,6 @@ var pure  = window.$p = window.pure ={
 					attName = wrkStr.substring(0, wrkStr.indexOf('='));
 					attValue = wrkStr.match(/=""?[^"]*""?/)[0].substr(2).replace(/"$/,'');
 					offset = attName.length + attValue.length + 3;
-					isStr = /^("|'|&quot;)(.*)("|'|&quot;)/.test(attValue);
 					if (/&quot;/.test(attValue)) {
 						attValue = attValue.replace(/&quot;/g, '"');
 						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
@@ -333,7 +332,7 @@ var pure  = window.$p = window.pure ={
 						delete this.$f[fnId];this.$f.cnt--;
 						aJS.push(this.utils.outputFn('this.$'+fnId, currentLoop));}
 						
-					else if(isStr){ //a string, strip the quotes
+					else if(/^("|'|&quot;)(.*)("|'|&quot;)/.test(attValue)){ //a string, strip the quotes
 						aJS.push(this.utils.strOut(attValue.substr(1, attValue.length-2)));}
 					else if(this.utils.isArray(attValue, openArrays)){ //iteration reference
 						aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
@@ -423,9 +422,9 @@ var pure  = window.$p = window.pure ={
 					currentDir = this.utils.appendPrepend.format(currentDir, attName, target, ap.type);
 
 					target.setAttribute( ns + attName, currentDir);
-					//hello
-					if(isAttr && attName != 'nodeValue' && (attName!='class' && autoRender) && repetition < 0 && !ap.type){
-						this.utils.removeAtt(target, attName)}}
+
+					if(isAttr && !(attName=='class' && autoRender=='true'))
+						this.utils.removeAtt(target, attName)}
 				else{ // target not found
 					parentName = [clone.nodeName];
 					if(clone.id != '') parentName.push('#' + clone.id);
