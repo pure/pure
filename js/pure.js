@@ -165,9 +165,9 @@ var pure  = window.$p = window.pure ={
 			var repeatAtt = ns + 'repeat';
 			var nodeValueAtt = ns + 'nodeValue';
 			var replaced, replacer, replacedSrc, nodeValueSrc, str = false;
-			for (var j = this.nodeValues.length; j > 0; j--) {
+			for (var j = this.nodeValues.length-1; j >= 0; j--) {
 				try {
-					n = this.nodeValues[j-1];
+					n = this.nodeValues[j];
 					nodeValueSrc = n.getAttribute(nodeValueAtt); // put the node value in place
 					if (nodeValueSrc) {
 						var ap = nodeValueSrc.match(/\|(a|p)\|/);
@@ -180,8 +180,8 @@ var pure  = window.$p = window.pure ={
 						
 						n.removeAttribute(nodeValueAtt);}} 
 				catch (e) {}}
-			for(var i=this.repeats.length; i>0;i--){
-				n = this.repeats[i-1];//go inside out of the tree
+			for(var i=this.repeats.length-1; i>=0;i--){
+				n = this.repeats[i];//go inside out of the tree
 				try {
 					replacedSrc = n.getAttribute(repeatAtt); //wrap in tags for easy string find
 					if (replacedSrc) {
@@ -391,7 +391,7 @@ var pure  = window.$p = window.pure ={
 				ap = this.utils.appendPrepend.check(selector);
 				selector = ap.clean;
 				isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
-				if(/^\[/.test(selector)){ //attribute of the selected node
+				if(/^\[|^\.$/.test(selector)){ //attribute of the selected node or itself . (dot)
 					target = clone;}
 				else{
 					target = this.find(selector, clone);
@@ -487,10 +487,10 @@ try{ if (jQuery) {
 		div.innerHTML = html;
 		replacers = div.childNodes;
 		for (i=replacers.length-1; i>=0; i--) {
-			replaced.parentNode.insertBefore( replacers[i], replaced.nextSibling );}
+			replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling);
+		}
 		parent.removeChild(replaced);
 		parent.removeChild(div);}		
-
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;
