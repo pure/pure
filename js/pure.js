@@ -288,7 +288,7 @@ var pure  = window.$p = window.pure ={
 									aJS.push('var ' + currentLoop + '= context;');}
 							else 
 								aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
-						aJS.push('for(var '+currentLoop+'Index=0;'+currentLoop+'Index < '+currentLoop+'.length;'+currentLoop+'Index++){');
+						aJS.push('if('+currentLoop+') for(var '+currentLoop+'Index=0;'+currentLoop+'Index < '+currentLoop+'.length;'+currentLoop+'Index++){');
 						aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length)));
 						openArrays[currentLoop] = cnt++;}
 				
@@ -555,18 +555,6 @@ try{ if (jQuery) {
 					directives = false;}
 				var source = html || this[0] || this;
 				return $(this).replace($p.autoRender(source, context, directives), true);
-			},
-			
-			$pMap : function (directives) {
-				return $(this).mapDirective(directives);
-			},
-			
-			$pCompile : function (fName, directives, context) {
-				return $(this).compile(fName, directives, context);
-			},
-			
-			$pRender : function (context, directives, html) {
-				return $(this).render(context, directives, html);
 			}
 		};	
 	}();
