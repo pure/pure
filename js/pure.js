@@ -107,9 +107,9 @@ var pure  = window.$p = window.pure ={
 						prop = att[0] != 'context' ? $p.$c(context, att[0]) : !/context/.test(openArray.join('')) ? context: true;						
 						if(prop=='""'){
 							if (openArray.length > 0) {
-								for (k = 0; k < openArray.length; k++) {
+								for (k = openArray.length-1; k>=0; k--) {
 									prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0]);
-									if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
+									if (prop!='""' || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
 										repeatPrefix = openArray[k];
 										break;}}}}
 							
