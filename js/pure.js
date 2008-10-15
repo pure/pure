@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    version: 1.5+ - Oct. 5 2008 - 21:10 
+    revision: 1.5+ - Oct. 5 2008 - 21:10 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -233,6 +233,8 @@ var pure  = window.$p = window.pure ={
 		arrayName:function(pName){
 			var name=pName.match(/\w*/)[0] || ''; 
 			var subIndex= pName.substring(name.length).replace(/\[\s*]/,''); // take the tail and replace [ ] by ''
+			if(/\./.test(subIndex)) 
+				subIndex = subIndex.replace(/^\./, '[\'').replace(/\./g,'\'][\'') + '\']';
 			return name + '[' + name + 'Index]' + subIndex;}},
 	autoCompile:function(html, fName, context, noEval){
 		html.setAttribute(this.ns + 'autoRender', 'true');
@@ -515,9 +517,6 @@ try{ if (jQuery) {
 				'compile',
 				'render',
 				'autoRender',
-				'$pMap',
-				'$pCompile',
-				'$pRender'
 			],
 			
 			init : function () {
