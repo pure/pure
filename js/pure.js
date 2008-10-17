@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.5+ - Oct. 15 2008 - 11:57 
+    revision: 1.5+ - Oct. 17 2008 - 12:15 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -39,7 +39,7 @@ var pure  = window.$p = window.pure ={
 
 	$f:{cnt:0},
 
-	$c:function(context, path){
+	$c:function(context, path, nullMode){
 		if(path == 'context') return context;
 		if(typeof context == 'object'){
 			//context is a JSON
@@ -54,7 +54,7 @@ var pure  = window.$p = window.pure ={
 
 				value = value[aPath[i]];}}
 
-			if (!value && value!=0) value = '""';
+			if (!value && value!=0) value = nullMode ? null :'';
 		return value;},
 
 	render: function(html, context, directives){
@@ -104,22 +104,21 @@ var pure  = window.$p = window.pure ={
 						repeatPrefix = '';
 						ap = this.appendPrepend.check(toMap[j]);
 						att = ap.clean.split(/@/);
-						prop = att[0] != 'context' ? $p.$c(context, att[0]) : !/context/.test(openArray.join('')) ? context: true;						
-						if(prop=='""'){
-							if (openArray.length > 0) {
+						prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !/context/.test(openArray.join('')) ? context: true;						
+						if(!prop && openArray.length > 0) {
 								for (k = openArray.length-1; k>=0; k--) {
-									prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0]);
-									if (prop!='""' || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
+									prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
+									if (prop || prop == 0 || prop == '') {//found a repetition field, break, specific case when 0 is returned as a value
 										repeatPrefix = openArray[k];
-										break;}}}}
+										break;}}}
 							
-						if ((prop || prop==0) && prop!='""') {
+						if (prop || prop==0 || prop=='') {
 							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
 								openArray.push(att[0]);
 								n.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);}
 							else {
 								if(repeatPrefix != '') 
-									att[0] = repeatPrefix + '.' + att[0];
+									att[0] = repeatPrefix + '[\'' + att[0] + '\']';
 								if(!att[1]) //not an attribute
 									att.push('nodeValue');
 								if(ap.type) //append or prepend ?
@@ -480,18 +479,20 @@ try{ if (jQuery) {
 		return this;};
 
 	$.fn.replaceWithAndReturnNew = function(html){
-		var div, replaced, parent, replacers, i;
+		var div, replaced, parent, replacers, i, newThis=[];
 		div = document.createElement('div');
 		replaced = this[0];
 		parent = replaced.parentNode;
 		parent.insertBefore(div, replaced);//avoid IE mem leak
 		div.innerHTML = html;
 		replacers = div.childNodes;
+		
 		for (i=replacers.length-1; i>=0; i--) {
-			replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling);
+			newThis.push(replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling));
 		}
 		parent.removeChild(replaced);
-		parent.removeChild(div);}		
+		parent.removeChild(div);
+		return $(newThis)}		
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;

@@ -46,7 +46,7 @@ function render3(){
 		"id": "3456",
 		sites: [{ 
 			"name": "Beebole","url": "http://beebole.com"}, {
-			"name": "BeeLit", "url": "http://beeLit.com"}, {
+			"name": "BeeLit", "url": ""}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 	
 	var siteList = document.getElementById('siteList');
@@ -128,7 +128,7 @@ function render5(){
 			'name':'Cats',
 			'players':[	
 				{"name":"Alice Keasler", "score":14}, 
-				{"name":"Mary Cain", "score":15}, 
+				{"name":"Mary Cain", "score":0}, 
 				{"name":"Vicky Benoit", "score":15}, 
 				{"name":"Wayne Dartt", "score":11}]},{
 			
@@ -247,6 +247,8 @@ var timer = {
 		this.trace.push({timerMsg:msg, timerDuration: 0, timerTime: this.acc});}}
 
 function replace(replaced, html){
+	//use pure dom methods and not specific to a js library
+	//see the comment in example 1 for different syntax
 	var div = document.createElement('div');
 	replaced.parentNode.replaceChild(div, replaced);
 	div.innerHTML = html;
