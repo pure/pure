@@ -106,13 +106,13 @@ var pure  = window.$p = window.pure ={
 						att = ap.clean.split(/@/);
 						prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !/context/.test(openArray.join('')) ? context: true;						
 						if(!prop && openArray.length > 0) {
-								for (k = openArray.length-1; k>=0; k--) {
-									prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
-									if (prop || prop == 0 || prop == '') {//found a repetition field, break, specific case when 0 is returned as a value
-										repeatPrefix = openArray[k];
-										break;}}}
+							for (k = openArray.length-1; k>=0; k--) {
+								prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
+								if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
+									repeatPrefix = openArray[k];
+									break;}}}
 							
-						if (prop || prop==0 || prop=='') {
+						if (prop || prop==0) {
 							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
 								openArray.push(att[0]);
 								n.setAttribute(ns + 'repeat', att[0] + '<-' + att[0]);}
@@ -213,6 +213,7 @@ var pure  = window.$p = window.pure ={
 			}
 		},
 		removeAtt:function(node, att){
+			if (att == 'class') att = this.autoRenderAtt; 
 			try{ node.removeAttribute(att);}catch(e){}}, //cross browser
 
 		out:function(content){ return ['output.push(', content, ');'].join('')},
@@ -332,9 +333,8 @@ var pure  = window.$p = window.pure ={
 						this.compiledFunctions[fName]['$'+fnId]=this.$f[fnId];
 						delete this.$f[fnId];this.$f.cnt--;
 						aJS.push(this.utils.outputFn('this.$'+fnId, currentLoop));}
-						
-					else if(/^("|'|&quot;)(.*)("|'|&quot;)/.test(attValue)){ //a string, strip the quotes
-						aJS.push(this.utils.strOut(attValue.substr(1, attValue.length-2)));}
+					else if(/^\\\'|&quot;/.test(attValue)){ //a string, strip the quotes
+						aJS.push(this.utils.strOut(attValue.replace(/^\\\'|\\\'$/g,'')));}
 					else if(this.utils.isArray(attValue, openArrays)){ //iteration reference
 						aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
 					else{ //context data
@@ -417,11 +417,8 @@ var pure  = window.$p = window.pure ={
 						repetition = currentDir.search(/w*<-w*/);
 						if(repetition > -1) attName = 'repeat';}
 
-					if (/^"/.test(currentDir) && /"$/.test(currentDir)){ //assume a string value is passed, replace " by '
-						currentDir = '\'' + currentDir.substring(1, currentDir.length-1) + '\''}
-
+					currentDir = currentDir.replace(/^"|"$|\'|\\\'/g, '\\\''); //escape any quotes quotes by \'
 					currentDir = this.utils.appendPrepend.format(currentDir, attName, target, ap.type);
-
 					target.setAttribute( ns + attName, currentDir);
 
 					if(isAttr && !(attName=='class' && autoRender=='true'))
@@ -463,7 +460,7 @@ var pure  = window.$p = window.pure ={
 try{ if (jQuery) {
 	//patch jQuery to read namespaced attributes see Ticket #3023
 	jQuery.parse[0] = /^(\[) *@?([\w:-]+) *([!*$^~=]*) *('?"?)(.*?)\4 *\]/;
-	$p.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"[^\"]+\"/gi, by: ''});
+	$p.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"null\"/gi, by: ''});
 	$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
 		return found[0] ? found[0] : false;};
@@ -492,7 +489,7 @@ try{ if (jQuery) {
 		}
 		parent.removeChild(replaced);
 		parent.removeChild(div);
-		return $(newThis)}		
+		return $(newThis);}		
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;

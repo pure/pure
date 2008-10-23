@@ -80,10 +80,10 @@ function render4(button){
 	$.getJSON(script, function(context){
 	    timer.log('Rendering');
 		var directive = {
-			'tbody tr td[onclick]': '"clickLine(this)"',
+			'tbody tr td[onclick]': "'clickLine(this)'", //show all differences of strings notationi "' '" '\'
 			'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
-			'tbody tr td[onmouseout]': '"swapStyle(this, false);"',
-			'tbody tr td[style]': '\'cursor:pointer\'',
+			'tbody tr td[onmouseout]': '\'swapStyle(this, false);\'',
+			'tbody tr td[style]': "\'cursor:pointer\'",
 			'tbody tr[class]': function(arg){
 				//arg => {context:context, items:items, pos:pos, item:items[pos]};
 				var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
@@ -128,7 +128,7 @@ function render5(){
 			'name':'Cats',
 			'players':[	
 				{"name":"Alice Keasler", "score":14}, 
-				{"name":"Mary Cain", "score":0}, 
+				{"name":"", "score":0},  //show an example of space and zero
 				{"name":"Vicky Benoit", "score":15}, 
 				{"name":"Wayne Dartt", "score":11}]},{
 			
