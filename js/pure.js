@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.5+ - Oct. 17 2008 - 12:15 
+    revision: 1.5+ - Oct. 30 2008 - 20:37 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -48,12 +48,8 @@ var pure  = window.$p = window.pure ={
 			if(value == 'undefined') value = window[aPath[0]];
 
 			for (var i=1; i<aPath.length; i++){
-				if (!value){
-					i = aPath.length;
-					continue;}
-
+				if (!value) break;
 				value = value[aPath[i]];}}
-
 			if (!value && value!=0) value = nullMode ? null :'';
 		return value;},
 
@@ -70,7 +66,6 @@ var pure  = window.$p = window.pure ={
 		else{
 			this.msg('HTML_does_not_exist', fn);}},
 
-	autoRenderAtt: /MSIE/.test(navigator.userAgent) ? 'className':'class',
 	autoRender:function(html, context, directives){
 		if (typeof html != 'string') {
 			if (!html) { this.msg('wrong_html_source');return false;};
@@ -225,6 +220,8 @@ var pure  = window.$p = window.pure ={
 				return this.out(attValue + '({context:context})');},
 		contextOut:function(path){ return ['output.push($p.$c(context, ', path, '));'].join('')},
 
+		autoRenderAtt: /MSIE/.test(navigator.userAgent) ? 'className':'class',
+
 		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
 			var arrIndex = /\[[^\]]*]/.test(attValue);
 			var objProp  = attValue.replace(/(")|(')/g,'').split(/\./);
@@ -241,12 +238,10 @@ var pure  = window.$p = window.pure ={
 		return this.compile(html, fName, context, noEval);
 	},
 	compile: function(html, fName, context, noEval){
-		//DOM is slow, innerHTML is fast -> compile. Once browsers will be ok, no compilation will be needed anymore
-		var clone = html[0] ? html[0].cloneNode(true) : html.cloneNode(true);
-		
+		var clone = html[0] && !html.nodeType ? html[0].cloneNode(true) : html.cloneNode(true);
 		//node manipulation before conversion to string
 		var ns = this.ns;
-		var str = this.utils.nodeWalk(clone, ns, context, this.autoRenderAtt);
+		var str = this.utils.nodeWalk(clone, ns, context, this.utils.autoRenderAtt);
 		//convert the HTML to a string
 		if(!str) str = this.outerHTML( clone );
 
@@ -372,11 +367,11 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, fixAtt, original, parentName, selector, i;
+		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, fixAtt, original, parentName, selector, i, autoRender;
 		if (noClone){
-			clone = html[0] ? html[0] : html;}
+			clone = html[0] && !html.nodeType ? html[0] : html;}
 		else{
-			clone = html[0] ? html[0].cloneNode(true) : html.cloneNode(true);}
+			clone = html[0] && !html.nodeType ? html[0].cloneNode(true) : html.cloneNode(true);}
 			
 		autoRender = clone.getAttribute(this.ns + 'autoRender')||false;
 		for (selector in directives){ // for each directive set the corresponding pure:<attr>

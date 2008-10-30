@@ -2,8 +2,7 @@
  *     E X A M P L E      1 
  * * * * * * * * * * * * * * * * * * * * * */			
 function render1(){
-	var hello = document.getElementById('hello');
-	replace(hello, $p.autoRender(hello, {"who": "Mary"}));}
+	$('div#hello').autoRender({ "who": "Mary" });}
 
 	/* Note: 
 	  All the notation below are possible with different results:				
@@ -32,8 +31,7 @@ function render1(){
  * * * * * * * * * * * * * * * * * * * * * */			
 function render2(){
 	var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-	var players1 = document.getElementById('players1');
-	replace(players1, $p.autoRender(players1, context));}
+	$('#players1').autoRender(context);}
 	
 	// jQuery syntax
 	//$('table.players.1').autoRender(context);}
@@ -49,8 +47,7 @@ function render3(){
 			"name": "BeeLit", "url": ""}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 	
-	var siteList = document.getElementById('siteList');
-	replace(siteList, $p.autoRender(siteList, context));}
+	$('#siteList').autoRender(context);}
 	
 
 	// jQuery syntax
@@ -90,11 +87,7 @@ function render4(button){
 				var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.items.length - 1) ? 'last' : '';
 				return oddEven + ' ' + firstLast;}}
 
-		var table2 = document.getElementById('players2');
-		replace(table2, $p.autoRender(table2, context, directive));
-		
-		//jQuery syntax
-		//$('table.players.2').autoRender(context, directive);
+		$('table.players.2').autoRender(context, directive);
 		
 		$('table.players.2').before(timer.end());
 		button.value = 'Refresh the page to render again';});}
