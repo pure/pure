@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.5+ - Oct. 30 2008 - 20:37 
+    revision: 1.6 - Nov. 3 2008 - 13:36 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -484,7 +484,7 @@ try{ if (jQuery) {
 		}
 		parent.removeChild(replaced);
 		parent.removeChild(div);
-		return $(newThis);}		
+		return $(newThis);};
 	$.fn.$pRender =$.fn.render = function(context, directives, html){
 		if (typeof directives == 'string') { // a compiled template is passed
 			html = directives;
