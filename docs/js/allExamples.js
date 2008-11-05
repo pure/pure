@@ -120,36 +120,35 @@ function render5(){
 		'teams': [{
 			'name':'Cats',
 			'players':[	
-				{"name":"Alice Keasler", "score":14}, 
-				{"name":"", "score":0},  //show an example of space and zero
-				{"name":"Vicky Benoit", "score":15}, 
-				{"name":"Wayne Dartt", "score":11}]},{
-			
+				{"first":"Alice","last":"Keasler", "score":14}, 
+				{"first":"","name":"", "score":0},  //show an example of space and zero
+				{"first":"Vicky","last":"Benoit", "score":15}, 
+				{"first":"Wayne", "last":"Dartt", "score":11}]},{
+
 			'name':'Dogs',
 			'players': [
-				{"name":"Ray Braun", "score":14}, 
-				{"name":"Aaron Ben", "score":24}, 
-				{"name":"Steven Smith", "score":1}, 
-				{"name":"Kim Caffey", "score":19}]},{
-			
+				{"first":"Ray","last":"Braun", "score":14}, 
+				{"first":"Aaron","last":"Ben", "score":24}, 
+				{"first":"Steven","last":"Smith", "score":1}, 
+				{"first":"Kim", "last":"Caffey", "score":19}]},{
+
 			'name':'Mices',
 			'players': [
-				{"name":"Natalie Kinney", "score":16}, 
-				{"name":"Caren Cohen", "score":3}]}]}
+				{"first":"Natalie","last":"Kinney", "score":16}, 
+				{"first":"Caren","last":"Cohen", "score":3}]}]}
 
 	var scoreBoard = $('table.scoreBoard').$pMap({
 		'tbody tr': 'team <- teams',
-		'td.teamName': 'team.name'
-	});
-	
+		'td.teamName': 'team.name'});
+
 	var teamList = $('table.teamList', scoreBoard)
 		.$pMap({
 			'tbody tr': 'player <- team.players',
-			'td.player': 'player.name',
+			'td.player': '#{player.first} (#{player.last})',
 			'td.score': 'player.score',
-			'td.position': lineNb, //passing the pointer of a function that does not use "this"
+			'td.position+': lineNb, //passing the pointer of a function that does not use "this"
 			'tbody tr[class]': function(arg){ return row.decorator(arg) } }); //show how to wrap a method and not breack the use of "this"
-	
+
 	$('td.teamPlace', scoreBoard).html(teamList); //place sub-template teamList in scoreBoard
 	$p.compile(scoreBoard, 'f5'); //compile to a function
     $('div#render5').html( $p.render('f5', context) );} //place the result of the transformation to the innerHTML of div#render5

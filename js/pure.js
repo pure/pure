@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.6 - Nov. 3 2008 - 13:36 
+    revision: 1.7 - Nov. 5 2008 - 18:10 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -232,11 +232,12 @@ var pure  = window.$p = window.pure ={
 			var subIndex= pName.substring(name.length).replace(/\[\s*]/,''); // take the tail and replace [ ] by ''
 			if(/\./.test(subIndex)) 
 				subIndex = subIndex.replace(/^\./, '[\'').replace(/\./g,'\'][\'') + '\']';
-			return name + '[' + name + 'Index]' + subIndex;}},
+			return name + '[' + name + 'Index]' + subIndex.replace(/\\\'/g,"'");}},
+			
 	autoCompile:function(html, fName, context, noEval){
 		html.setAttribute(this.ns + 'autoRender', 'true');
-		return this.compile(html, fName, context, noEval);
-	},
+		return this.compile(html, fName, context, noEval);},
+
 	compile: function(html, fName, context, noEval){
 		var clone = html[0] && !html.nodeType ? html[0].cloneNode(true) : html.cloneNode(true);
 		//node manipulation before conversion to string
@@ -261,7 +262,7 @@ var pure  = window.$p = window.pure ={
 		var aJS = [[ '$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 		var aDom = str.split(ns);
 
-		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', arrSrc;
+		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', attValues=[], arrSrc;
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
 			if (j==0){
@@ -330,12 +331,33 @@ var pure  = window.$p = window.pure ={
 						aJS.push(this.utils.outputFn('this.$'+fnId, currentLoop));}
 					else if(/^\\\'|&quot;/.test(attValue)){ //a string, strip the quotes
 						aJS.push(this.utils.strOut(attValue.replace(/^\\\'|\\\'$/g,'')));}
-					else if(this.utils.isArray(attValue, openArrays)){ //iteration reference
-						aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
-					else{ //context data
-						aJS.push(this.utils.contextOut("'"+attValue+"'"));}
+					else{
 
-					if(suffix!='') aJS.push(this.utils.strOut(spc+suffix));
+
+						if (!/MSIE/.test(navigator.userAgent)) {
+							attValues = attValue.split(/(#{[^\}]*})/g);}
+						else { //IE:(
+							var ie = attValue.match(/#{[^\}]*}/);
+							attValues = ie ? [] : [attValue];
+							while (ie) {
+								if (ie.index > 0) attValues.push(attValue.substring(0, ie.index));
+								attValues.push(ie[0]);
+								attValue = attValue.substring(ie.lastIndex);
+								ie = attValue.match(/#{[^\}]*}/);
+								if (!ie && attValue != '') attValues.push(attValue);}};
+
+						for(var atts = 0; atts<attValues.length; atts++){
+							attValue = attValues[atts];
+							if(/\#{/.test(attValue) || attValues.length == 1){
+								attValue = attValue.replace(/^\#\{/, '').replace(/\}$/,'');
+								if(this.utils.isArray(attValue, openArrays)){ //iteration reference
+									aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
+								else{ //context data
+									aJS.push(this.utils.contextOut("'"+attValue+"'"));}}
+							else if(attValue != ''){
+								aJS.push(this.utils.strOut(attValue));};
+		
+							if(suffix!='') aJS.push(this.utils.strOut(spc+suffix));}}
 
 					if (!isNodeValue) { //close the attribute string
 						aJS.push(this.utils.strOut('"'));}}
@@ -412,7 +434,7 @@ var pure  = window.$p = window.pure ={
 						repetition = currentDir.search(/w*<-w*/);
 						if(repetition > -1) attName = 'repeat';}
 
-					currentDir = currentDir.replace(/^"|"$|\'|\\\'/g, '\\\''); //escape any quotes quotes by \'
+					currentDir = currentDir.replace(/^"|"$|\'|\\\'/g, '\\\''); //escape any quotes by \'
 					currentDir = this.utils.appendPrepend.format(currentDir, attName, target, ap.type);
 					target.setAttribute( ns + attName, currentDir);
 
