@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.7 - Nov. 5 2008 - 18:10 
+    revision: 1.7+ - Nov. 15 2008 - 11:47 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -17,7 +17,7 @@ var pure  = window.$p = window.pure ={
 	
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
-		var src = ['var pure =window.$p = window.pure ={', '$c:', this.$c.toString(), ',', '$f:[', this.$f.toString(), '],', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
+		var src = ['var pure =window.$p = window.pure ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', '$f:[', this.$f.toString(), '],', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
 		for (var fName in this.compiledFunctions){
 		var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
 		src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
@@ -81,7 +81,10 @@ var pure  = window.$p = window.pure ={
 		{what:/\n/g, by:''},//may be too strong check with and pre, textarea,...
 		{what:/\<\?xml:namespace[^>]*beebole[^\>]*\>/gi, by:''}],//remove pure ns (IE)
 
-	utils:{
+	$outAtt:function(content){
+			var att = content.join('');
+			return (/\=\"\"/.test(att)) ? '' : att;},
+ 	utils:{
 		nodeValues:[],
 		repeats:[],
 		autoRenderAtts:[],
@@ -215,10 +218,10 @@ var pure  = window.$p = window.pure ={
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
 		outputFn:function (attValue, currentLoop){
 			if (currentLoop) 
-				return this.out(attValue + '({context:context, items:' + currentLoop + ',pos:parseInt(' + currentLoop + 'Index), item:' + currentLoop + '[parseInt(' + currentLoop + 'Index)]})');
+				return attValue + '({context:context, items:' + currentLoop + ',pos:parseInt(' + currentLoop + 'Index), item:' + currentLoop + '[parseInt(' + currentLoop + 'Index)]})';
 			else
-				return this.out(attValue + '({context:context})');},
-		contextOut:function(path){ return ['output.push($p.$c(context, ', path, '));'].join('')},
+				return attValue + '({context:context})';},
+		contextOut:function(path){ return '$p.$c(context, ' + path + ')'},
 
 		autoRenderAtt: /MSIE/.test(navigator.userAgent) ? 'className':'class',
 
@@ -262,7 +265,7 @@ var pure  = window.$p = window.pure ={
 		var aJS = [[ '$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 		var aDom = str.split(ns);
 
-		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', attValues=[], arrSrc;
+		var js, wrkStr, rTag = false, rSrc, openArrays=[], usedFn=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, isStr = false, attName = '', attValue = '', attValues=[], arrSrc, fullAtt;
 		for(var j = 0;j < aDom.length; j++){
 			wrkStr = aDom[j];
 			if (j==0){
@@ -312,14 +315,14 @@ var pure  = window.$p = window.pure ={
 						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
 
 					isNodeValue = /^nodeValue/i.test(wrkStr);	
-					isNodeValue ? attName = 'nodeValue': aJS.push(this.utils.strOut(attName + '="'));
+					fullAtt = isNodeValue ? []: ['\''+attName+'="\''];
 
 					attOut = attValue.match(/\|(a|p)\|/);
 					suffix = false; 
 					spc = isNodeValue ? '':' ';
 					if (attOut) {
 						if(attOut[1] =='a') 
-							aJS.push(this.utils.strOut(attValue.substring(0, attOut.index)+spc));
+							fullAtt.push('\''+attValue.substring(0, attOut.index)+spc+'\'');
 						else // |p|
 							suffix = attValue.substring(0, attOut.index);
 						attValue = attValue.substring(attOut.index + 3);}
@@ -328,12 +331,12 @@ var pure  = window.$p = window.pure ={
 						fnId = attValue.match(/\[(f[0-9]+)/)[1];
 						this.compiledFunctions[fName]['$'+fnId]=this.$f[fnId];
 						delete this.$f[fnId];this.$f.cnt--;
-						aJS.push(this.utils.outputFn('this.$'+fnId, currentLoop));}
+						fullAtt.push(this.utils.outputFn('this.$'+fnId, currentLoop));
+						if(suffix!='') fullAtt.push('\''+spc+suffix+'\'');}
 					else if(/^\\\'|&quot;/.test(attValue)){ //a string, strip the quotes
-						aJS.push(this.utils.strOut(attValue.replace(/^\\\'|\\\'$/g,'')));}
+						fullAtt.push('\''+ attValue.replace(/^\\\'|\\\'$/g,'')+'\'');
+						if(suffix!='') fullAtt.push('\''+spc+suffix+'\'');}
 					else{
-
-
 						if (!/MSIE/.test(navigator.userAgent)) {
 							attValues = attValue.split(/(#{[^\}]*})/g);}
 						else { //IE:(
@@ -351,16 +354,17 @@ var pure  = window.$p = window.pure ={
 							if(/\#{/.test(attValue) || attValues.length == 1){
 								attValue = attValue.replace(/^\#\{/, '').replace(/\}$/,'');
 								if(this.utils.isArray(attValue, openArrays)){ //iteration reference
-									aJS.push(this.utils.out(this.utils.arrayName(attValue)));}
+									fullAtt.push(this.utils.arrayName(attValue));}
 								else{ //context data
-									aJS.push(this.utils.contextOut("'"+attValue+"'"));}}
+									fullAtt.push(this.utils.contextOut("'"+attValue+"'"));}}
 							else if(attValue != ''){
-								aJS.push(this.utils.strOut(attValue));};
+								fullAtt.push('\''+attValue+'\'');};
 		
-							if(suffix!='') aJS.push(this.utils.strOut(spc+suffix));}}
+							if(suffix!='') fullAtt.push('\''+spc+suffix+'\'');}}
 
 					if (!isNodeValue) { //close the attribute string
-						aJS.push(this.utils.strOut('"'));}}
+						fullAtt.push('\'"\'');}}
+					aJS.push(this.utils.out(fullAtt.length > 1 ? '$p.$outAtt(['+fullAtt.join(',')+'])':fullAtt[0]));
 					
 				//output the remaining if any	
 				wrkStr = wrkStr.substr(offset);
