@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.7+ - Nov. 15 2008 - 11:47 
+    revision: 1.8 - Nov. 18 2008 - 21:35 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -17,23 +17,20 @@ var pure  = window.$p = window.pure ={
 	
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
-		var src = ['var pure =window.$p = window.pure ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', '$f:[', this.$f.toString(), '],', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
+		var src = ['var pure =window.$p = window.pure ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
 		for (var fName in this.compiledFunctions){
-		var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
-		src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
-		src.push(this.compiledFunctions[fName].compiled.toString()+';');}
-
-	var runtime = src.join('');
-	var txt = document.getElementById('pureRuntime');
-	if (txt){
-		txt.value = runtime;
-		txt.select();}
-	else{
-		txt = document.createElement('TEXTAREA');
-		txt.value = runtime;
-		txt.id = 'pureRuntime';
-		document.body.appendChild(txt);
-		txt.select();}},
+			var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
+			src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
+			src.push(this.compiledFunctions[fName].compiled.toString()+';');
+			for (var fi in this.compiledFunctions[fName]){
+				if(fi != 'compiled')
+					src.push('$p.compiledFunctions[\''+fName+'\'].'+fi+'='+this.compiledFunctions[fName][fi].toString()+';');}}
+	var elm = document.getElementById('pureMsg');
+	if (elm) {
+		elm.value = src.join('');
+		elm.select();}
+	else 
+		this.msg('place_runtime_container');},
 
 	ns: /MSIE/.test(navigator.userAgent) ? 'pure_':'pure:', //IE namespace :(
 
@@ -455,7 +452,7 @@ var pure  = window.$p = window.pure ={
 	messages:{
 		'wrong_html_source':'The source HTML provided to autoRender does not exist. Check your selector syntax.',
 		'element_to_map_not_found':"PURE - Cannot find the element \"&\" in \"&\"",
-		'place_runtime_container':'To collect the PURE runtime, place a <textarea id=\"pureRuntime\"></textarea> in your document.',
+		'place_runtime_container':'To collect the PURE runtime, place a <textarea id=\"pureMsg\"></textarea> somewhere in your document.',
 		'no_HTML_selected':'The map function didn\'t receive a valid HTML element',
 		'no_HTML_name_set_for_parsing':'A name is needed when parsing the HTML: &',
 		'HTML_does_not_exist':'The HTML: & does not exist or is not yet compiled',
@@ -473,9 +470,9 @@ var pure  = window.$p = window.pure ={
 				for(i=0; i<msgParams.length;i++ ){
 					msg = msg.replace(re, msgParams[i]);}}}
 
-		msgDiv = document.getElementById('pureMsg');
-		if(msgDiv){
-			msgDiv.innerHTML = [msg, '<br />', msgDiv.innerHTML].join('');}
+		var elm = document.getElementById('pureMsg');
+		if(elm){
+			elm.innerHTML = [msg, '<br />', elm.innerHTML].join('');}
 			else{ alert(msg);}}};
 
 try{ if (jQuery) {
@@ -528,7 +525,7 @@ try{ if (jQuery) {
 		var source = html ? html : replaced;//if no target, self replace
 		return this.replaceWithAndReturnNew( $p.autoRender(source, context, directives));}}
 
-}catch(e){ try{ if (DOMAssistant) {
+}catch(e){ try{ if (DOMAssistant) { //Thanks to Lim Cheng Hong from DOMAssistant who did it
 	DOMAssistant.pure = function () {
 		return {
 			publicMethods : [
