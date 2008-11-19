@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.8 - Nov. 18 2008 - 21:35 
+    revision: 1.9 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -607,12 +607,10 @@ try{ if (jQuery) {
 		}		
 		return found[0] || false;
 	};
-
-
 	// Add more methods to the prototype element's objects for
 	// supporting pure calls
-	var PureExtension = {}
-	PureExtension.Methods = {
+	// Add these extended methods using the prototype element object
+	Element.addMethods({
 
 		mapDirective: function (element, directives) {
 			return $($p.map(directives, element));
@@ -651,10 +649,5 @@ try{ if (jQuery) {
 				html = directives[0] || directives;
 				directives = false;}
 			var source = html || element;
-			return $(element).replace($p.autoRender(source, context, directives), true);
-		}
-
-	};
-	// Add these extended methods using the prototype element object
-	Element.addMethods(PureExtension.Methods);}
+			return $(element).replace($p.autoRender(source, context, directives), true);}});}
 }catch(e){}}}}
