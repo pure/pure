@@ -546,11 +546,21 @@ try{ if (jQuery) {
 				return $($p.map(directives, this));
 			},
 
+			// This alias is also used to map directives in the JQuery lib implementation
+			$pMap: function (element, directives) {
+				return mapDirective(element, directives);
+			},
+
 			compile : function (fName, directives, context) {
 				if (directives) $p.map(directives, this, true);
 				if (context) (this[0] || this).setAttribute($p.ns + 'autoRender', 'true');
 				$p.compile(this, fName, context || false, false);
 				return this;
+			},
+
+			// This alias is also used to compile in the JQuery lib implementation
+			$pCompile: function (element, fName, directives, context) {
+				return compile(element, fName, directives, context);
 			},
 
 			render : function (context, directives, html) {
@@ -575,5 +585,76 @@ try{ if (jQuery) {
 	}();
 	DOMAssistant.attach(DOMAssistant.pure);}
 }catch(e){ try{ if (MooTools){}
-}catch(e){ try{ if (Prototype){}
+}catch(e){ try{ if (Prototype){
+	// Implement the find function for pure using the prototype
+	// select function
+	$p.find = function (selector, context) {		
+		var found = $(context).select(selector);
+		// patch prototype when using selector with id's and cloned nodes in IE
+		// maybe in next releases of prototype this is fixed
+		if (!found || found == "") {
+			var pos = selector.indexOf('#');
+			if (pos > -1) { 				
+				var id = selector.substr(pos+1);								
+				var els = context.getElementsByTagName('*');
+        		for (var i = 0, el; el = els[i]; i++) {
+        			if (el.id == id) {
+        				return el;        				
+        			}          		
+        		}
+			}
+						
+		}		
+		return found[0] || false;
+	};
+
+
+	// Add more methods to the prototype element's objects for
+	// supporting pure calls
+	var PureExtension = {}
+	PureExtension.Methods = {
+
+		mapDirective: function (element, directives) {
+			return $($p.map(directives, element));
+		},
+
+		// This alias is also used to map directives in the JQuery lib implementation
+		$pMap: function (element, directives) {
+			return mapDirective(element, directives);
+		},
+
+		compile: function (element, fName, directives, context) {
+			if (directives) $p.map(directives, element, true);
+			if (context) (element).setAttribute($p.ns + 'autoRender', 'true');
+			$p.compile(element, fName, context || false, false);
+			return element;
+		},
+
+		// This alias is also used to compile in the JQuery lib implementation
+		$pCompile: function (element, fName, directives, context) {
+			return compile(element, fName, directives, context);
+		},
+
+		render: function (element, context, directives, html) {
+			if (typeof directives === 'string') { // a compiled template is passed
+				html = directives;
+				directives = false;
+			}
+			var source = html || element;
+			return $(element).replace($p.render(source, context, directives), true);
+		},
+	
+		autoRender: function (element, context, directives, html) {
+			directives = directives || false;
+			html = html || false;
+			if (!html && directives && directives.select || directives.nodeType) {
+				html = directives[0] || directives;
+				directives = false;}
+			var source = html || element;
+			return $(element).replace($p.autoRender(source, context, directives), true);
+		}
+
+	};
+	// Add these extended methods using the prototype element object
+	Element.addMethods(PureExtension.Methods);}
 }catch(e){}}}}
