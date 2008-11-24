@@ -137,12 +137,12 @@ function render5(){
 				{"first":"Natalie","last":"Kinney", "score":16}, 
 				{"first":"Caren","last":"Cohen", "score":3}]}]}
 
-	var scoreBoard = $('table.scoreBoard').$pMap({
+	var scoreBoard = $('table.scoreBoard').mapDirective({
 		'tbody tr': 'team <- teams',
 		'td.teamName': 'team.name'});
 
 	var teamList = $('table.teamList', scoreBoard)
-		.$pMap({
+		.mapDirective({
 			'tbody tr': 'player <- team.players',
 			'td.player': '#{player.first} (#{player.last})',
 			'td.score': 'player.score',
