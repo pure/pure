@@ -546,21 +546,11 @@ try{ if (jQuery) {
 				return $($p.map(directives, this));
 			},
 
-			// This alias is also used to map directives in the JQuery lib implementation
-			$pMap: function (element, directives) {
-				return mapDirective(element, directives);
-			},
-
 			compile : function (fName, directives, context) {
 				if (directives) $p.map(directives, this, true);
 				if (context) (this[0] || this).setAttribute($p.ns + 'autoRender', 'true');
 				$p.compile(this, fName, context || false, false);
 				return this;
-			},
-
-			// This alias is also used to compile in the JQuery lib implementation
-			$pCompile: function (element, fName, directives, context) {
-				return compile(element, fName, directives, context);
 			},
 
 			render : function (context, directives, html) {
@@ -585,7 +575,7 @@ try{ if (jQuery) {
 	}();
 	DOMAssistant.attach(DOMAssistant.pure);}
 }catch(e){ try{ if (MooTools){}
-}catch(e){ try{ if (Prototype){
+}catch(e){ try{ if (Prototype){ //Thanks to Carlos Saltos and Borja Vasquez
 	// Implement the find function for pure using the prototype
 	// select function
 	$p.find = function (selector, context) {		
@@ -616,21 +606,11 @@ try{ if (jQuery) {
 			return $($p.map(directives, element));
 		},
 
-		// This alias is also used to map directives in the JQuery lib implementation
-		$pMap: function (element, directives) {
-			return mapDirective(element, directives);
-		},
-
 		compile: function (element, fName, directives, context) {
 			if (directives) $p.map(directives, element, true);
 			if (context) (element).setAttribute($p.ns + 'autoRender', 'true');
 			$p.compile(element, fName, context || false, false);
 			return element;
-		},
-
-		// This alias is also used to compile in the JQuery lib implementation
-		$pCompile: function (element, fName, directives, context) {
-			return compile(element, fName, directives, context);
 		},
 
 		render: function (element, context, directives, html) {
