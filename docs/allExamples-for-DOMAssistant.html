@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:pure="http://beebole.com/pure" xmlns="http://www.w3.org/1999/xhtml"><head>
+
+	
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>The Features of PURE Unobtrusive Rendering Engine for HTML</title>
+	    <link href="css/white.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="../js/DOMAssistant.js"></script>
+		<script type="text/javascript" src="../js/pure.js"></script>
+		<script type="text/javascript" src="js/allExamples-for-DOMAssistant.js"></script>
+	</head><body class="allExamples">
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      1 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<h1>What are the features available in PURE today ?</h1>
+		This page groups all the features available in the last release.<br>
+		Click the render buttons to see the result.<br>
+		Look at the source of the page to see comments and usage or <a href="http://github.com/pure/pure/wikis/">have a look at the wiki</a>.
+		<h3>Example 1: Hello Who?</h3>
+		<div class="demo">
+			<input onclick="clickButton(this, render1);" value="render" type="button">
+			<div class="htmlDoc">
+				<div id="hello">
+					Hello <span class="who">World</span>
+				</div>
+			</div>
+			<div id="target1"></div>
+		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      2 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<h3>Example 2: Iteration on a Table</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<input onclick="clickButton(this, render2);" value="render" type="button">
+				<table class="players 1">
+					<thead>
+						<tr><th class="player">Player</th></tr>
+					</thead>
+					<tbody>
+						<tr class="context">
+							<td class="player context">Chloe</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      3 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<h3>Example 3: Iteration on a List</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<input onclick="clickButton(this, render3);" value="render" type="button">
+				<!-- note the notation "data property"@"attribute name"-->
+				<ol class="teamList id@id">
+					<li class="player sites"><a class="name url@href" href="http://beebole.com/">Beebole</a></li>
+				</ol>
+			</div>
+		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      4 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<h3>Example 4: Passing JS Functions as a Directive (Iteration on a table zebra like and attach events)</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<p>Works only on an http server</p>
+				<input id="b4_1" onclick="clickButton(this, render4, '#b4_2');" value="render" type="button">
+				<input id="b4_2" onclick="clickButton(this, render4, '#b4_1');" value="render with 500 lines..." type="button">
+				<table class="players 2">
+					<thead>
+						<tr>
+							<th class="player">Player</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="context">
+							<td class="player context">Chloe</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			In addition to the zebra iteration, this example shows a way to attach events by a directive.<br>
+			To see those events, mouse-over the lines of the rendered table, and click on a line.<br>
+		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      5 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<h3>Example 5: Nested Iteration</h3>
+		This was not explained in the examples. The objective here is to have a double iteration. First on teams, then on players.<br>
+		It shows the nested iteration and as well how a template can be included in another.
+		<div class="demo">
+			<div class="htmlDoc">
+				<input onclick="clickButton(this, render5);" value="render" type="button">
+				<table class="scoreBoard">
+					<tbody>
+						<tr>
+							<td class="teamName">Team Name</td>
+								<td class="teamPlace">
+								<table class="teamList">
+									<thead>
+										<tr><th class="position">Position</th><th class="player">Player</th><th class="score">Score</th></tr>
+									</thead>
+									<tbody>
+										<tr><td class="position">1</td><td class="player">Chloe</td><td class="score">20</td></tr>
+									</tbody>
+								</table>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="transformation">
+				<div id="render5"></div>
+			</div>
+		</div>
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     E X A M P L E      6 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<h3>Example 6: Recursive List</h3>
+		<div class="demo">
+			<div class="htmlDoc">
+				<input onclick="clickButton(this, render6);" value="render" type="button">
+				<ul class="treeItem">
+					<li class="children"><a class="name" href="#">name</a></li>
+				</ul>
+			</div>
+		</div>
+		
+		<!-- 
+	/* * * * * * * * * * * * * * * * * * * * * *
+	 *     Hidden templates 
+	 * * * * * * * * * * * * * * * * * * * * * */			
+		-->
+		<div class="templates">
+			<div class="timerTrace">
+				<table class="timerTraceTable">
+					<thead>
+						<tr><th class="timerMsg">(ms)</th><th class="timerDuration">Duration</th><th class="timerTime">Timer</th></tr>
+					</thead>
+					<tbody>
+						<tr class="context"><td class="timerMsg">Start</td><td class="timerDuration">0</td><td class="timerTime">0</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</body></html>
