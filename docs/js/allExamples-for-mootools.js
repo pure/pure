@@ -102,7 +102,7 @@ function render4(button){
 		
             var timerDiv = document.createElement('div');
             timerDiv.innerHTML = timer.end();
-			$('players2').grab(timerDiv);
+			$('players2').grab(timerDiv, 'before');
 
 			button.value = 'Refresh the page to render again';
         }

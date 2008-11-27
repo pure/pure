@@ -94,8 +94,8 @@ function render4(button){
 			}
 
 			$('players2').autoRender(context, directive);
-		
-			$('players2').insert({"before": timer.end()});
+            
+			$('players2').insert({"before": timer.end() });
 
 			button.value = 'Refresh the page to render again';
 
@@ -238,9 +238,12 @@ var timer = {
 		this.log(msg);},
 
 	end: function(msg){
+        console.debug("1");
 		this.log(msg||'end');
-		if(!$p.compiledFunctions.timerTraceTable);
-			$p.autoCompile($('timerTraceTable'), 'timerTraceTable', this.trace);
+        console.debug("2");
+		if(!$p.compiledFunctions.timerTraceTable)
+			$p.autoCompile($$('.timerTraceTable')[0], 'timerTraceTable', this.trace);
+        console.debug("3");
 		return $p.render('timerTraceTable', this.trace);},
 
 	log: function(msg){
