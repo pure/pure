@@ -525,7 +525,8 @@ try{ if (jQuery) {
 
 			// This alias is also used to map directives in the JQuery lib implementation
 			$pMap: function (element, directives) {
-				return mapDirective(element, directives);
+                // CAMBIO: es necesario el this para llamar a otras funciones del mismo objeto
+				return this.mapDirective(element, directives);
 			},
 
 			compile : function (fName, directives, context) {
@@ -537,7 +538,8 @@ try{ if (jQuery) {
 
 			// This alias is also used to compile in the JQuery lib implementation
 			$pCompile: function (element, fName, directives, context) {
-				return compile(element, fName, directives, context);
+                // CAMBIO: es necesario el this para llamar a otras funciones del mismo objeto
+				return this.compile(element, fName, directives, context);
 			},
 
 			render : function (context, directives, html) {
@@ -561,7 +563,83 @@ try{ if (jQuery) {
 		};	
 	}();
 	DOMAssistant.attach(DOMAssistant.pure);}
-}catch(e){ try{ if (MooTools){}
+}catch(e){ try{ if (MooTools){
+
+    $p.find = function(selector, context) {
+        var found = $(context).getElement(selector);
+        // TODO: posiblemente se necesita el mismo parche que en prototype para cuando se
+        // usa IE y se clonan elementos que incluyen atributos id
+        return found;
+    }
+    
+    // TODO: simplificar este codigo para que sea mas acorde
+    // al uso en PURE
+    
+    // internal support for replacing html elements
+    $p._replace = function(element, content) {
+        
+        // tomado de prototype.replace
+        
+        // tal vez no se necesita // element = $(element);
+        if (content && content.toElement) content = content.toElement();
+        else if ($type(content) !== "element") {
+            content = content == null ? '' : String(content);
+            var range = element.ownerDocument.createRange();
+            range.selectNode(element);
+            // no es necesario evaluar scripts // content.evalScripts.bind(content).defer();
+            content = range.createContextualFragment(content);
+        }
+        element.parentNode.replaceChild(content, element);
+        return element;
+    },
+    
+    Element.implement({
+
+        mapDirective: function (directives) {
+			return $($p.map(directives, this));
+		},
+
+		// This alias is also used to map directives in the JQuery lib implementation
+		$pMap: function (directives) {
+			return this.mapDirective(directives);
+		},
+
+		compile: function (fName, directives, context) {
+			if (directives) $p.map(directives, this, true);
+			if (context) (this).setAttribute($p.ns + 'autoRender', 'true');
+			$p.compile(this, fName, context || false, false);
+			return this;
+		},
+
+		// This alias is also used to compile in the JQuery lib implementation
+		$pCompile: function (fName, directives, context) {
+			return compile(fName, directives, context);
+		},
+
+		render: function (context, directives, html) {
+			if (typeof directives === 'string') { // a compiled template is passed
+				html = directives;
+				directives = false;
+			}
+			var source = html || this;
+			return $p._replace(this, $p.render(source, context, directives));
+		},
+
+		autoRender: function (context, directives, html) {
+			directives = directives || false;
+			html = html || false;
+			if (!html && directives && directives.getElement || directives.nodeType) {
+				html = directives[0] || directives;
+				directives = false;
+            }
+			var source = html || this[0] || this;
+			return $p._replace(this, $p.autoRender(source, context, directives));
+		}
+
+    
+    });
+
+}
 }catch(e){ try{ if (Prototype){
 	// Implement the find function for pure using the prototype
 	// select function
@@ -586,10 +664,13 @@ try{ if (jQuery) {
 	};
 
 
+    // Change the precompiledFunctions array for a prototype hash array
+    // for prevent posible memory leaks and improve performance
+    $p.compiledFunctions = new Hash();
+
 	// Add more methods to the prototype element's objects for
 	// supporting pure calls
-	var PureExtension = {}
-	PureExtension.Methods = {
+	Element.addMethods( {
 
 		mapDirective: function (element, directives) {
 			return $($p.map(directives, element));
@@ -597,7 +678,8 @@ try{ if (jQuery) {
 
 		// This alias is also used to map directives in the JQuery lib implementation
 		$pMap: function (element, directives) {
-			return mapDirective(element, directives);
+            // CAMBIO: es necesario el this para llamar a otras funciones del mismo objeto
+			return this.mapDirective(element, directives);
 		},
 
 		compile: function (element, fName, directives, context) {
@@ -609,7 +691,8 @@ try{ if (jQuery) {
 
 		// This alias is also used to compile in the JQuery lib implementation
 		$pCompile: function (element, fName, directives, context) {
-			return compile(element, fName, directives, context);
+            // CAMBIO: es necesario el this para llamar a otras funciones del mismo objeto
+			return this.compile(element, fName, directives, context);
 		},
 
 		render: function (element, context, directives, html) {
@@ -618,7 +701,8 @@ try{ if (jQuery) {
 				directives = false;
 			}
 			var source = html || element;
-			return $(element).replace($p.render(source, context, directives), true);
+            // CAMBIO: el replace no necesita el true en prototype
+			return $(element).replace($p.render(source, context, directives));
 		},
 	
 		autoRender: function (element, context, directives, html) {
@@ -628,10 +712,11 @@ try{ if (jQuery) {
 				html = directives[0] || directives;
 				directives = false;}
 			var source = html || element;
-			return $(element).replace($p.autoRender(source, context, directives), true);
+            // CAMBIO: el replace no necesita el true en prototype
+			return $(element).replace($p.autoRender(source, context, directives));
 		}
 
-	};
-	// Add these extended methods using the prototype element object
-	Element.addMethods(PureExtension.Methods);}
+	});
+    
+}
 }catch(e){}}}}
