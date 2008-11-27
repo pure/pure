@@ -500,7 +500,7 @@ var pure  = window.$p = window.pure ={
 				newThis.push(replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling));}
 			parent.removeChild(replaced);
 			parent.removeChild(div);
-			return elm;},
+			return newThis;},
 			
 		autoRender:function(elm, context, directives, html){
 			var replaced = elm;
