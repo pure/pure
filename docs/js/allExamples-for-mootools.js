@@ -249,7 +249,7 @@ var timer = {
 	end: function(msg){
 		this.log(msg||'end');
 		if(!$p.compiledFunctions.timerTraceTable);
-			$p.autoCompile($$('.timerTraceTable')[0], 'timerTraceTable', this.trace);
+			$p.autoCompile($$('table.timerTraceTable')[0], 'timerTraceTable', this.trace);
 		return $p.render('timerTraceTable', this.trace);},
 
 	log: function(msg){

@@ -238,12 +238,9 @@ var timer = {
 		this.log(msg);},
 
 	end: function(msg){
-        console.debug("1");
 		this.log(msg||'end');
-        console.debug("2");
 		if(!$p.compiledFunctions.timerTraceTable)
-			$p.autoCompile($$('.timerTraceTable')[0], 'timerTraceTable', this.trace);
-        console.debug("3");
+			$p.autoCompile($$('table.timerTraceTable')[0], 'timerTraceTable', this.trace);
 		return $p.render('timerTraceTable', this.trace);},
 
 	log: function(msg){
