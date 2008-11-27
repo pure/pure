@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.10 
+    revision: 1.10+ - 27 Nov. 2008 13:57 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -48,8 +48,14 @@ var pure  = window.$p = window.pure ={
 			if (!value && value!=0) value = nullMode ? null :'';
 		return value;},
 
-	render: function(html, context, directives){
-		var fn;
+	render: function(/*html, context, directives || context, compiledName, directives*/){
+		var fn, tmp, html, context, directives = arguments[2];
+		if (typeof arguments[1] === 'string'){//a compiled HTML is passed
+			html = arguments[1];
+			context = arguments[0];}
+		else{
+			html = arguments[0];
+			context = arguments[1];}
 		if (typeof html != 'string'){
 			var mapped = directives ? this.map(directives, html):html.cloneNode(true);
 			fn = this.compiledFunctions.length || 0;
@@ -516,14 +522,11 @@ if(typeof jQuery !== 'undefined'){
 	// jQuery chaining functions
 	$.fn.mapDirective = function(directives){
 		return $($p.libs.mapDirective(this[0], directives))};
-	
 	$.fn.compile = function(fName, directives, context){
 		$p.libs.compile(this[0], fName, directives, context);
 		return this;};
-
 	$.fn.render = function(context, directives, html){
 		return $($p.libs.render(this[0], context, directives, html))};
-		
 	$.fn.autoRender = function(context, directives, html){
 		return $($p.libs.autoRender(this[0], context, directives, html))}}
 
