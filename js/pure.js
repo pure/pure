@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.10+ - 27 Nov. 2008 13:57 
+    revision: 1.11
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -388,7 +388,7 @@ var pure  = window.$p = window.pure ={
 			this.msg('no_template_found');
 			return false;}
 
-		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, fixAtt, original, parentName, selector, i, autoRender;
+		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, fixAtt, original, parentName, selector, i, autoRender, classToDelete=[];
 		if (noClone){
 			clone = html[0] && !html.nodeType ? html[0] : html;}
 		else{
@@ -437,14 +437,19 @@ var pure  = window.$p = window.pure ={
 					currentDir = this.utils.appendPrepend.format(currentDir, attName, target, ap.type);
 					target.setAttribute( this.utils.NS + attName, currentDir);
 
-					if(isAttr && !(attName=='class' && autoRender=='true'))
-						this.utils.removeAtt(target, attName)}
+					if(isAttr && autoRender!='true')
+						if(attName!='class')
+							this.utils.removeAtt(target, attName);
+						else
+							classToDelete.push(target);}
 				else{ // target not found
 					parentName = [clone.nodeName];
 					if(clone.id != '') parentName.push('#' + clone.id);
 					if(clone.className !='') parentName.push('#' + clone.className);
 					this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}}
-
+		if (classToDelete.length>0) //remove class attribute only at the end to allow .selector to work regardless of the order of directives
+			for (i=0;i<classToDelete.length;i++)
+				this.utils.removeAtt(classToDelete[i], 'class');
 		return clone;},
 
 	messages:{

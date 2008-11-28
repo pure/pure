@@ -77,15 +77,15 @@ function render4(button){
 	$.getJSON(script, function(context){
 	    timer.log('Rendering');
 		var directive = {
-			'tbody tr td[onclick]': "'clickLine(this)'", //show all differences of strings notationi "' '" '\'
-			'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
-			'tbody tr td[onmouseout]': '\'swapStyle(this, false);\'',
-			'tbody tr td[style]': "\'cursor:pointer\'",
 			'tbody tr[class]': function(arg){
 				//arg => {context:context, items:items, pos:pos, item:items[pos]};
 				var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
 				var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.items.length - 1) ? 'last' : '';
-				return oddEven + ' ' + firstLast;}}
+				return oddEven + ' ' + firstLast;},
+			'tbody tr td[onclick]': "'clickLine(this)'", //show all differences of strings notationi "' '" '\'
+			'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
+			'tbody tr td[onmouseout]': '\'swapStyle(this, false);\'',
+			'tbody tr td[style]': "\'cursor:pointer\'"}
 
 		$('table.players.2').autoRender(context, directive);
 		
