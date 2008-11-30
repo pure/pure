@@ -2,7 +2,7 @@
  *     E X A M P L E      1 
  * * * * * * * * * * * * * * * * * * * * * */			
 function render1(){
-	$('hello').autoRender({ "who": "Mary" });}
+	$('#hello').autoRender({ "who": "Mary" });}
 
 	/* Note: 
 	  All the notation below are possible with different results:				
@@ -31,10 +31,7 @@ function render1(){
  * * * * * * * * * * * * * * * * * * * * * */			
 function render2(){
 	var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-	$('players1').autoRender(context);}
-	
-	// jQuery syntax
-	//$('table.players.1').autoRender(context);}
+	$('table.players.1').autoRender(context);}
 
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      3 
@@ -44,14 +41,10 @@ function render3(){
 		"id": "3456",
 		sites: [{ 
 			"name": "Beebole","url": "http://beebole.com"}, {
-			"name": "BeeLit", "url": ""}, {
+			"name": "BeeLit", "url": "http://beeLit.com"}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 	
-	$('siteList').autoRender(context);}
-	
-
-	// jQuery syntax
-	//$('ol.teamList').autoRender( context);}
+	$('ol.teamList').autoRender( context);}
 
 	/* Note: 
 	 	to access the attributes of the root of the html use a directive as above for the id.
@@ -70,49 +63,33 @@ function clickLine(obj){
 	alert(obj.innerHTML)};
 
 function render4(button){
-
 	// simulate a ajax-jsonp call, that will load here a static js, and call the example4CallBack function
 	button.value = 'loading data...';
-	timer.begin('loading data');
+    timer.begin('loading data');
+				var jsonSmall = ["Adrian Meador","Bryan O'Connor","Michèle Noïjû","تصبح عالميا مع يونيكود","Γέφυρα γρύλων","Chloé Ellemême","глобальных масштабах","יוצא לשוק העולמי","La \"volante\"","Todd Swift","Valerie Paige","Walter Hagelstein","Wendy Leatherbury"];
 	var script = (button.id == 'b4_2') ? 'js/jsonBig.js':'js/jsonSmall.js';
-	var request = new Request({
-        method: 'get',
-        url: script,
-        isSuccess: function() {
-            // TODO: revisar porque se necesita forzar el isSuccess
-            return true;
-        },
-        onSuccess: function(responseText) { 
-			var context = JSON.decode(responseText);
-			timer.log('Rendering');
-			var directive = {
-				'tbody tr td[onclick]': "'clickLine(this)'", //show all differences of strings notationi "' '" '\'
-				'tbody tr td[onmouseover]': '"swapStyle(this, true);"',
-				'tbody tr td[onmouseout]': '\'swapStyle(this, false);\'',
-				'tbody tr td[style]': "\'cursor:pointer\'",
-				'tbody tr[class]': function(context, items, pos, item){
-					//arg => {context:context, items:items, pos:pos, item:items[pos]};
-					//var oddEven = (pos % 2 == 0) ? 'even' : 'odd';
-					//var firstLast = (pos == 0) ? 'first' : (pos == items.length - 1) ? 'last' : '';
-					return 'odd';//oddEven + ' ' + firstLast;
-				}
-			}
-
-			$('players2').autoRender(context, directive);
+	$(button).get(script, function(context) {
+		timer.log('Rendering');
+		context = eval(context);
+		var directive = {
+		'tbody tr td[onclick]':'"clickLine(this)"',
+		'tbody tr td[onmouseover]': '"swapStyle(this, true);"', 
+		'tbody tr td[onmouseout]' : '"swapStyle(this, false);"',
+		'tbody tr td[style]':'\'cursor:pointer\'',
 		
-            var timerDiv = document.createElement('div');
-            timerDiv.innerHTML = timer.end();
-			$('players2').grab(timerDiv, 'before');
-
-			button.value = 'Refresh the page to render again';
-        }
-
-    });
-    
-    request.send();
-        
+		'tbody tr[class]': 
+			function(arg){
+				var oddEven =  (arg.pos % 2 == 0) ? 'even' : 'odd';
+				var firstLast = (arg.pos == 0) ? 'first': (arg.pos == arg.items.length -1) ? 'last':'';
+				return oddEven + ' ' + firstLast; }
+		};
+		var p = $('table.players.2').first().parentNode;
+		$('table.players.2').autoRender(context, directive);
+		p.insertBefore(p.create('div', null, false, timer.end()), p.firstChild);
+		button.value = 'Refresh the page to render again';
+	});
 }
-	
+
 	/*Note: 
 		by default a directive replace the content of the selected node or attribute
 		If an append or prepend is necessary we use +
@@ -142,7 +119,7 @@ function render5(){
 			'name':'Cats',
 			'players':[	
 				{"name":"Alice Keasler", "score":14}, 
-				{"name":"", "score":0},  //show an example of space and zero
+				{"name":"Mary Cain", "score":15}, 
 				{"name":"Vicky Benoit", "score":15}, 
 				{"name":"Wayne Dartt", "score":11}]},{
 			
@@ -157,23 +134,23 @@ function render5(){
 			'players': [
 				{"name":"Natalie Kinney", "score":16}, 
 				{"name":"Caren Cohen", "score":3}]}]}
-	
-	var scoreBoard = $$('table.scoreBoard')[0].mapDirective({
+
+	var scoreBoard = $('table.scoreBoard').mapDirective({
 		'tbody tr': 'team <- teams',
 		'td.teamName': 'team.name'
 	});
-
-		
-	var teamList = scoreBoard.getElement('table.teamList')
+	
+	var teamList = scoreBoard.cssSelect('table.teamList').first()
 		.mapDirective({
 			'tbody tr': 'player <- team.players',
 			'td.player': 'player.name',
 			'td.score': 'player.score',
 			'td.position': lineNb, //passing the pointer of a function that does not use "this"
 			'tbody tr[class]': function(arg){ return row.decorator(arg) } }); //show how to wrap a method and not breack the use of "this"
-	scoreBoard.getElement('td.teamPlace').innerHTML = $p.utils.outerHTML(teamList); //place sub-template teamList in scoreBoard
+	
+	scoreBoard.cssSelect('td.teamPlace').replaceContent(teamList); //place sub-template teamList in scoreBoard
 	$p.compile(scoreBoard, 'f5'); //compile to a function
-    $('render5').innerHTML = $p.render('f5', context);} //place the result of the transformation to the innerHTML of div#render5
+    $('div#render5').replaceContent($p.render('f5', context));} //place the result of the transformation to the innerHTML of div#render5
 
 /* Note: 
 	Here we compile the HTML to a function called f5.
@@ -215,27 +192,21 @@ function render6(){
 			if(arg.item.children){
 				return $p.compiledFunctions.tree.compiled(arg.item);}}};
 
-	$$('ul.treeItem')[0].compile('tree', directive, context);
-	$$('ul.treeItem')[0].render(context, 'tree');}
+	$('ul.treeItem').compile('tree', directive, context);
+	$('ul.treeItem').render(context, 'tree');}
 		
 /*Note: 
 	the last directive is an array instead of a string. This is useful
 	when we want to set various directives on the same node.
 */
 
+
 //nothing with PURE here, just some utility for this page
 function clickButton(obj, render){
 	obj.disabled = true;
 	obj.value = 'Refresh the page to render again';
-	if (arguments[2]) {
-		var idToRemove = arguments[2];
-		// Remove the '#' character from the id (used in JQuery)
-		// to support prototype in these samples
-		if (idToRemove.indexOf('#') == 0) {
-			idToRemove = idToRemove.substring(1);
-		}
-		$(idToRemove).destroy();
-	}
+	if (arguments[2]) 
+		$(arguments[2]).remove();
 	if (/Firefox/i.test(navigator.userAgent)) 
 		obj.type = 'submit';//to have buttons back when refreshing the page in FF
 	render(obj);
@@ -249,7 +220,7 @@ var timer = {
 	end: function(msg){
 		this.log(msg||'end');
 		if(!$p.compiledFunctions.timerTraceTable);
-			$p.autoCompile($$('table.timerTraceTable')[0], 'timerTraceTable', this.trace);
+			$p.autoCompile($('table.timerTraceTable')[0], 'timerTraceTable', this.trace);
 		return $p.render('timerTraceTable', this.trace);},
 
 	log: function(msg){
@@ -266,15 +237,3 @@ var timer = {
 		this.start = now();
 		if(this.trace[this.trace.length-1]) this.trace[this.trace.length-1].timerDuration = this.diff;
 		this.trace.push({timerMsg:msg, timerDuration: 0, timerTime: this.acc});}}
-
-function replace(replaced, html){
-	//use pure dom methods and not specific to a js library
-	//see the comment in example 1 for different syntax
-	var div = document.createElement('div');
-	replaced.parentNode.replaceChild(div, replaced);
-	div.innerHTML = html;
-	var replacer = div.firstChild;
-	div.parentNode.replaceChild(replacer, div);
-	return replacer;}
-	
-	

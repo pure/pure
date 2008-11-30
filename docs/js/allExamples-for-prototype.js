@@ -162,7 +162,7 @@ function render5(){
 			'td.score': 'player.score',
 			'td.position': lineNb, //passing the pointer of a function that does not use "this"
 			'tbody tr[class]': function(arg){ return row.decorator(arg) } }); //show how to wrap a method and not breack the use of "this"
-	scoreBoard.select('td.teamPlace')[0].innerHTML = $p.outerHTML(teamList); //place sub-template teamList in scoreBoard
+	scoreBoard.select('td.teamPlace')[0].innerHTML = $p.utils.outerHTML(teamList); //place sub-template teamList in scoreBoard
 	$p.compile(scoreBoard, 'f5'); //compile to a function
     $('render5').innerHTML = $p.render('f5', context);} //place the result of the transformation to the innerHTML of div#render5
 
