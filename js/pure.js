@@ -518,7 +518,7 @@ var pure  = window.$p = window.pure ={
 			var source = html ? html : replaced;//if no target, self replace
 			return this.replaceWithAndReturnNew(elm, $p.autoRender(source, context, directives));}}};
 
-if(typeof jQuery !== 'undefined'){ 
+if(typeof jQuery !== 'undefined' && $ == jQuery){ 
 	//patch jQuery to read namespaced attributes see Ticket #3023
 	jQuery.parse[0] = /^(\[) *@?([\w:-]+) *([!*$^~=]*) *('?"?)(.*?)\4 *\]/;
 	$p.utils.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"null\"/gi, by: ''});
@@ -526,15 +526,15 @@ if(typeof jQuery !== 'undefined'){
 		var found = jQuery.find(selector, context);
 		return found[0] || false;};
 	// jQuery chaining functions
-	$.fn.mapDirective = function(directives){
-		return $($p.libs.mapDirective(this[0], directives))};
-	$.fn.compile = function(fName, directives, context){
+	jQuery.fn.mapDirective = function(directives){
+		return jQuery($p.libs.mapDirective(this[0], directives))};
+	jQuery.fn.compile = function(fName, directives, context){
 		$p.libs.compile(this[0], fName, directives, context);
 		return this;};
-	$.fn.render = function(context, directives, html){
-		return $($p.libs.render(this[0], context, directives, html))};
-	$.fn.autoRender = function(context, directives, html){
-		return $($p.libs.autoRender(this[0], context, directives, html))}}
+	jQuery.fn.render = function(context, directives, html){
+		return jQuery($p.libs.render(this[0], context, directives, html))};
+	jQuery.fn.autoRender = function(context, directives, html){
+		return jQuery($p.libs.autoRender(this[0], context, directives, html))}}
 
 else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from DOMAssistant who did it
 	$p.find = function (selector, context) {
