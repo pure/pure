@@ -482,9 +482,10 @@ var pure  = window.$p = window.pure ={
 			return $p.map(directives, elm);},
 
 		compile:function(elm, fName, directives, context){
-			if(directives) $p.map( directives, elm, true);
-			if(context) elm.setAttribute($p.utils.AUTO, 'true');
-			return $p.compile(elm, fName, context||false, false);},//return the compiled JS
+			var html = elm;
+			if(directives) html = $p.map( directives, elm);
+			if(context) html.setAttribute($p.utils.AUTO, 'true');
+			return $p.compile(html, fName, context||false, false);},//return the compiled JS
 
 		render:function(elm, context, directives, html){
 			if (typeof directives == 'string') { //a compiled template is passed
