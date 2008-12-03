@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.12
+    revision: 1.13
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -487,12 +487,15 @@ var pure  = window.$p = window.pure ={
 			if(context) html.setAttribute($p.utils.AUTO, 'true');
 			return $p.compile(html, fName, context||false, false);},//return the compiled JS
 
-		render:function(elm, context, directives, html){
-			if (typeof directives == 'string') { //a compiled template is passed
-				html = directives;
-				directives = false;}
-			var source = html ? html : elm;
-			return this.replaceWithAndReturnNew(elm, $p.render(source, context, directives));},
+		render:function(elm, context, directives, html, auto){
+			var source = elm;
+			if(typeof html !== 'undefined')
+				source = typeof html !== 'string' && html[0] || html; //either a lib object or a node or a template name
+			else if(typeof directives !== 'undefined' && (directives.jquery || directives.cssSelect || directives.nodeType || typeof directives=== 'string')){
+				//the directive is the template 
+				source = (directives.jquery || directives.cssSelect) ? directives[0]:directives;
+				directives = null;};
+			return this.replaceWithAndReturnNew(elm, auto === true ? $p.autoRender(source, context, directives):$p.render(source, context, directives));},
 
 		replaceWithAndReturnNew: function(elm, html){
 			var div = document.createElement('div');
@@ -506,17 +509,7 @@ var pure  = window.$p = window.pure ={
 				newThis.push(replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling));}
 			parent.removeChild(replaced);
 			parent.removeChild(div);
-			return newThis;},
-			
-		autoRender:function(elm, context, directives, html){
-			var replaced = elm;
-			directives = directives || false;
-			html = html || false;
-			if (!html && directives && directives.jquery || directives.nodeType) { //template is provided instead of directives
-				html = directives[0] || directives; //ok for jQuery obj or html node
-				directives = false;}
-			var source = html ? html : replaced;//if no target, self replace
-			return this.replaceWithAndReturnNew(elm, $p.autoRender(source, context, directives));}}};
+			return newThis;}}};
 
 if(typeof jQuery !== 'undefined' && $ == jQuery){ 
 	//patch jQuery to read namespaced attributes see Ticket #3023
@@ -534,7 +527,7 @@ if(typeof jQuery !== 'undefined' && $ == jQuery){
 	jQuery.fn.render = function(context, directives, html){
 		return jQuery($p.libs.render(this[0], context, directives, html))};
 	jQuery.fn.autoRender = function(context, directives, html){
-		return jQuery($p.libs.autoRender(this[0], context, directives, html))}}
+		return jQuery($p.libs.render(this[0], context, directives, html, true))}}
 
 else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from DOMAssistant who did it
 	$p.find = function (selector, context) {
@@ -550,9 +543,7 @@ else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from 
 		render : function (context, directives, html) {
 			return $($p.libs.render(this, context, directives, html))},
 		autoRender : function (context, directives, html) {
-            // FIXME: in $p.libs.autoRender the directives.jquery should
-            // reference to directives.cssSelect for DOMAssistant
-			return $($p.libs.autoRender(this, context, directives, html))}})}
+			return $($p.libs.render(this, context, directives, html, true))}})}
 			
 
 else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
@@ -578,9 +569,7 @@ else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
 		},
 
 		autoRender: function (context, directives, html) {
-            // FIXME: in $p.libs.autoRender the directives.jquery should
-            // reference to directives.getElement for MooTools
-            return $($p.libs.autoRender(this, context, directives, html));
+            return $($p.libs.render(this, context, directives, html, true));
 		}
     
     });
@@ -619,6 +608,4 @@ else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja 
 			return $($p.libs.render(element, context, directives, html));},
 
 		autoRender: function (element, context, directives, html) {
-            // FIXME: in $p.libs.autoRender the directives.jquery should
-            // reference to directives.select for Prototype
-			return $($p.libs.autoRender(element, context, directives, html))}})}
+			return $($p.libs.render(element, context, directives, html, true))}})}
