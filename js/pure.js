@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.11
+    revision: 1.12
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -555,7 +555,7 @@ else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from 
 			return $($p.libs.autoRender(this, context, directives, html))}})}
 			
 
-else if (typeof MooTools !== 'undefined') {
+else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
 	
     $p.find = function (selector, context) {
         var found = $(context).getElement(selector);
