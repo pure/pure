@@ -437,11 +437,12 @@ var pure  = window.$p = window.pure ={
 					currentDir = this.utils.appendPrepend.format(currentDir, attName, target, ap.type);
 					target.setAttribute( this.utils.NS + attName, currentDir);
 
-					if(isAttr && autoRender!='true')
-						if(attName!='class')
+					if(isAttr)
+						if (attName != 'class') 
 							this.utils.removeAtt(target, attName);
-						else
-							classToDelete.push(target);}
+						else if (autoRender != 'true') 
+						  		classToDelete.push(target);}
+
 				else{ // target not found
 					parentName = [clone.nodeName];
 					if(clone.id != '') parentName.push('#' + clone.id);
