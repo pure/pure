@@ -41,7 +41,7 @@ function render3(){
 		"id": "3456",
 		sites: [{ 
 			"name": "Beebole","url": "http://beebole.com"}, {
-			"name": "BeeLit", "url": "http://beeLit.com"}, {
+			"name": "BeeBuzz", "url": "http://beebole.com/blog"}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 	
 	$('ol.teamList').autoRender( context);}

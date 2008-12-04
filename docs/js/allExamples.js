@@ -33,9 +33,6 @@ function render2(){
 	var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
 	$('#players1').autoRender(context);}
 	
-	// jQuery syntax
-	//$('table.players.1').autoRender(context);}
-
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      3 
  * * * * * * * * * * * * * * * * * * * * * */			
@@ -44,14 +41,10 @@ function render3(){
 		"id": "3456",
 		sites: [{ 
 			"name": "Beebole","url": "http://beebole.com"}, {
-			"name": "BeeLit", "url": ""}, {
+			"name": "BeeBuzz", "url": "http://beebole.com/blog"}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
 	
 	$('#siteList').autoRender(context);}
-	
-
-	// jQuery syntax
-	//$('ol.teamList').autoRender( context);}
 
 	/* Note: 
 	 	to access the attributes of the root of the html use a directive as above for the id.
@@ -237,15 +230,3 @@ var timer = {
 		this.start = now();
 		if(this.trace[this.trace.length-1]) this.trace[this.trace.length-1].timerDuration = this.diff;
 		this.trace.push({timerMsg:msg, timerDuration: 0, timerTime: this.acc});}}
-
-function replace(replaced, html){
-	//use pure dom methods and not specific to a js library
-	//see the comment in example 1 for different syntax
-	var div = document.createElement('div');
-	replaced.parentNode.replaceChild(div, replaced);
-	div.innerHTML = html;
-	var replacer = div.firstChild;
-	div.parentNode.replaceChild(replacer, div);
-	return replacer;}
-	
-	
