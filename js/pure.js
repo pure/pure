@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.13
+    revision: 1.14
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -544,37 +544,25 @@ else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from 
 			return $($p.libs.render(this, context, directives, html))},
 		autoRender : function (context, directives, html) {
 			return $($p.libs.render(this, context, directives, html, true))}})}
-			
 
 else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
+	$p.find = function (selector, context) {
+		var found = $(context).getElement(selector);
+		return found || false;};
+
+	Element.implement({
+	mapDirective: function (directives) {
+		return $($p.libs.mapDirective(this, directives));},
 	
-    $p.find = function (selector, context) {
-        var found = $(context).getElement(selector);
-        return found || false;
-    };
-
-    Element.implement({
-
-        mapDirective: function (directives) {
-            return $($p.libs.mapDirective(this, directives));
-		},
-
-		compile: function (fName, directives, context) {
-            $p.libs.compile(this, fName, directives, context);
-			return this;
-		},
-
-		render: function (context, directives, html) {
-            return $($p.libs.render(this, context, directives, html));
-		},
-
-		autoRender: function (context, directives, html) {
-            return $($p.libs.render(this, context, directives, html, true));
-		}
-    
-    });
-    
-}
+	compile: function (fName, directives, context) {
+		$p.libs.compile(this, fName, directives, context);
+		return this;},
+	
+	render: function (context, directives, html) {
+		return $($p.libs.render(this, context, directives, html));},
+	
+	autoRender: function (context, directives, html) {
+		return $($p.libs.render(this, context, directives, html, true));}});}
 			
 else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja Vasquez
 	// Implement the find function for pure using the prototype
@@ -609,3 +597,29 @@ else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja 
 
 		autoRender: function (element, context, directives, html) {
 			return $($p.libs.render(element, context, directives, html, true))}})}
+			
+else if (typeof Sizzle !== 'undefined') {
+	$p.find = function(selector, context){
+		var found = Sizzle(selector, context);
+		return found[0] || false;};
+		
+	$p.sizzle = function(selector, context){
+		selector = selector || document;
+		var ret  = selector.nodeType ? [selector]:Sizzle(selector, context);
+		var sizzle = ret;
+		sizzle.mapDirective = function(directives){
+			sizzle[0] = $p.libs.mapDirective(sizzle[0], directives);
+			return sizzle;};
+
+		sizzle.compile = function(fName, directives, context){
+			$p.libs.compile(sizzle[0], fName, directives, context);
+			return sizzle;};
+
+		sizzle.render = function(context, directives, html){
+			sizzle[0] = $p.libs.render(sizzle[0], context, directives, html);
+			return sizzle;};
+
+		sizzle.autoRender = function(context, directives, html){
+			sizzle[0] = $p.libs.render(sizzle[0], context, directives, html, true);
+			return sizzle;};
+		return sizzle;}}
