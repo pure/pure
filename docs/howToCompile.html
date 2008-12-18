@@ -7,7 +7,7 @@
 		<style type="text/css">
 			.demo{display:none}
 		</style>
-		<script type="text/javascript" src="../js/jqueryMin.js"></script>
+		<script type="text/javascript" src="../js/jquery.js"></script>
 		<script type="text/javascript" src="../js/pure.js"></script>
 		<script type="text/javascript">
 
@@ -18,9 +18,9 @@
 				var context =["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
 				
 				var players2 = $('table.players.2')
-				.$pMap( {'tbody tr' : 'player <- context',
+				.mapDirective( {'tbody tr' : 'player <- context',
 					'tbody tr td' : 'player[]',
-					'tbody tr[class]': function(context, items, pos){return (pos % 2 == 0) ? 'even' : 'odd';}});
+					'tbody tr[class]': function(arg){return (arg.pos % 2 == 0) ? 'even' : 'odd';}});
 		        $p.compile(players2, 'f4');
 				$('#render4').html( $p.render('f4', context) );}
 
@@ -46,13 +46,13 @@
 					
 							['Cows', [["Mary Cain", 15], ["Vicky Benoit", 5], ["Wayne Dartt", 11]]], ['Dogs', [["Ray Braun", 13], ["Aaron Ben", 24], ["Steven Smith", 1], ["Kim Caffey", 19]]], ['Donkeys', [["Natalie Kinney", 16], ["Caren Cohen", 3]]]]};
 				
-				var scoreBoard = $('table.scoreBoard').$pMap({
+				var scoreBoard = $('table.scoreBoard').mapDirective({
 					'tbody tr': 'teams <- list',
 					'td.teamName': 'teams[0]'
 				});
 				
 				var teamList = $('table.teamList', scoreBoard)
-					.$pMap({
+					.mapDirective({
 						'tbody tr': 'player <- teams[1]',
 						'td.player': 'player[0]',
 						'td.score': 'player[1]',
@@ -61,7 +61,7 @@
 				
 				$('td.teamPlace', scoreBoard).html(teamList);
 				$p.compile(scoreBoard, 'f5');
-		        $('#render5').html( $p.render('f5', context) );}
+		      $('#render5').html( $p.render('f5', context) );}
 
 /* * * * * * * * * * * * * * * * *
  *			E X A M P L E   6 
@@ -93,11 +93,11 @@
 			     	  "ul.nav2 li" : "sub2 <- sub1.subMenu",
 			     	  "ul.nav2 li a" : "sub2['name']", //same result as sub2.name
 				  "ul.nav2 li a[href]" : "sub2.url"};
-				var menu = $('ul#nav').$pMap(directive);
+				var menu = $('ul#nav').mapDirective(directive);
 				$p.compile(menu, 'f6');
 				$('ul#nav').replaceWith( $p.render('f6', context));}
 
-			function renderAll(){ $p.$f=[];$p.compiledFunctions={};render4();render5();render6();}
+			function renderAll(){ $p.compiledFunctions={};render4();render5();render6();}
 		</script>
 	</head>
 	<body class="allExamples">
@@ -170,7 +170,7 @@
 		<li><strong>Save some Kb:</strong> The js file will be cached and you can remove the pure.js file from your page if you do not have to compile any template on the fly.</li></ol>
 		Click the button below to get the examples 4, 5 and 6 compiled and get the JS source code in the text area.<br />
 		<input onclick="renderAll();$p.getRuntime(this);return false" value="get the PURE runtime file" type="button"></input></p>
-		<textarea id="pureRuntime"></textarea>
+		<textarea id="pureMsg"></textarea>
 		<p>Copy paste the content of the text area above to a JS file. Save it. You can even minify and/or gzip it.<br />
 		Then include this JS file in your pages. Your compiled HTML's will be available and cached by the browser as any other JS file.</p>
 		Here is an example of <a href="allExamplesCompiled.html">a page that uses compiled templates</a>

@@ -61,7 +61,7 @@ span.oops{
 	font-size:150%;
 }
 /* all examples */
-#pureRuntime{width:100%;height:200px;background-color:#DEF}
+#pureMsg{width:100%;height:200px;background-color:#DEF}
 .htmlDoc{width:90%;background-color:#def;}
 .transformation{width:90%;background-color:#DEF;}
 .demo{border:solid 1px #ccc;background-color:#def;padding:10px}

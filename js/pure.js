@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.15
+    revision: 1.16
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -17,7 +17,7 @@ var pure  = window.$p = window.pure ={
 	
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
-		var src = ['var pure =window.$p = window.pure ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[]};'];
+		var src = ['var pure =window.$p = window.pure ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[], msg:'+this.msg.toString()+'};'];
 		for (var fName in this.compiledFunctions){
 			var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
 			src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
@@ -146,10 +146,11 @@ var pure  = window.$p = window.pure ={
 				n = c.firstChild;
 				if (n == null) {
 					n = c.nextSibling;}
+				var tmp = c;
 				if (n == null) {
 					var tmp = c;
 					do {
-						n = tmp.parentNode;
+						n = tmp.parentNode ? tmp.parentNode:node;
 						if (n == node) break;
 						tmp = n;
 						n = n.nextSibling;}
@@ -184,7 +185,7 @@ var pure  = window.$p = window.pure ={
 						replacer.appendChild(replaced);
 						replacer.setAttribute('source', "" + replacedSrc);
 						if(node == n) 
-							str = $p.outerHTML(replacer);
+							str = this.outerHTML(replacer);
 						else
 							n.parentNode.replaceChild(replacer, n);}}
 				catch (e) {}}
@@ -385,7 +386,7 @@ var pure  = window.$p = window.pure ={
 		// a directive is a tuple{ dom selector, value }
 		// returns the html with the directives as pure:<attr>="..."
 		if(!html[0] && html.length == 0){
-			this.msg('no_template_found');
+			this.msg('no_HTML_selected');
 			return false;}
 
 		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, fixAtt, original, parentName, selector, i, autoRender, classToDelete=[];
