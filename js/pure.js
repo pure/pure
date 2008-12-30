@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.16
+    revision: 1.17
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -100,7 +100,7 @@ var pure  = window.$p = window.pure ={
 						repeatPrefix = '';
 						ap = this.appendPrepend.check(toMap[j]);
 						att = ap.clean.split(/@/);
-						prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !/context/.test(openArray.join('')) ? context: true;						
+						prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !(/context/).test(openArray.join('')) ? context: true;						
 						if(!prop && openArray.length > 0) {
 							for (k = openArray.length-1; k>=0; k--) {
 								prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
@@ -203,21 +203,21 @@ var pure  = window.$p = window.pure ={
 			check: function(str){
 				var prepend, append;
 				str = (prepend = /^\+/.test(str)) ? str.substring(1, str.length) : (append = /\+$/.test(str)) ? str.substring(0, str.length - 1) : str;
-				return {type:(append) ? 'a' : (prepend) ? 'p' : false, clean:str}
+				return {type:(append) ? 'a' : (prepend) ? 'p' : false, clean:str};
 			}
 		},
 		removeAtt:function(node, att){
 			if (att == 'class') att = this.CLASSNAME; 
 			try{ node.removeAttribute(att);}catch(e){}}, //cross browser
 
-		out:function(content){ return ['output.push(', content, ');'].join('')},
-		strOut:function (content){ return ['output.push(', "'", content, "');"].join('')},
+		out:function(content){ return ['output.push(', content, ');'].join('');},
+		strOut:function (content){ return ['output.push(', "'", content, "');"].join('');},
 		outputFn:function (attValue, currentLoop){
 			if (currentLoop) 
 				return attValue + '({context:context, items:' + currentLoop + ',pos:parseInt(' + currentLoop + 'Index), item:' + currentLoop + '[parseInt(' + currentLoop + 'Index)]})';
 			else
 				return attValue + '({context:context})';},
-		contextOut:function(path){ return '$p.$c(context, ' + path + ')'},
+		contextOut:function(path){ return '$p.$c(context, ' + path + ')';},
 
 		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
 			var arrIndex = /\[[^\]]*]/.test(attValue);
@@ -264,7 +264,7 @@ var pure  = window.$p = window.pure ={
 				
 		if(!fName && typeof fName != 'number'){
 			this.msg( 'no_HTML_name_set_for_parsing', aStr.join(''), html);
-			return false};
+			return false;};
 
 		//start the js generation
 		var js, wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, attName = '', attValue = '', attValues=[], arrSrc, fullAtt;
@@ -288,7 +288,7 @@ var pure  = window.$p = window.pure ={
 						aJS.push('var ' + currentLoop + '=' + this.utils.arrayName(arrSrc) + ';');}
 					else{
 						if (/context/i.test(arrSrc) || arrSrc.length == 0) {
-							if (!/context/i.test(currentLoop)) // avoid var context = context 
+							if (!(/context/i).test(currentLoop)) // avoid var context = context 
 								aJS.push('var ' + currentLoop + '= context;');}
 						else 
 							aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
@@ -315,7 +315,7 @@ var pure  = window.$p = window.pure ={
 				offset = attName.length + attValue.length + 3;
 				if (/&quot;/.test(attValue)) {
 					attValue = attValue.replace(/&quot;/g, '"');
-					wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"')}
+					wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"');}
 
 				isNodeValue = /^nodeValue/i.test(wrkStr);	
 				fullAtt = isNodeValue ? []: ['\''+attName+'="\''];
@@ -340,21 +340,21 @@ var pure  = window.$p = window.pure ={
 					fullAtt.push('\''+ attValue.replace(/^\\\'|\\\'$/g,'')+'\'');
 					if(suffix!='') fullAtt.push('\''+spc+suffix+'\'');}
 				else{
-					if (!/MSIE/.test(navigator.userAgent)) {
-						attValues = attValue.split(/(#{[^\}]*})/g);}
+					if (!(/MSIE/).test(navigator.userAgent)) {
+						attValues = attValue.split(/(#\{[^\}]*})/g);}
 					else { //IE:(
-						var ie = attValue.match(/#{[^\}]*}/);
+						var ie = attValue.match(/#\{[^\}]*}/);
 						attValues = ie ? [] : [attValue];
 						while (ie) {
 							if (ie.index > 0) attValues.push(attValue.substring(0, ie.index));
 							attValues.push(ie[0]);
 							attValue = attValue.substring(ie.lastIndex);
-							ie = attValue.match(/#{[^\}]*}/);
+							ie = attValue.match(/#\{[^\}]*}/);
 							if (!ie && attValue != '') attValues.push(attValue);}};
 
 					for(var atts = 0; atts<attValues.length; atts++){
 						attValue = attValues[atts];
-						if(/\#{/.test(attValue) || attValues.length == 1){
+						if(/\#\{/.test(attValue) || attValues.length == 1){
 							attValue = attValue.replace(/^\#\{/, '').replace(/\}$/,'');
 							if(this.utils.isArray(attValue, openArrays)){ //iteration reference
 								fullAtt.push(this.utils.arrayName(attValue));}
@@ -522,14 +522,14 @@ if(typeof jQuery !== 'undefined' && $ == jQuery){
 		return found[0] || false;};
 	// jQuery chaining functions
 	jQuery.fn.mapDirective = function(directives){
-		return jQuery($p.libs.mapDirective(this[0], directives))};
+		return jQuery($p.libs.mapDirective(this[0], directives));};
 	jQuery.fn.compile = function(fName, directives, context){
 		$p.libs.compile(this[0], fName, directives, context);
 		return this;};
 	jQuery.fn.render = function(context, directives, html){
-		return jQuery($p.libs.render(this[0], context, directives, html))};
+		return jQuery($p.libs.render(this[0], context, directives, html));};
 	jQuery.fn.autoRender = function(context, directives, html){
-		return jQuery($p.libs.render(this[0], context, directives, html, true))}}
+		return jQuery($p.libs.render(this[0], context, directives, html, true));};}
 
 else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from DOMAssistant who did it
 	$p.find = function (selector, context) {
@@ -538,14 +538,14 @@ else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from 
 	DOMAssistant.attach({
 		publicMethods : [ 'mapDirective', 'compile', 'render', 'autoRender'],
 		mapDirective : function (directives) {
-			return $($p.libs.mapDirective(this, directives))},
+			return $($p.libs.mapDirective(this, directives));},
 		compile : function (fName, directives, context) {
 			$p.libs.compile(this, fName, directives, context);
 			return this;},
 		render : function (context, directives, html) {
-			return $($p.libs.render(this, context, directives, html))},
+			return $($p.libs.render(this, context, directives, html));},
 		autoRender : function (context, directives, html) {
-			return $($p.libs.render(this, context, directives, html, true))}})}
+			return $($p.libs.render(this, context, directives, html, true));}});}
 
 else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
 	$p.find = function (selector, context) {
@@ -588,7 +588,7 @@ else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja 
 	// Add these extended methods using the prototype element object
 	Element.addMethods({
 		mapDirective: function (element, directives) {
-			return $($p.libs.mapDirective(element, directives))},
+			return $($p.libs.mapDirective(element, directives));},
 
 		compile: function (element, fName, directives, context) {
 			$p.libs.compile(element, fName, directives, context);
@@ -598,7 +598,7 @@ else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja 
 			return $($p.libs.render(element, context, directives, html));},
 
 		autoRender: function (element, context, directives, html) {
-			return $($p.libs.render(element, context, directives, html, true))}})}
+			return $($p.libs.render(element, context, directives, html, true));}});}
 			
 else if (typeof Sizzle !== 'undefined') {
 	$p.find = function(selector, context){
@@ -624,4 +624,4 @@ else if (typeof Sizzle !== 'undefined') {
 		sizzle.autoRender = function(context, directives, html){
 			sizzle[0] = $p.libs.render(sizzle[0], context, directives, html, true);
 			return sizzle;};
-		return sizzle;}}
+		return sizzle;};}
