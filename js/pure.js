@@ -7,17 +7,17 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.17
+    revision: 1.18
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-var pure  = window.$p = window.pure ={
+var pure  = $p = {
 	find: function(){
 			this.msg('library_needed');},
 	
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
-		var src = ['var pure =window.$p = window.pure ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[], msg:'+this.msg.toString()+'};'];
+		var src = ['var pure = $p ={', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[], msg:'+this.msg.toString()+'};'];
 		for (var fName in this.compiledFunctions){
 			var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
 			src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
@@ -40,7 +40,6 @@ var pure  = window.$p = window.pure ={
 			//context is a JSON
 			var aPath = path.split(/\./);
 			var value = context[aPath[0]];
-			if(value == 'undefined') value = window[aPath[0]];
 
 			for (var i=1; i<aPath.length; i++){
 				if (!value) break;
@@ -231,11 +230,11 @@ var pure  = window.$p = window.pure ={
 				subIndex = subIndex.replace(/^\./, '[\'').replace(/\./g,'\'][\'') + '\']';
 			return name + '[' + name + 'Index]' + subIndex.replace(/\\\'/g,"'");},
 		domCleaningRules:[
-			{what:new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'), by:''},//put all absolute links( img.src ) of window.location relative to the root
+			{what:window ? new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'):'', by:''},//put all absolute links( img.src ) of window.location relative to the root
 			{what:/\>\s+\</g, by:'><'}, //remove spaces between >..< (IE 6) 
-			{what:/^\s+/, by:''},//clean leading white spaces in the html
-			{what:/\n/g, by:''},//may be too strong check with and pre, textarea,...
-			{what:/\<\?xml:namespace[^>]*beebole[^\>]*\>/gi, by:''}],//remove pure ns (IE)
+			{what:/\r|\n/g, by:''},//may be too strong check with pre, textarea,...
+			{what:/\<!\s*--.*?--\>/g, by:''}, //remove HTML comments
+			{what:/^\s+/, by:''}],//clean leading white spaces in the html
 		outerHTML:function(elm){
 			return elm.outerHTML || (function(){
 				var div = document.createElement('div');
@@ -251,8 +250,8 @@ var pure  = window.$p = window.pure ={
 			str = str.replace(new RegExp('\<\/?:?'+this.REPEAT, 'gi'), this.REPEAT);// :? -> from bug in IE
 			//clean the dom string, based on rules in $p.domCleaningRules
 			var rules = this.domCleaningRules;
-			for(i in rules){
-				str = str.replace(rules[i].what ,rules[i].by);}
+			for(var i=0;i<rules.length;i++){
+				str = str.replace(rules[i].what||'' ,rules[i].by);}
 			return str.split(this.NS);}},
 
 	autoCompile:function(html, fName, context, noEval){
@@ -477,7 +476,7 @@ var pure  = window.$p = window.pure ={
 
 		var elm = document.getElementById('pureMsg');
 		if(elm){
-			elm.innerHTML = [msg, '<br />', elm.innerHTML].join('');}
+			elm.innerHTML = [msg, '\n', elm.innerHTML].join('');}
 			else{ alert(msg);}},
 	libs:{
 		mapDirective:function(elm, directives){
