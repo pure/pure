@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.18
+    revision: 1.19
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -231,9 +231,10 @@ var pure  = $p = {
 			return name + '[' + name + 'Index]' + subIndex.replace(/\\\'/g,"'");},
 		domCleaningRules:[
 			{what:window ? new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'):'', by:''},//put all absolute links( img.src ) of window.location relative to the root
-			{what:/\>\s+\</g, by:'><'}, //remove spaces between >..< (IE 6) 
+			{what:/\>\s+\</g, by:'> <'}, //remove multiple spaces between >..< (IE 6) 
 			{what:/\r|\n/g, by:''},//may be too strong check with pre, textarea,...
-			{what:/\<!\s*--.*?--\>/g, by:''}, //remove HTML comments
+			//{what:/\<!\s*--.*?--\>/g, by:''}, //remove HTML comments (see a better regexp as IE conditionals shouldn't be removed)
+			{what:/\\\'|\'/g, by:'\\\''}, //escape apostrophe
 			{what:/^\s+/, by:''}],//clean leading white spaces in the html
 		outerHTML:function(elm){
 			return elm.outerHTML || (function(){
@@ -291,7 +292,8 @@ var pure  = $p = {
 								aJS.push('var ' + currentLoop + '= context;');}
 						else 
 							aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}
-					aJS.push('if('+currentLoop+') for(var '+currentLoop+'Index=0;'+currentLoop+'Index < '+currentLoop+'.length;'+currentLoop+'Index++){');
+					aJS.push('for(var '+currentLoop+'Index in '+currentLoop+'){if (typeof '+currentLoop+'['+currentLoop+'Index] === \'function\') continue;'); 		
+					//aJS.push('if('+currentLoop+') for(var '+currentLoop+'Index=0;'+currentLoop+'Index < '+currentLoop+'.length;'+currentLoop+'Index++){');
 					aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length)));
 					openArrays[currentLoop] = cnt++;}
 			
