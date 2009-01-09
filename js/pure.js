@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.19
+    revision: 1.20
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -213,7 +213,7 @@ var pure  = $p = {
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('');},
 		outputFn:function (attValue, currentLoop){
 			if (currentLoop) 
-				return attValue + '({context:context, items:' + currentLoop + ',pos:parseInt(' + currentLoop + 'Index), item:' + currentLoop + '[parseInt(' + currentLoop + 'Index)]})';
+				return attValue + '({context:context, items:' + currentLoop + ',pos:'+currentLoop+'Index==\'0\'?0:parseInt(' + currentLoop + 'Index)||'+currentLoop+'Index, item:' + currentLoop + '['+currentLoop+'Index==\'0\'?0:parseInt(' + currentLoop + 'Index)||'+currentLoop+'Index]})';
 			else
 				return attValue + '({context:context})';},
 		contextOut:function(path){ return '$p.$c(context, ' + path + ')';},
