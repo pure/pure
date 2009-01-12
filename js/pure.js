@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.20
+    revision: 1.21
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -516,7 +516,7 @@ var pure  = $p = {
 
 if(typeof jQuery !== 'undefined' && $ == jQuery){ 
 	//patch jQuery to read namespaced attributes see Ticket #3023
-	jQuery.parse[0] = /^(\[) *@?([\w:-]+) *([!*$^~=]*) *('?"?)(.*?)\4 *\]/;
+	if(jQuery.parse) jQuery.parse[0] = /^(\[) *@?([\w:-]+) *([!*$^~=]*) *('?"?)(.*?)\4 *\]/;
 	$p.utils.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"null\"/gi, by: ''});
 	$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
