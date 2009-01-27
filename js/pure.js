@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.21
+    revision: 1.22
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -99,13 +99,14 @@ var pure  = $p = {
 						repeatPrefix = '';
 						ap = this.appendPrepend.check(toMap[j]);
 						att = ap.clean.split(/@/);
-						prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !(/context/).test(openArray.join('')) ? context: true;						
-						if(!prop && openArray.length > 0) {
+						if(openArray.length > 0) {
 							for (k = openArray.length-1; k>=0; k--) {
 								prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
 								if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
 									repeatPrefix = openArray[k];
 									break;}}}
+						if(!prop)
+							prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !(/context/).test(openArray.join('')) ? context: true;						
 							
 						if (prop || prop==0) {
 							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
@@ -512,7 +513,7 @@ var pure  = $p = {
 				newThis.push(replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling));}
 			parent.removeChild(replaced);
 			parent.removeChild(div);
-			return newThis;}}};
+			return newThis.length > 1 ? newThis:newThis[0];}}};
 
 if(typeof jQuery !== 'undefined' && $ == jQuery){ 
 	//patch jQuery to read namespaced attributes see Ticket #3023
