@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.22
+    revision: 1.23
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -78,7 +78,7 @@ var pure  = $p = {
 			var att = content.join('');
 			return (/\=\"\"/.test(att)) ? '' : att;},
  	utils:{
- 		CLASSNAME:/MSIE/.test(navigator.userAgent)? 'className':'class',
+ 		CLASSNAME:/MSIE\s+[^8]/.test(navigator.userAgent)? 'className':'class',
 		NS:/MSIE/.test(navigator.userAgent) ? 'pure_':'pure:',
 		CLASS:/MSIE/.test(navigator.userAgent) ? 'pure_class':'pure:class',
 		AUTO:/MSIE/.test(navigator.userAgent) ? 'pure_autoRender':'pure:autoRender',
