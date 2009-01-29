@@ -140,7 +140,7 @@ function render5(){
 			'td.player': '#{player.first} (#{player.last})',
 			'td.score': 'player.score',
 			'td.position+': lineNb, //passing the pointer of a function that does not use "this"
-			'tbody tr[class]+': function(arg){ return row.decorator(arg) } }); //show how to wrap a method and not breack the use of "this"
+			'+tbody tr[class]': function(arg){ return row.decorator(arg) } }); //show how to wrap a method and not breack the use of "this"
 
 	$('td.teamPlace', scoreBoard).html(teamList); //place sub-template teamList in scoreBoard
 	$p.compile(scoreBoard, 'f5'); //compile to a function

@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.23
+    revision: 1.24
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -78,9 +78,9 @@ var pure  = $p = {
 			var att = content.join('');
 			return (/\=\"\"/.test(att)) ? '' : att;},
  	utils:{
- 		CLASSNAME:/MSIE\s+[^8]/.test(navigator.userAgent)? 'className':'class',
+ 		CLASSNAME:/MSIE\s+(6|7)/.test(navigator.userAgent)? 'className':'class',
 		NS:/MSIE/.test(navigator.userAgent) ? 'pure_':'pure:',
-		CLASS:/MSIE/.test(navigator.userAgent) ? 'pure_class':'pure:class',
+		PURECLASS:/MSIE/.test(navigator.userAgent) ? 'pure_class':'pure:class',
 		AUTO:/MSIE/.test(navigator.userAgent) ? 'pure_autoRender':'pure:autoRender',
 		REPEAT:/MSIE/.test(navigator.userAgent) ? 'pure_repeat':'pure:repeat',
 		NODEVALUE:/MSIE/.test(navigator.userAgent) ? 'pure_nodeValue':'pure:nodeValue',
@@ -123,7 +123,7 @@ var pure  = $p = {
 									this.removeAtt(n, att[1]);
 								if (!n.getAttribute(this.NS + att[1])) { //don't overwrite a directive if any
 									n.setAttribute(this.NS + att[1], att[0]);}}}}
-					if (n.getAttribute(this.CLASS) && n.getAttribute(this.CLASSNAME))
+					if (n.getAttribute(this.PURECLASS) && n.getAttribute(this.CLASSNAME))
 						n.removeAttribute(this.CLASSNAME);}}
 
 			//flag the nodeValue and repeat attributes
@@ -202,13 +202,16 @@ var pure  = $p = {
 							
 			check: function(str){
 				var prepend, append;
-				str = (prepend = /^\+/.test(str)) ? str.substring(1, str.length) : (append = /\+$/.test(str)) ? str.substring(0, str.length - 1) : str;
+				str = (prepend = /^\+/.test(str)) ? str.slice(1) : (append = /\+$/.test(str)) ? str.slice(0, -1) : str;
 				return {type:(append) ? 'a' : (prepend) ? 'p' : false, clean:str};
 			}
 		},
 		removeAtt:function(node, att){
 			if (att == 'class') att = this.CLASSNAME; 
-			try{ node.removeAttribute(att);}catch(e){}}, //cross browser
+			try{ 
+				node[att] = ''; 
+				node.removeAttribute(att);
+			}catch(e){}},
 
 		out:function(content){ return ['output.push(', content, ');'].join('');},
 		strOut:function (content){ return ['output.push(', "'", content, "');"].join('');},
@@ -273,7 +276,7 @@ var pure  = $p = {
 		this.compiledFunctions[fName]={}; //clean the fct place if any
 		var aJS = [[ '$p.compiledFunctions["', fName, '"].compiled = function(context){var output = [];' ].join('')];
 
-		if(aStr[0]!="") aJS.push(this.utils.strOut(aStr[0].substring(0, aStr[0].length)));
+		if(aStr[0]!="") aJS.push(this.utils.strOut(aStr[0]));
 		for(var j = 1;j < aStr.length; j++){
 			wrkStr = aStr[j];
 			if (/^repeat[^\>]*\>/i.test(wrkStr)){
