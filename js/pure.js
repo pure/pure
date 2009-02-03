@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.25
+    revision: 1.26
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -106,7 +106,8 @@ $p = pure = {
 								if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
 									repeatPrefix = openArray[k];
 									break;}}}
-						if(!prop){
+
+						if(!prop && prop != 0){
 							prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !(/context/).test(openArray.join('')) ? context: true;}
 							
 						if (prop || prop==0) {
@@ -239,7 +240,7 @@ $p = pure = {
 			{what:/\>\s+</g, by:'> <'}, //remove multiple spaces between >..< (IE 6) 
 			{what:/\r|\n/g, by:''},//may be too strong check with pre, textarea,...
 			{what:/\\\'|\'/g, by:'\\\''}, //escape apostrophe
-			{what:/\svalue=\"\"/ig, by:''}, //IE does not delete input value attr
+			{what:/\s+[^\=]+\=\"\"(?=[^\>]|\>)/ig, by:''}, //IE does not remove some attr, ticket #20
 			{what:/^\s+/, by:''}],//clean leading white spaces in the html
 		outerHTML:function(elm){
 			return elm.outerHTML || (function(elm){
