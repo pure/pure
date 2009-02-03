@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.26
+    revision: 1.27
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -329,7 +329,7 @@ $p = pure = {
 
 				attOut = attValue.match(/\|(a|p)\|/);
 				suffix = ''; 
-				spc = isNodeValue ? '':' ';
+				spc = attName !== 'class'  ? '':' '; //at some point we should use 'tag[class]+':' #{prop}' instead and deprecate the auto space for class
 				if (attOut) {
 					if(attOut[1] =='a'){
 						fullAtt.push('\''+attValue.substring(0, attOut.index)+spc+'\'');}
