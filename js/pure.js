@@ -7,9 +7,18 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.27
+    revision: 1.27 - plugins
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
+var $p2, pure2;
+
+$p = pure = function(selector, context){
+	return new pure.f.init(selector, context){}
+};
+pure.f = pure.prototype = {
+	
+}
+
 var $p, pure;
 $p = pure = {
 	find: function(){
