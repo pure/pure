@@ -11,13 +11,56 @@
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p2, pure2;
+(function(){
+	$p2 = pure2 = function(selector, context){
+		var pure = new pureCore;
+		var elms = pure.find(selector, context);
+		pure.length = elms.length;
+		for(var i = 0;i<elms.length;i++){
+			pure[i] = elms[i];}
+		return pure;};
 
-$p = pure = function(selector, context){
-	return new pure.f.init(selector, context){}
-};
-pure.f = pure.prototype = {
-	
-}
+	var pureCore = new Function;
+	pureCore.prototype = {
+		auto:function(set){
+			this.each(
+				function(){
+					set ? this.setAttribute('autorender', 'true'):this.removeAttribute('autorender');});
+			return this;},
+
+		//compile the HTML to a JS function
+		compile:function(){},
+
+		//copy an HTML element for recycling
+		copy:function(){},
+
+		//selector find
+		find:function(selector, context){
+			return jQuery.find(selector, context);},
+
+		//map the directive to the template
+		map:function(){},
+
+		//render & autoRender
+		render:function(){},
+
+		//use this template instead of the selector
+		template:function(){},
+
+		//load remote templates
+		load:function(){}, 
+
+		utils:{
+	 		CLASSNAME:/MSIE\s+(6|7)/.test(navigator.userAgent)? 'className':'class',
+			NS:/MSIE/.test(navigator.userAgent) ? 'pure_':'pure:',
+			PURECLASS:/MSIE/.test(navigator.userAgent) ? 'pure_class':'pure:class',
+			AUTO:/MSIE/.test(navigator.userAgent) ? 'pure_autoRender':'pure:autoRender',
+			REPEAT:/MSIE/.test(navigator.userAgent) ? 'pure_repeat':'pure:repeat',
+			NODEVALUE:/MSIE/.test(navigator.userAgent) ? 'pure_nodeValue':'pure:nodeValue'},
+		each:function(fn){
+			for(var i = 0, l=this.length;i<l;i++){
+				fn.call( this[i]);}}};
+})();
 
 var $p, pure;
 $p = pure = {
