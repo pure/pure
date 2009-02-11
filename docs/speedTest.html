@@ -36,7 +36,8 @@ function render4(button){
 			$('div.htmlDoc table.players').autoRender(context, directive, table);
 		}
 		var str = timer.end();
-		$('div#timer').html(str);}						
+		$('div#timer').html(str);
+		table = null;}						
 
 var timer = {
 	avg: {sum:0, cnt:0},
@@ -81,7 +82,7 @@ var timer = {
  		<h3>Speed Test: Build and render the template</h3>
 		<div class="demo">
 			<div class="htmlDoc">
-				<p>Do it <input id="loops" type="text" size="3" value="100"></input> times<p />
+				<p>Do it <input id="loops" type="text" size="3" value="100" /> times</p>
 				<input id="b4_1" type="button" onclick="render4(this);" value="render" />
 				<input id="b4_2" type="button" onclick="render4(this);" value="render with 500 lines..." />
 				<div id="timer"></div>

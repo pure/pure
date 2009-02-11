@@ -7,14 +7,17 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.27
+    revision: 1.28
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
 $p = pure = {
-	find: function(){
-			this.msg('library_needed');},
-
+	find: function(selector, context){
+		try{
+			return (context||document).querySelector( selector );}
+		catch(e){
+			this.msg('library_needed');};},
+				
 	getRuntime: function(){
 		//build the runtime to be exported as a JS file
 		var src = ['var $p, pure;$p = pure = {', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[], msg:'+this.msg.toString()+'};'];
@@ -525,9 +528,9 @@ if(typeof jQuery !== 'undefined' && $ == jQuery){
 	//patch jQuery to read namespaced attributes see Ticket #3023
 	if(jQuery.parse) {jQuery.parse[0] = /^(\[) *@?([\w:\-]+) *([!*$\^~=]*) *('?"?)(.*?)\4 *\]/;}
 	$p.utils.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"null\"/gi, by: ''});
-	$p.find = function(selector, context){
+	if (typeof document.querySelector === 'undefined') {$p.find = function(selector, context){
 		var found = jQuery.find(selector, context);
-		return found[0] || false;};
+		return found[0] || false;};}
 	// jQuery chaining functions
 	jQuery.fn.mapDirective = function(directives){
 		return jQuery($p.libs.mapDirective(this[0], directives));};
@@ -540,9 +543,9 @@ if(typeof jQuery !== 'undefined' && $ == jQuery){
 		return jQuery($p.libs.render(this[0], context, directives, html, true));};}
 
 else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from DOMAssistant who did it
-	$p.find = function (selector, context) {
+	if (typeof document.querySelector === 'undefined') {$p.find = function (selector, context) {
 		var found = $(context).cssSelect(selector);
-		return found[0] || false;};	
+		return found[0] || false;};}	
 	DOMAssistant.attach({
 		publicMethods : [ 'mapDirective', 'compile', 'render', 'autoRender'],
 		mapDirective : function (directives) {
@@ -556,9 +559,9 @@ else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from 
 			return $($p.libs.render(this, context, directives, html, true));}});}
 
 else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
-	$p.find = function (selector, context) {
+	if (typeof document.querySelector === 'undefined'){$p.find = function (selector, context) {
 		var found = $(context).getElement(selector);
-		return found || false;};
+		return found || false;};}
 
 	Element.implement({
 	mapDirective: function (directives) {
@@ -577,7 +580,7 @@ else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
 else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja Vasquez
 	// Implement the find function for pure using the prototype
 	// select function
-	$p.find = function (selector, context) {		
+	if (typeof document.querySelector === 'undefined'){ $p.find = function (selector, context) {		
 		var found = $(context).select(selector);
 		// patch prototype when using selector with id's and cloned nodes in IE
 		// maybe in next releases of prototype this is fixed
@@ -590,7 +593,7 @@ else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja 
         			if (el.id == id) {
         				return el;}}}}
 		return found[0] || false;
-	};
+	};}
 	// Add more methods to the prototype element's objects for
 	// supporting pure calls
 	// Add these extended methods using the prototype element object
@@ -609,9 +612,9 @@ else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja 
 			return $($p.libs.render(element, context, directives, html, true));}});}
 			
 else if (typeof Sizzle !== 'undefined') {
-	$p.find = function(selector, context){
+		if (typeof document.querySelector === 'undefined'){ $p.find = function(selector, context){
 		var found = Sizzle(selector, context);
-		return found[0] || false;};
+		return found[0] || false;};}
 		
 	$p.sizzle = function(selector, context){
 		selector = selector || document;
