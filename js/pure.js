@@ -5,146 +5,215 @@
     Licensed under the MIT licenses.
     More information at: http://www.opensource.org
 
-    Copyright (c) 2008 Michael Cvilic - BeeBole.com
+    Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
-    revision: 1.27 - plugins
+    revision: 2.00 - Plugins Architecture
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
-var $p2, pure2;
-(function(){
-	$p2 = pure2 = function(selector, context){
-		var pure = new pureCore;
-		var elms = pure.find(selector, context);
-		pure.length = elms.length;
-		for(var i = 0;i<elms.length;i++){
-			pure[i] = elms[i];}
-		return pure;};
+var $p = pure = function(_o){
+	return new pureFunctions(_o);};
 
-	var pureCore = new Function;
-	pureCore.prototype = {
-		auto:function(set){
-			this.each(
-				function(){
-					set ? this.setAttribute('autorender', 'true'):this.removeAttribute('autorender');});
-			return this;},
+function pureFunctions(_o){
+	//register a dataset to bind it with a view
+	this.bind = function(binder){
+		binder = binder || {};
+		this._bindedTo = binder.name || ('t'+Math.random(1000)).replace(/0\./,'');
+		this._binder = {};
+		this._binder.data = binder.data || {};
+		this._binder._$c = utils._$c;
+		this._binder._$a = utils._$a;
+		
+		return this;};
 
-		//compile the HTML to a JS function
-		compile:function(){},
+	//apply directives to the HTML
+	this.compile = function(options){
+		this._binder.directives = options.directives;
+		this._binder.data = options.data;
+		this._binder.compiled = utils.compile(utils.map(this.elm, options.directives), options.data);
+		return this;};
 
-		//copy an HTML element for recycling
-		copy:function(){},
-
-		//selector find
-		find:function(selector, context){
-			return jQuery.find(selector, context);},
-
-		//map the directive to the template
-		map:function(){},
-
-		//render & autoRender
-		render:function(){},
-
-		//use this template instead of the selector
-		template:function(){},
-
-		//load remote templates
-		load:function(){}, 
-
-		utils:{
-	 		CLASSNAME:/MSIE\s+(6|7)/.test(navigator.userAgent)? 'className':'class',
-			NS:/MSIE/.test(navigator.userAgent) ? 'pure_':'pure:',
-			PURECLASS:/MSIE/.test(navigator.userAgent) ? 'pure_class':'pure:class',
-			AUTO:/MSIE/.test(navigator.userAgent) ? 'pure_autoRender':'pure:autoRender',
-			REPEAT:/MSIE/.test(navigator.userAgent) ? 'pure_repeat':'pure:repeat',
-			NODEVALUE:/MSIE/.test(navigator.userAgent) ? 'pure_nodeValue':'pure:nodeValue'},
-		each:function(fn){
-			for(var i = 0, l=this.length;i<l;i++){
-				fn.call( this[i]);}}};
-})();
-
-var $p, pure;
-$p = pure = {
-	find: function(){
-			this.msg('library_needed');},
-
-	getRuntime: function(){
-		//build the runtime to be exported as a JS file
-		var src = ['var $p, pure;$p = pure = {', '$outAtt:', this.$outAtt.toString(), ',', '$c:', this.$c.toString(), ',', 'render:', this.render.toString(), ',', 'compiledFunctions:[], msg:'+this.msg.toString()+'};'];
-		for (var fName in this.compiledFunctions){
-			if(this.compiledFunctions.hasOwnProperty(fName)){
-			var htmlFunction = '$p.compiledFunctions[\'' + fName + '\']';
-			src.push(htmlFunction+'={};'+htmlFunction+'.compiled=');
-			src.push(this.compiledFunctions[fName].compiled.toString()+';');
-			for (var fi in this.compiledFunctions[fName]){
-				if(fi != 'compiled'){
-					src.push('$p.compiledFunctions[\''+fName+'\'].'+fi+'='+this.compiledFunctions[fName][fi].toString()+';');}}}}
-	var elm = document.getElementById('pureMsg');
-	if (elm) {
-		elm.value = src.join('');
-		elm.select();}
-	else{
-		this.msg('place_runtime_container');}},
-
-	$f:{cnt:0},
-
-	$c:function(context, path, nullMode){
-		if(path == 'context'){return context;}
-		if(typeof context == 'object'){
-			//context is a JSON
-			var aPath = path.split(/\./);
-			var value = context[aPath[0]];
-
-			for (var i=1; i<aPath.length; i++){
-				if (!value){ break;}
-				value = value[aPath[i]];}}
-			if (!value && value!=0) {value = nullMode ? null :'';}
-		return value;},
-
-	render: function(/*html, context, directives || context, compiledName, directives*/){
-		var fn, html, context, directives = arguments[2];
-		if (typeof arguments[1] === 'string'){//a compiled HTML is passed
-			html = arguments[1];
-			context = arguments[0];}
+	//render function
+	this.render = function(options){
+		options = options || {};
+		if(!this._binder.compiled){
+			this.compile({data:options.data, directives:options.directives});}
+			
+		var html = this._binder.compiled.call(this._binder, this._binder.data);
+		if(options.html === true){
+			//innerHTML of the element
+			this.elm.innerHTML = html;}
 		else{
-			html = arguments[0];
-			context = arguments[1];}
-		if (typeof html != 'string'){
-			var mapped = directives ? this.map(directives, html):html.cloneNode(true);
-			fn = this.compiledFunctions.length || 0;
-			this.compile(mapped, fn, context, false);}
-		else{ // call to an already compiled f()
-			fn = html;}
-		if (this.compiledFunctions[fn]){
-			return this.compiledFunctions[fn].compiled(context);} //transform and return an html string
-		else{
-			this.msg('HTML_does_not_exist', fn);}},
-
-	autoRender:function(html, context, directives){
-		if (typeof html != 'string') {
-			if (!html) { this.msg('wrong_html_source'); return false;}
-			html.setAttribute(this.utils.AUTO, 'true');}
-		return this.render(html, context, directives);},
-
-	compiledFunctions:{},
-
-	$outAtt:function(content){
-			var att = content.join('');
-			return (/\=\"\"/.test(att)) ? '' : att;},
- 	utils:{
+			//replace the element node
+			this.elm = utils.replaceWithAndReturnNew( this.elm, html );}
+		return this;};
+	
+	//take a closure reference of pureFunctions "this"
+	var that = this;
+	
+	var utils = {
+		//constants
  		CLASSNAME:/MSIE\s+(6|7)/.test(navigator.userAgent)? 'className':'class',
 		NS:/MSIE/.test(navigator.userAgent) ? 'pure_':'pure:',
 		PURECLASS:/MSIE/.test(navigator.userAgent) ? 'pure_class':'pure:class',
 		AUTO:/MSIE/.test(navigator.userAgent) ? 'pure_autoRender':'pure:autoRender',
 		REPEAT:/MSIE/.test(navigator.userAgent) ? 'pure_repeat':'pure:repeat',
 		NODEVALUE:/MSIE/.test(navigator.userAgent) ? 'pure_nodeValue':'pure:nodeValue',
-		nodeValues:[],
-		repeats:[],
-		autoRenderAtts:[],
+		DEBUG_SCRIPT:'pureTemplatesDebug',
+
+		//function directives registry
+		$f:{ cnt:0 },
+
+		// launch a find and take the first element only
+		singleFind:function(selector, context, elmArray){
+			var elms = that.find(selector, context, elmArray);
+			if(typeof elms[0] !== 'undefined'){
+				return elms[0];}},
+		
+		//check if it's an array (douglas crockford)
 		isTypeOfArray:function(obj){
             return typeof obj.length === 'number' && !(obj.propertyIsEnumerable('length')) && typeof obj.splice === 'function';},
+
+		//check if this is an append(selector+) / prepend(+selector) notation
+		ap_check: function(str){
+			var prepend, append;
+			str = (prepend = /^\+/.test(str)) ? str.slice(1) : (append = /\+$/.test(str)) ? str.slice(0, -1) : str;
+			return {type:(append) ? 'a' : (prepend) ? 'p' : false, clean:str};},
+		
+		//prepare the append/prepend for the compilation
+		ap_format: function(attValue, attName, node, ap){
+			if (ap){
+				if (!attName) {attName = this.NODEVALUE;}
+				var fixAtt = attName == 'class' ? this.CLASSNAME : attName;
+				var original = node.getAttribute(fixAtt) || (this.NODEVALUE == attName ? this.NODEVALUE : null);
+				if (original){
+					return original + '|' + ap + '|' + attValue;}}
+				return attValue;},
+
+		//remove the attribute (some attribute are not delete properly in IE)
+		removeAtt:function(node, att){
+			if (att == 'class') { att = this.CLASSNAME; }
+			try{ 
+				node[att] = ''; 
+				node.removeAttribute(att);}catch(e){}},
+
+		//get the HTML string from an element
+		outerHTML:function(elm){
+			return elm.outerHTML || (function(elm){
+				var div = document.createElement('div');
+				div.appendChild(elm);
+				return div.innerHTML;})(elm);},
+
+		map:function(html, directives){
+			// a directive is a tuple{ dom selector, value }
+			// returns the html with the directives as pure:<attr>="..."
+			if(!html[0] && html.length == 0){
+				this.msg('no_HTML_selected');
+				return false;}
+
+			var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, parentName, selector, i, autoRender, classToDelete=[];
+
+			//take a copy to leave the original clean
+			clone = html.cloneNode(true);
+			
+			//autorender abuse the class attribute to map automatically the data
+			autoRender = clone.getAttribute(this.AUTO)||false;
+
+			for (selector in directives){ 
+				if(directives.hasOwnProperty(selector)){
+					currentDir = directives[selector];
+					
+					//check if an array of directives is provided
+					if(this.isTypeOfArray(currentDir)){
+						multipleDir = currentDir;}
+					else{
+						multipleDir = []; 
+						multipleDir.push(currentDir);}
+					
+					// for each directive set the corresponding pure:<attr>
+					for(i = 0; i<multipleDir.length;i++){
+						currentDir = multipleDir[i];
+						ap = this.ap_check(selector);
+						selector = ap.clean;
+						
+						// match a [...] meaning an attribute in PURE
+						isAttr = selector.match(/\[[^\]]*\]/);
+						
+						target = (/^\[|^\.$/.test(selector)) ? 
+							//attribute of the root node or itself . (dot)
+							clone :
+							isAttr ? 
+								//if an attribute, select its element
+								this.singleFind(selector.substr(0, isAttr.index), clone):
+								//select the element
+								this.singleFind(selector, clone);
+
+						if ( target ){
+							//target found
+							if (typeof currentDir == 'function'){
+								//the directive is a function store its reference
+								fnId = 'f'+this.$f.cnt++;
+								this.$f[fnId] = currentDir;
+								currentDir = '$f['+fnId+']';}
+
+							//defaults
+							attName = 'nodeValue';
+							repetition = -1;
+							if (isAttr){
+								//the directive points to an attribute
+								attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);}
+							else{
+								//check if the directive is a repetition
+								repetition = currentDir.search(/w*<-w*/);
+								if(repetition > -1) {attName = 'repeat';}}
+
+							//escape any quotes by \'
+							currentDir = currentDir.replace(/^"|"$|\'|\\\'/g, '\\\'');
+							
+							//check for an append: dir+ or prepend: +dir
+							currentDir = this.ap_format(currentDir, attName, target, ap.type);
+							
+							//set the PURE attribute in the HTML
+							target.setAttribute( this.NS + attName, currentDir);
+
+							if(isAttr){
+								//if an attribute, remove the original, the pure:attName will replace it at the compilation
+								if (attName !== 'class'){ 
+									this.removeAtt(target, attName);}
+								else if (autoRender !== 'true'){
+										//if not autoRender, leave the class to allow the .selector to work until the end of the mapping
+								  		classToDelete.push(target);}}}
+
+						else{
+							// target not found, log an error
+							parentName = [clone.nodeName];
+							if(clone.id !== '') {parentName.push('#' + clone.id);}
+							if(clone.className !== '') {parentName.push('#' + clone.className);}
+							this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}}}
+
+			//remove class attribute only at the end to allow .selector to work regardless of the order of directives
+			if (classToDelete.length>0){ 
+				for (i=0;i<classToDelete.length;i++){
+					this.removeAtt(classToDelete[i], 'class');}}
+			return clone;},
+
+
+		domCleaningRules:[
+			//put all absolute links( img.src ) of window.location relative to the root
+			{what:window ? new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'):'', by:''},
+			//remove multiple spaces between >..< (IE 6) 
+			{what:/\>\s+</g, by:'> <'},
+			//may be too strong check with pre, textarea,...
+			{what:/\r|\n/g, by:''},
+			//escape apostrophe
+			{what:/\\\'|\'/g, by:'\\\''},
+			//IE does not remove some attr, ticket #20
+			{what:/\s+[^\=]+\=\"\"(?=[^\>]|\>)/ig, by:''},
+			//clean leading white spaces in the html
+			{what:/^\s+/, by:''}],
+
 		autoMap: function(n, autoRender, context, openArray){
 			var toMap, k, j, att, repeatPrefix, prop, attValue, ap;
-			if (autoRender == 'true') {
+			if (autoRender === 'true') {
 				attValue = n.getAttribute(this.CLASSNAME);
 				if (attValue) {
 					toMap = attValue.replace(/^\d|\s\d/g,'').split(/\s+/);//remove numeric classes as they mess up the array reference
@@ -154,20 +223,20 @@ $p = pure = {
 						att = ap.clean.split(/@/);
 						if(openArray.length > 0) {
 							for (k = openArray.length-1; k>=0; k--) {
-								prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
+								prop = openArray[k] == 'context' ? context[0][att[0]] : this._$c(context[openArray[k]][0], att[0], true);
 								if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
 									repeatPrefix = openArray[k];
 									break;}}}
 
 						if(!prop && prop != 0){
-							prop = att[0] != 'context' ? $p.$c(context, att[0], true) : !(/context/).test(openArray.join('')) ? context: true;}
+							prop = att[0] != 'context' ? this._$c(context, att[0], true) : !(/context/).test(openArray.join('')) ? context: true;}
 							
 						if (prop || prop==0) {
 							if (typeof prop.length === 'number' && !(prop.propertyIsEnumerable('length')) && typeof prop.splice === 'function') { //Douglas Crockford check if array
 								openArray.push(att[0]);
 								n.setAttribute(this.REPEAT, att[0] + '<-' + att[0]);}
 							else {
-								if(repeatPrefix !== ''){ 
+								if(repeatPrefix !== ''){
 									att[0] = repeatPrefix + '[\'' + att[0] + '\']';}
 								if(!att[1]){ //not an attribute
 									att.push('nodeValue');}
@@ -186,11 +255,11 @@ $p = pure = {
 			var isRepeat = n.getAttribute(this.REPEAT);
 			if (isRepeat) {this.repeats.push(n);}},
 
+
 		nodeWalk:function(node, context){
-			var auto = this.AUTO;
 			this.repeats = []; this.nodeValues = [];
-			var autoRender = node.getAttribute(auto);
-			node.removeAttribute(auto);
+			var autoRender = typeof context !== 'undefined' ? 'true' : node.getAttribute(this.AUTO);
+			node.removeAttribute(this.AUTO);
 			var openArray=[];
 			//memory safe non-recursive tree traverse
 			var c = node, n = null;
@@ -245,60 +314,7 @@ $p = pure = {
 							n.parentNode.replaceChild(replacer, n);}}}
 				catch (e2) {}}
 				return (str) ? str : false;},
-				
-		ap_format: function(attValue, attName, node, ap){
-			if (ap){
-				if (!attName) {attName = 'nodeValue';}
-				var fixAtt = attName == 'class' ? this.CLASSNAME : attName;
-				var original = node.getAttribute(fixAtt) || ('nodeValue' == attName ? 'nodeValue' : null);
-				if (original){
-					return original + '|' + ap + '|' + attValue;}}
-				return attValue;},
-							
-		ap_check: function(str){
-			var prepend, append;
-			str = (prepend = /^\+/.test(str)) ? str.slice(1) : (append = /\+$/.test(str)) ? str.slice(0, -1) : str;
-			return {type:(append) ? 'a' : (prepend) ? 'p' : false, clean:str};},
 
-		removeAtt:function(node, att){
-			if (att == 'class') {att = this.CLASSNAME;}
-			try{ 
-				node[att] = ''; 
-				node.removeAttribute(att);
-			}catch(e){}},
-
-		out:function(content){ return ['output.push(', content, ');'].join('');},
-		strOut:function (content){ return ['output.push(', "'", content, "');"].join('');},
-		outputFn:function (attValue, currentLoop){
-			if (currentLoop){
-				return attValue + '({context:context, items:' + currentLoop + ',pos:'+currentLoop+'Index==\'0\'?0:parseInt(' + currentLoop + 'Index)||'+currentLoop+'Index, item:' + currentLoop + '['+currentLoop+'Index==\'0\'?0:parseInt(' + currentLoop + 'Index)||'+currentLoop+'Index]})';}
-			else{
-				return attValue + '({context:context})';}},
-		contextOut:function(path){ return '$p.$c(context, ' + path + ')';},
-
-		isArray:function (attValue, openArrays){ //check if it is an array reference either [] or an open loop
-			var arrIndex = /\[[^\]]*\]/.test(attValue);
-			var objProp  = attValue.replace(/(")|(')/g,'').split(/\./);
-			return arrIndex || openArrays[objProp[0]] ? true: false;},
-
-		arrayName:function(pName){
-			var name=pName.match(/\w*/)[0] || ''; 
-			var subIndex= pName.substring(name.length).replace(/\[\s*\]/,''); // take the tail and replace [ ] by ''
-			if(/\./.test(subIndex)){
-				subIndex = subIndex.replace(/^\./, '[\'').replace(/\./g,'\'][\'') + '\']';}
-			return name + '[' + name + 'Index]' + subIndex.replace(/\\\'/g,"'");},
-		domCleaningRules:[
-			{what:window ? new RegExp(window.location.toString().substring(0, window.location.toString().indexOf(window.location.pathname)), 'g'):'', by:''},//put all absolute links( img.src ) of window.location relative to the root
-			{what:/\>\s+</g, by:'> <'}, //remove multiple spaces between >..< (IE 6) 
-			{what:/\r|\n/g, by:''},//may be too strong check with pre, textarea,...
-			{what:/\\\'|\'/g, by:'\\\''}, //escape apostrophe
-			{what:/\s+[^\=]+\=\"\"(?=[^\>]|\>)/ig, by:''}, //IE does not remove some attr, ticket #20
-			{what:/^\s+/, by:''}],//clean leading white spaces in the html
-		outerHTML:function(elm){
-			return elm.outerHTML || (function(elm){
-				var div = document.createElement('div');
-				div.appendChild(elm);
-				return div.innerHTML;})(elm);},
 		html2str:function(html, context){
 			var clone = html[0] && !html.nodeType ? html[0].cloneNode(true) : html.cloneNode(true);
 			//node manipulation before conversion to string
@@ -311,377 +327,242 @@ $p = pure = {
 			var rules = this.domCleaningRules;
 			for(var i=0;i<rules.length;i++){
 				str = str.replace(rules[i].what||'' ,rules[i].by);}
-			return str.split(this.NS);}},
+			return str.split(this.NS);},
 
-	autoCompile:function(html, fName, context, noEval){
-		html.setAttribute(this.utils.AUTO, 'true');
-		return this.compile(html, fName, context, noEval);},
+		strOut:function (content){ 
+			return ['output.push(', "'", content, "');"].join('');},
 
-	compile: function(html, fName, context, noEval){
-		var aStr = this.utils.html2str(html, context);
-				
-		if(!fName && typeof fName != 'number'){
-			this.msg( 'no_HTML_name_set_for_parsing', aStr.join(''), html);
-			return false;}
+		arrayName:function(pName){
+			var name=pName.match(/\w*/)[0] || ''; 
+			// take the tail and replace [ ] by ''
+			var subIndex= pName.substring(name.length).replace(/\[\s*\]/,'');
+			if(/\./.test(subIndex)){
+				subIndex = subIndex.replace(/^\./, '[\'').replace(/\./g,'\'][\'') + '\']';}
+			return name + '[' + name + 'Index]' + subIndex.replace(/\\\'/g,"'");},
 
-		//start the js generation
-		var js, wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, isNodeValue, max, curr, key, offset, attName = '', attValue = '', attValues=[], arrSrc, fullAtt;
+		//check if it is an array reference either [] or an open loop
+		isArray:function (attValue, openArrays){ 
+			var arrIndex = /\[[^\]]*\]/.test(attValue);
+			var objProp  = attValue.replace(/(")|(')/g,'').split(/\./);
+			return arrIndex || openArrays[objProp[0]] ? true: false;},
 
-		this.compiledFunctions[fName]={}; //clean the fct place if any
-		var aJS = ['{var output = [];'];
+		contextOut:function(path){ 
+			return 'this._$c(context, ' + path + ')';},
 
-		if(aStr[0]!=="") {aJS.push(this.utils.strOut(aStr[0]));}
-		for(var j = 1;j < aStr.length; j++){
-			wrkStr = aStr[j];
-			if (/^repeat[^\>]*\>/i.test(wrkStr)){
-				rTag = wrkStr.match(/^repeat[^\>]*>/i);
-				rSrc = rTag[0].match(/"[^"]*"/);
-				if (rSrc){ //start a loop
-					rSrc = rSrc[0].replace(/&lt;/,'<').replace(/"/g,'').replace(/\s/g,'');
-					subSrc = rSrc.split(/<-/);
-					currentLoop = subSrc[0];
-					arrSrc = subSrc[1] || '';
-					if ( this.utils.isArray(arrSrc, openArrays) ){
-						//reference to an open array
-						aJS.push('var ' + currentLoop + '=' + this.utils.arrayName(arrSrc) + ';');}
-					else{
-						if (/context/i.test(arrSrc) || arrSrc.length == 0) {
-							if (!(/context/i).test(currentLoop)){ // avoid var context = context 
-								aJS.push('var ' + currentLoop + '= context;');}}
-						else{ 
-							aJS.push('var ' + currentLoop + '= $p.$c(context, "' + arrSrc + '");');}}
-					aJS.push('for(var '+currentLoop+'Index in '+currentLoop+'){if ('+currentLoop+'.hasOwnProperty('+currentLoop+'Index)){'); 		
-					aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length)));
-					openArrays[currentLoop] = cnt++;}
-			
-				else{ //end of loop;
-					aJS.push('}}');
-					delete openArrays[currentLoop];
-					max = 0;
-					for (key in openArrays){
-						if(openArrays.hasOwnProperty(key)){
-						curr = openArrays[key];
-						if( curr > max){
-						max = curr;
-						currentLoop = key;}}}
-					aJS.push(this.utils.strOut(wrkStr.substring(rTag[0].length, wrkStr.length)));}
-
-				rTag = false;
-				continue;}
+		out:function(content){ 
+			return ['output.push(', content, ');'].join('');},
+		
+		
+		outputFn:function (attValue, currentLoop){
+			if (currentLoop){
+				return attValue + '({context:context, items:' + currentLoop + ',pos:'+currentLoop+'Index==\'0\'?0:parseInt(' + currentLoop + 'Index)||'+currentLoop+'Index, item:' + currentLoop + '['+currentLoop+'Index==\'0\'?0:parseInt(' + currentLoop + 'Index)||'+currentLoop+'Index]})';}
 			else{
-				attName = wrkStr.substring(0, wrkStr.indexOf('='));
-				attValue = wrkStr.match(/\=""?[^"]*""?/)[0].substr(2).replace(/"$/,'');
-				offset = attName.length + attValue.length + 3;
-				if (/&quot;/.test(attValue)) {
-					attValue = attValue.replace(/&quot;/g, '"');
-					wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"');}
+				return attValue + '({context:context})';}},
+			
+/*			return !currentLoop ? attValue + '({context:context})' :
+				[attValue, '({context:context, items:', currentLoop, ',pos:', currentLoop, 'Index==\'0\'?0:parseInt(', currentLoop, 'Index)||', currentLoop, 
+				'Index, item:', currentLoop, '[', currentLoop, 'Index==\'0\'?0:parseInt(', currentLoop, 'Index)||', currentLoop, 'Index]})'].join();},*/
+		
+		compile: function(html, context){
+			var aStr = this.html2str(html, context),
+				fname = that._bindedTo,
+				js, wrkStr, rTag = false, rSrc, openArrays=[], cnt=1, subSrc='', fnId, attOut, spc, suffix, currentLoop, 
+				isNodeValue, max, curr, key, offset, attName = '', attValue = '', attValues=[], arrSrc, fullAtt,
+				aJS = ['{var output = [];'];
 
-				isNodeValue = /^nodeValue/i.test(wrkStr);	
-				fullAtt = isNodeValue ? []: ['\''+attName+'="\''];
-
-				attOut = attValue.match(/\|(a|p)\|/);
-				suffix = ''; 
-				spc = attName !== 'class'  ? '':' '; //at some point we should use 'tag[class]+':' #{prop}' instead and deprecate the auto space for class
-				if (attOut) {
-					if(attOut[1] =='a'){
-						fullAtt.push('\''+attValue.substring(0, attOut.index)+spc+'\'');}
-					else{ // |p|
-						suffix = attValue.substring(0, attOut.index);}
-					attValue = attValue.substring(attOut.index + 3);}
-
-				if(/\$f\[(f[0-9]+)\]/.test(attValue)){ //function reference
-					fnId = attValue.match(/\[(f[0-9]+)/)[1];
-					this.compiledFunctions[fName]['$'+fnId]=this.$f[fnId];
-					delete this.$f[fnId];this.$f.cnt--;
-					fullAtt.push(this.utils.outputFn('this.$'+fnId, currentLoop));
-					if(suffix !== '') {fullAtt.push('\''+spc+suffix+'\'');}}
-				else if(/^\\\'|&quot;/.test(attValue)){ //a string, strip the quotes
-					fullAtt.push('\''+ attValue.replace(/^\\\'|\\\'$/g,'')+'\'');
-					if(suffix !== '') {fullAtt.push('\''+spc+suffix+'\'');}}
-				else{
-					if (!(/MSIE/).test(navigator.userAgent)) {
-						attValues = attValue.split(/(#\{[^\}]*\})/g);}
-					else { //IE:(
-						var ie = attValue.match(/#\{[^\}]*\}/);
-						attValues = ie ? [] : [attValue];
-						while (ie) {
-							if (ie.index > 0) {attValues.push(attValue.substring(0, ie.index));}
-							attValues.push(ie[0]);
-							attValue = attValue.substring(ie.lastIndex);
-							ie = attValue.match(/#\{[^\}]*\}/);
-							if (!ie && attValue !== '') {attValues.push(attValue);}}}
-
-					for(var atts = 0; atts<attValues.length; atts++){
-						attValue = attValues[atts];
-						if(/\#\{/.test(attValue) || attValues.length == 1){
-							attValue = attValue.replace(/^\#\{/, '').replace(/\}$/,'');
-							if(this.utils.isArray(attValue, openArrays)){ //iteration reference
-								fullAtt.push(this.utils.arrayName(attValue));}
-							else{ //context data
-								fullAtt.push(this.utils.contextOut("'"+attValue+"'"));}}
-						else if(attValue !== ''){
-							fullAtt.push('\''+attValue+'\'');}
+			if(aStr[0]!=="") {aJS.push(this.strOut(aStr[0]));}
+			for(var j = 1;j < aStr.length; j++){
+				wrkStr = aStr[j] || aStr[++j];
+				if (/^repeat[^\>]*\>/i.test(wrkStr)){
+					rTag = wrkStr.match(/^repeat[^\>]*>/i);
+					rSrc = rTag[0].match(/"[^"]*"/);
+					if (rSrc){ //start a loop
+						rSrc = rSrc[0].replace(/&lt;/,'<').replace(/"/g,'').replace(/\s/g,'');
+						subSrc = rSrc.split(/<-/);
+						currentLoop = subSrc[0];
+						arrSrc = subSrc[1] || '';
+						if ( this.isArray(arrSrc, openArrays) ){
+							//reference to an open array
+							aJS.push('var ' + currentLoop + '=' + this.arrayName(arrSrc) + ';');}
+						else{
+							if (/context/i.test(arrSrc) || arrSrc.length == 0) {
+								if (!(/context/i).test(currentLoop)){ // avoid var context = context 
+									aJS.push('var ' + currentLoop + '= context;');}}
+							else{ 
+								aJS.push('var ' + currentLoop + '= this._$c(context, "' + arrSrc + '");');}}
+						aJS.push('for(var '+currentLoop+'Index in '+currentLoop+'){if ('+currentLoop+'.hasOwnProperty('+currentLoop+'Index)){'); 		
+						aJS.push(this.strOut(wrkStr.substring(rTag[0].length)));
+						openArrays[currentLoop] = cnt++;}
 	
-						if(suffix !== ''){ fullAtt.push('\''+spc+suffix+'\'');}}}
+					else{ //end of loop;
+						aJS.push('}}');
+						delete openArrays[currentLoop];
+						max = 0;
+						for (key in openArrays){
+							if(openArrays.hasOwnProperty(key)){
+							curr = openArrays[key];
+							if( curr > max){
+							max = curr;
+							currentLoop = key;}}}
+						aJS.push(this.strOut(wrkStr.substring(rTag[0].length, wrkStr.length)));}
 
-				if (!isNodeValue) { //close the attribute string
-					fullAtt.push('\'"\'');}}
-				aJS.push(this.utils.out(fullAtt.length > 1 ? '$p.$outAtt(['+fullAtt.join(',')+'])':fullAtt[0]));
-				
-			//output the remaining if any	
-			wrkStr = wrkStr.substr(offset);
-			if(wrkStr !== '') {aJS.push(this.utils.strOut(wrkStr));}}
-		aJS.push( 'return output.join("");}' );
-		js = aJS.join('');
-		if(!noEval){
+					rTag = false;
+					continue;}
+				else{
+					attName = wrkStr.substring(0, wrkStr.indexOf('='));
+					attValue = wrkStr.match(/\=""?[^"]*""?/)[0].substr(2).replace(/"$/,'');
+					offset = attName.length + attValue.length + 3;
+					if (/&quot;/.test(attValue)) {
+						attValue = attValue.replace(/&quot;/g, '"');
+						wrkStr = wrkStr.replace(/&quot;/, '"').replace(/&quot;/, '"');}
+
+					isNodeValue = /^nodeValue/i.test(wrkStr);	
+					fullAtt = isNodeValue ? []: ['\''+attName+'="\''];
+
+					attOut = attValue.match(/\|(a|p)\|/);
+					suffix = ''; 
+					spc = attName !== 'class'  ? '':' '; //at some point we should use 'tag[class]+':' #{prop}' instead and deprecate the auto space for class
+					if (attOut) {
+						if(attOut[1] =='a'){
+							fullAtt.push('\''+attValue.substring(0, attOut.index)+spc+'\'');}
+						else{ // |p|
+							suffix = attValue.substring(0, attOut.index);}
+						attValue = attValue.substring(attOut.index + 3);}
+
+					if(/\$f\[(f[0-9]+)\]/.test(attValue)){ //function reference
+						fnId = attValue.match(/\[(f[0-9]+)/)[1];
+						that._binder['$'+fnId]=this.$f[fnId];
+						delete this.$f[fnId];this.$f.cnt--;
+						fullAtt.push(this.outputFn('this.$'+fnId, currentLoop));
+						if(suffix !== '') {fullAtt.push('\''+spc+suffix+'\'');}}
+					else if(/^\\\'|&quot;/.test(attValue)){ //a string, strip the quotes
+						fullAtt.push('\''+ attValue.replace(/^\\\'|\\\'$/g,'')+'\'');
+						if(suffix !== '') {fullAtt.push('\''+spc+suffix+'\'');}}
+					else{
+						if (!(/MSIE/).test(navigator.userAgent)) {
+							attValues = attValue.split(/(#\{[^\}]*\})/g);}
+						else { //IE:(
+							var ie = attValue.match(/#\{[^\}]*\}/);
+							attValues = ie ? [] : [attValue];
+							while (ie) {
+								if (ie.index > 0) {attValues.push(attValue.substring(0, ie.index));}
+								attValues.push(ie[0]);
+								attValue = attValue.substring(ie.lastIndex);
+								ie = attValue.match(/#\{[^\}]*\}/);
+								if (!ie && attValue !== '') {attValues.push(attValue);}}}
+
+						for(var atts = 0; atts<attValues.length; atts++){
+							attValue = attValues[atts];
+							if(/\#\{/.test(attValue) || attValues.length == 1){
+								attValue = attValue.replace(/^\#\{/, '').replace(/\}$/,'');
+								if(this.isArray(attValue, openArrays)){ //iteration reference
+									fullAtt.push(this.arrayName(attValue));}
+								else{ //context data
+									fullAtt.push(this.contextOut("'"+attValue+"'"));}}
+							else if(attValue !== ''){
+								fullAtt.push('\''+attValue+'\'');}
+
+							if(suffix !== ''){ fullAtt.push('\''+spc+suffix+'\'');}}}
+
+					if (!isNodeValue) { //close the attribute string
+						fullAtt.push('\'"\'');}}
+					aJS.push(this.out(fullAtt.length > 1 ? 'this._$a(['+fullAtt.join(',')+'])':fullAtt[0]));
+		
+				//output the remaining if any	
+				wrkStr = wrkStr.substr(offset);
+				if(wrkStr !== '') {
+					aJS.push(this.strOut(wrkStr));}}
+			aJS.push( 'return output.join("");}' );
+			js = aJS.join('');
 			try{
-				this.compiledFunctions[fName].compiled = new Function('context', js);} 
+				return new Function('context', js);} 
 			catch (e){
 				this.msg('parsing_error', [e.message, js]);
-				return false;}}
-		return js;},
+				return false;}},
 
-	map:function(directives, html, noClone){
-		// a directive is a tuple{ dom selector, value }
-		// returns the html with the directives as pure:<attr>="..."
-		if(!html[0] && html.length == 0){
-			this.msg('no_HTML_selected');
-			return false;}
-
-		var fnId, multipleDir=[], currentDir, clone, ap,isAttr, target, attName, repetition, parentName, selector, i, autoRender, classToDelete=[];
-		if (noClone){
-			clone = html[0] && !html.nodeType ? html[0] : html;}
-		else{
-			clone = html[0] && !html.nodeType ? html[0].cloneNode(true) : html.cloneNode(true);}
-			
-		autoRender = clone.getAttribute(this.utils.AUTO)||false;
-		for (selector in directives){ // for each directive set the corresponding pure:<attr>
-			if(directives.hasOwnProperty(selector)){
-				currentDir = directives[selector];
-				if(this.utils.isTypeOfArray(currentDir)){//check if an array of directives is provided
-					multipleDir = currentDir;}
-				else{
-					multipleDir = []; 
-					multipleDir.push(currentDir);}
-				for(i = 0; i<multipleDir.length;i++){
-					currentDir = multipleDir[i];
-					ap = this.utils.ap_check(selector);
-					selector = ap.clean;
-					isAttr = selector.match(/\[[^\]]*\]/); // match a [...]
-					if(/^\[|^\.$/.test(selector)){ //attribute of the selected node or itself . (dot)
-						target = clone;}
-					else{
-						target = this.find(selector, clone);
-						if (!target && isAttr){
-							//if the attribute does not exist yet, select its containing element
-							target = this.find(selector.substr(0, isAttr.index), clone);}}
-
-					if ( target ){  //target found
-						if (typeof currentDir == 'function'){
-							fnId = 'f'+this.$f.cnt++;
-							this.$f[fnId] = currentDir;
-							currentDir = '$f['+fnId+']';}
-
-						attName = 'nodeValue'; //default
-						repetition = -1;
-						if (isAttr){
-							//the directive points to an attribute
-							attName = selector.substring(isAttr.index+1,isAttr[0].length+isAttr.index-1);
-						if(attName.indexOf(this.utils.NS) > -1){
-							attName = attName.substring(this.utils.NS.length);}}
-						else{
-							//check if the directive is a repetition
-							repetition = currentDir.search(/w*<-w*/);
-							if(repetition > -1) {attName = 'repeat';}}
-
-						currentDir = currentDir.replace(/^"|"$|\'|\\\'/g, '\\\''); //escape any quotes by \'
-						currentDir = this.utils.ap_format(currentDir, attName, target, ap.type);
-						target.setAttribute( this.utils.NS + attName, currentDir);
-
-						if(isAttr){
-							if (attName != 'class'){ 
-								this.utils.removeAtt(target, attName);}
-							else if (autoRender != 'true'){ 
-							  		classToDelete.push(target);}}}
-
-					else{ // target not found
-						parentName = [clone.nodeName];
-						if(clone.id !== '') {parentName.push('#' + clone.id);}
-						if(clone.className !== '') {parentName.push('#' + clone.className);}
-						this.msg( 'element_to_map_not_found', [selector, parentName.join('')], clone);}}}}
-		if (classToDelete.length>0){ //remove class attribute only at the end to allow .selector to work regardless of the order of directives
-			for (i=0;i<classToDelete.length;i++){
-				this.utils.removeAtt(classToDelete[i], 'class');}}
-		return clone;},
-
-	messages:{
-		'wrong_html_source':'The source HTML provided to autoRender does not exist. Check your selector syntax.',
-		'element_to_map_not_found':"PURE - Cannot find the element \"&\" in \"&\"",
-		'place_runtime_container':'To collect the PURE runtime, place a <textarea id=\"pureMsg\"></textarea> somewhere in your document.',
-		'no_HTML_selected':'The map function didn\'t receive a valid HTML element',
-		'no_HTML_name_set_for_parsing':'A name is needed when parsing the HTML: &',
-		'HTML_does_not_exist':'The HTML: & does not exist or is not yet compiled',
-		'library_needed':'In order to run PURE, you need a JS library such as: dojo, domAssistant, jQuery, mootools, prototype,...',
-		'parsing_error':'Parsing error: \"&\" in: &'},
-
-	msg:function(msgId, msgParams, where){
-		// find the msg in local labels repository or in this.messages
-		var msg = this.messages[msgId] || msgId;
-		var re = /&/, i;
-		if(msg != msgId && msgParams){
-			if (typeof msgParams == 'string'){
-				msg = msg.replace(re, msgParams);}
-			else{
-				for(i=0; i<msgParams.length;i++ ){
-					msg = msg.replace(re, msgParams[i]);}}}
-
-		var elm = document.getElementById('pureMsg');
-		if(elm){
-			elm.innerHTML = [msg, '\n', elm.innerHTML].join('');}
-			else{ alert(msg);}},
-	libs:{
-		mapDirective:function(elm, directives){
-			return $p.map(directives, elm);},
-
-		compile:function(elm, fName, directives, context){
-			var html = elm;
-			if(directives) {html = $p.map( directives, elm);}
-			if(context) {html.setAttribute($p.utils.AUTO, 'true');}
-			return $p.compile(html, fName, context||false, false);},//return the compiled JS
-
-		render:function(elm, context, directives, html, auto){
-			var source = elm;
-			if(typeof html !== 'undefined'){
-				source = typeof html !== 'string' && html[0] || html;} //either a lib object or a node or a template name
-			else if(typeof directives !== 'undefined' && (directives.jquery || directives.cssSelect || directives.nodeType || typeof directives=== 'string')){
-				//the directive is the template 
-				source = (directives.jquery || directives.cssSelect) ? directives[0]:directives;
-				directives = null;}
-			return this.replaceWithAndReturnNew(elm, auto === true ? $p.autoRender(source, context, directives):$p.render(source, context, directives));},
-
-		replaceWithAndReturnNew: function(elm, html){
-			var div = document.createElement('div');
-			var replaced = elm;
-			var parent = replaced.parentNode;
+		//replace a node by an HTML string
+		replaceWithAndReturnNew:function(elm, html){
+			var div = document.createElement('div'),
+				replaced = elm,
+				parent = replaced.parentNode;
 			parent.insertBefore(div, replaced);//avoid IE mem leak, place it before filling
 			div.innerHTML = html;
-			var replacers = div.childNodes;
-			var newThis = [];
+			var replacers = div.childNodes,
+				newThis = [];
 			for (var i = replacers.length - 1; i >= 0; i--) {
 				newThis.push(replaced.parentNode.insertBefore(replacers[i], replaced.nextSibling));}
 			parent.removeChild(replaced);
 			parent.removeChild(div);
-			return newThis.length > 1 ? newThis:newThis[0];}}};
+			return newThis.length > 1 ? newThis:newThis[0];},
 
-if(typeof jQuery !== 'undefined' && $ == jQuery){ 
-	//patch jQuery to read namespaced attributes see Ticket #3023
-	if(jQuery.parse) {jQuery.parse[0] = /^(\[) *@?([\w:\-]+) *([!*$\^~=]*) *('?"?)(.*?)\4 *\]/;}
-	$p.utils.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"null\"/gi, by: ''});
-	$p.find = function(selector, context){
-		var found = jQuery.find(selector, context);
-		return found[0] || false;};
-	// jQuery chaining functions
-	jQuery.fn.mapDirective = function(directives){
-		return jQuery($p.libs.mapDirective(this[0], directives));};
-	jQuery.fn.compile = function(fName, directives, context){
-		$p.libs.compile(this[0], fName, directives, context);
-		return this;};
-	jQuery.fn.render = function(context, directives, html){
-		return jQuery($p.libs.render(this[0], context, directives, html));};
-	jQuery.fn.autoRender = function(context, directives, html){
-		return jQuery($p.libs.render(this[0], context, directives, html, true));};}
+			//context reader
+			_$c : function(context, path, nullMode){
+				if(path == 'context'){return context;}
+				if(typeof context == 'object'){
+					//context is a JSON
+					var aPath = path.split(/\./);
+					var value = context[aPath[0]];
+					for (var i=1; i<aPath.length; i++){
+						if (!value){ break;}
+						value = value[aPath[i]];}}
+					if (!value && value!=0) {value = nullMode ? null :'';}
+				return value;},
 
-else if (typeof DOMAssistant !== 'undefined') { //Thanks to Lim Cheng Hong from DOMAssistant who did it
-	$p.find = function (selector, context) {
-		var found = $(context).cssSelect(selector);
-		return found[0] || false;};	
-	DOMAssistant.attach({
-		publicMethods : [ 'mapDirective', 'compile', 'render', 'autoRender'],
-		mapDirective : function (directives) {
-			return $($p.libs.mapDirective(this, directives));},
-		compile : function (fName, directives, context) {
-			$p.libs.compile(this, fName, directives, context);
-			return this;},
-		render : function (context, directives, html) {
-			return $($p.libs.render(this, context, directives, html));},
-		autoRender : function (context, directives, html) {
-			return $($p.libs.render(this, context, directives, html, true));}});}
+			//remove the attribute if empty
+			_$a : function(content){
+				var att = content.join('');
+				return (/\=\"\"/.test(att)) ? '' : att;},
 
-else if (typeof MooTools !== 'undefined') {//Thanks to Carlos Saltos
-	$p.find = function (selector, context) {
-		var found = $(context).getElement(selector);
-		return found || false;};
 
-	Element.implement({
-	mapDirective: function (directives) {
-		return $($p.libs.mapDirective(this, directives));},
-	
-	compile: function (fName, directives, context) {
-		$p.libs.compile(this, fName, directives, context);
-		return this;},
-	
-	render: function (context, directives, html) {
-		return $($p.libs.render(this, context, directives, html));},
-	
-	autoRender: function (context, directives, html) {
-		return $($p.libs.render(this, context, directives, html, true));}});}
+		//put the compiled template in a script tag to debug it at render time
+		debug:function(src){
+			var fn = typeof that._binder.compiled === 'function' ? 
+				that._binder.compiled.toString().replace(/anonymous/i, that._bindedTo).replace(/\{/, '{debugger;'):
+				'function '+that._bindedTo + '(context)' + src;
 			
-else if (typeof Prototype !== 'undefined'){ //Thanks to Carlos Saltos and Borja Vasquez
-	// Implement the find function for pure using the prototype
-	// select function
-	$p.find = function (selector, context) {		
-		var found = $(context).select(selector);
-		// patch prototype when using selector with id's and cloned nodes in IE
-		// maybe in next releases of prototype this is fixed
-		if (!found || found === '') {
-			var pos = selector.indexOf('#');
-			if (pos > -1) { 				
-				var id = selector.substr(pos+1);								
-				var els = context.getElementsByTagName('*');
-        		for (var i = 0, el; el = els[i]; i++) {
-        			if (el.id == id) {
-        				return el;}}}}
-		return found[0] || false;
-	};
-	// Add more methods to the prototype element's objects for
-	// supporting pure calls
-	// Add these extended methods using the prototype element object
-	Element.addMethods({
-		mapDirective: function (element, directives) {
-			return $($p.libs.mapDirective(element, directives));},
+			var s = document.getElementById(this.DEBUG_SCRIPT);
+			if(s){
+				src = s.src + fn;
+				s.parentNode.removeChild(s);}
+			s = document.createElement("script");
+			s.id = this.DEBUG_SCRIPT;
+			s.charset = "UTF-8";
+			s.innerHTML = fn;
+			document.body.appendChild(s);},
 
-		compile: function (element, fName, directives, context) {
-			$p.libs.compile(element, fName, directives, context);
-			return this;},
+		//output messages
+		messages:{
+			'wrong_html_source':'The source HTML provided to autoRender does not exist. Check your selector syntax.',
+			'element_to_map_not_found':"PURE - Cannot find the element \"&\" in \"&\"",
+			'place_runtime_container':'To collect the PURE runtime, place a <textarea id=\"pureMsg\"></textarea> somewhere in your document.',
+			'no_HTML_selected':'The map function didn\'t receive a valid HTML element',
+			'no_HTML_name_set_for_parsing':'A name is needed when parsing the HTML: &',
+			'HTML_does_not_exist':'The HTML: & does not exist or is not yet compiled',
+			'library_needed':'In order to run PURE, you need a JS library such as: dojo, domAssistant, jQuery, mootools, prototype,...',
+			'parsing_error':'Parsing error: \"&\" in: &'},
 
-		render: function (element, context, directives, html) {
-			return $($p.libs.render(element, context, directives, html));},
+		msg:function(msgId, msgParams, where){
+			// find the msg in local labels repository or in this.messages
+			var msg = this.messages[msgId] || msgId;
+			var re = /&/, i;
+			if(msg != msgId && msgParams){
+				if (typeof msgParams == 'string'){
+					msg = msg.replace(re, msgParams);}
+				else{
+					for(i=0; i<msgParams.length;i++ ){
+						msg = msg.replace(re, msgParams[i]);}}}
 
-		autoRender: function (element, context, directives, html) {
-			return $($p.libs.render(element, context, directives, html, true));}});}
-			
-else if (typeof Sizzle !== 'undefined') {
-	$p.find = function(selector, context){
-		var found = Sizzle(selector, context);
-		return found[0] || false;};
+			var elm = document.getElementById('pureMsg');
+			if(elm){
+				elm.innerHTML = [msg, '\n', elm.innerHTML].join('');}
+				else{ alert(msg);}}};
+
+		//if a selector is provided initially, find the elements
+		if(typeof _o.selector !== 'undefined'){
+			this.elm = utils.singleFind(_o.selector, _o.context, _o.elmArray);}
 		
-	$p.sizzle = function(selector, context){
-		selector = selector || document;
-		var ret  = selector.nodeType ? [selector]:Sizzle(selector, context);
-		var sizzle = ret;
-		sizzle.mapDirective = function(directives){
-			sizzle[0] = $p.libs.mapDirective(sizzle[0], directives);
-			return sizzle;};
+		//build a default binder per template if not provided
+		this.bind();};
 
-		sizzle.compile = function(fName, directives, context){
-			$p.libs.compile(sizzle[0], fName, directives, context);
-			return sizzle;};
-
-		sizzle.render = function(context, directives, html){
-			sizzle[0] = $p.libs.render(sizzle[0], context, directives, html);
-			return sizzle;};
-
-		sizzle.autoRender = function(context, directives, html){
-			sizzle[0] = $p.libs.render(sizzle[0], context, directives, html, true);
-			return sizzle;};
-		return sizzle;};}
+pureFunctions.prototype.find = function(selector, context, elmArray){
+	return Sizzle(selector, context, elmArray);};

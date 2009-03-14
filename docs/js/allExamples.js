@@ -2,28 +2,8 @@
  *     E X A M P L E      1 
  * * * * * * * * * * * * * * * * * * * * * */			
 function render1(){
-	$('div#hello').autoRender({ "who": "Mary" });}
-
-	/* Note: 
-	  All the notation below are possible with different results:				
-
-		a) as above. replacing the html by itself transformed with the data
-			$('#hello').autoRender({ "who": "Mary" })
-
-		b) replacing the target by the html transformed
-			$('#hello').autoRender({ "who": "Mary" }, $('#target1'));
-		
-		
-		c) Replacing the content of a target
-			$('#target1').html( $p.autoRender($('#hello')[0], { "who": "Mary" }));
-
-
-		d) same as c) but without js framework (jQuery)
-			var target = document.getElementById('target1'); 
-			var html = document.getElementById('hello');
-			var data = { "who": "Mary" };
-			target.innerHTML = $p.autoRender( html, data );
-	*/
+	$p({selector:'div#hello'}).render({data:{who:'Mary 2'}});
+} //render, either replacing the node or its innerHTML
 
 
 /* * * * * * * * * * * * * * * * * * * * * *
@@ -31,7 +11,8 @@ function render1(){
  * * * * * * * * * * * * * * * * * * * * * */			
 function render2(){
 	var context = ["Alice Keasler", "Charles LeGrand", "Gary Bitemning", "Helen Moren"];
-	$('#players1').autoRender(context);}
+	$p({selector:'#players1'}).render({data:context});}
+
 	
 /* * * * * * * * * * * * * * * * * * * * * *
  *     E X A M P L E      3 
@@ -43,8 +24,7 @@ function render3(){
 			"name": "Beebole","url": "http://beebole.com"}, {
 			"name": "BeeBuzz", "url": "http://beebole.com/blog"}, {
 			"name": "PURE",	  "url": "http://beebole.com/pure"}]};
-	
-	$('#siteList').autoRender(context);}
+	$p({selector:'#siteList'}).render({data:context});}
 
 	/* Note: 
 	 	to access the attributes of the root of the html use a directive as above for the id.
