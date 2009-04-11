@@ -1,0 +1,144 @@
+<html>
+<head>
+</head>
+<body>
+<div class="scoreBoard">			
+  <table class="scoreBoard">
+    <tbody>
+      <tr>
+        <td class="teamName">Team Name</td>
+        <td class="teamPlace">
+          <table class="teamList">
+            <thead>
+              <tr>
+                <th class="position">Position</th>
+                <th class="player">Player</th>
+                <th class="score">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="foo">
+                <td class="position">1</td>
+                <td class="player">Chloe</td>
+                <td class="score">3</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="htmlDoc">
+    <ul class="treeItem">
+        <li>
+          <a class="name" href="#">name</a>
+          <div class="children"></div>
+        </li>
+    </ul>
+</div>
+<div class="foobie">
+some bollocks
+</div>
+<div id="myid3"><a href="something">dfbdfg</a><b>bold</b></div>
+
+
+	<script src="../js/jquery.js"></script>
+	<script src="../js/json2.js"></script>
+	<script src="../js/pure2.js"></script>
+
+	<script>
+		(function(){
+			var data = {
+				teams: [{
+					name: 'Cats',
+					players: [	
+						{first: 'Alice', last: 'Kea\'sler', score: [14, 15, 99, 100]}, 
+						{first: '', name: '', score: 0},
+						{first: 'Vicky', last: 'Benoit', score: [3, 5]}, 
+						{first: 'Wayne', last: 'Dartt', score: [9, 10]}]}, {
+		
+					name: 'Dogs',
+					players: [
+						{first: 'Ray', last: 'Braun', score: 14}, 
+						{first: 'Aaron', last: 'Ben', score: 24}, 
+						{first: 'Steven', last: 'Smith', score: 1}, 
+						{first: 'Kim', last: 'Caffey', score: 19}]}, {
+		
+					name: 'Mice',
+					players: [
+						{first: 'Natalie', last: 'Kinney', score: 16}, 
+						{first: 'Caren', last: 'Cohen', score: 3}]}]}
+			directive = {
+				'table.scoreBoard > tbody > tr': {
+					'team <- teams': {
+						'td.teamName' : 'team.name',
+						'table.teamList > tbody > tr': {
+							'player <- team.players': {
+								'td.player': '#{player.first} (#{player.last})',
+								'td.score': '#{player.score}',
+								'td.position': function(arg){return arg.pos + 1},
+								'root[class]+':
+									function(arg){
+										return (arg.player.pos % 2 == 1) ? ' odd' : ' even'
+									}
+							}
+						}
+					}
+				}
+			}
+			var n = $('div.scoreBoard');
+			var elem = jQuery.pureCompile(n, directive)(data);
+			$('div.scoreBoard').get(0).innerHTML = elem;
+
+			var countries = {
+				children: [{
+					name: 'Europe',
+					children: [{
+						name: 'Belgium',
+						children: [{
+							name: 'Brussels'},{
+							name: 'Namur'},{
+							name: 'Antwerpen'}]},{
+						name: 'Germany'},{
+						name: 'UK'}]},{
+					name: 'America',
+					children: [{
+						name: 'US',
+						children: [{
+							name: 'Alabama',},{
+							name: 'Georgia',}],},{
+						name: 'Canada'},{
+						name: 'Argentina'}]},{
+					name: 'Asia',},{
+					name: 'Africa',},{
+					name: 'Antarctica'}]}
+
+			var directive = {
+				'li': {
+					'child <- children': {
+						'a': 'child.name',
+						'html | =div.children': function(ctxt){
+							if(ctxt.child.item.children){
+console.log('recursive call, arg = ' + JSON.stringify(ctxt));
+								return rfn(ctxt.child.item)
+							} else {
+								return '';
+							}
+						}
+					}
+				}
+			}
+			var rfn = jQuery.pureCompile($('ul.treeItem'), directive);
+			var h = rfn(countries);
+console.log('got ' + h);
+			$('ul.treeItem').get(0).innerHTML = h;
+//			s = $('#myid3').render({'a[href]': 'url', 'b': 'str'}, {'str': 'Hello closures', 'url': 'http:something.com'});
+//			console.log('got ' + s);
+//			$('div.scoreBoard').html(s);
+		})();
+	</script>
+
+
+</body>
+</html>
