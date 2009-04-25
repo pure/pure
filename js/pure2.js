@@ -1,21 +1,27 @@
-/*global $, jQuery, alert, JSON, console */
-(function(){
+/*global $p, alert, console */
+var $p = {};
+(function(pure){
 	var clone = function(node){
-		return $(node).clone().get(0);		// jQuery
+		return node.cloneNode(true);
 	};
 	var error = function(e){
-		console.log(e);
 		alert(e);
+		console.log(e);
 		debugger;
 		throw('pure error: ' + e);
 	};
 	var config = {
+		//default to browser internal selector
 		find: function(n, sel){
-			return $(n).find(sel);
+			return (n||document).querySelector( sel );
 		}
 	};
-	var outerHTML = function(n){
-		return $('<div/>').append($(n).clone()).html();	// jQuery
+	//if IE take the internal method otherwise build one
+	var outerHTML = function(node){
+		return node.outerHTML || (function(node){
+        	var div = document.createElement('div');
+	        div.appendChild(node);
+	        return div.innerHTML;})(node);
 	};
 
 	var wrapquote = function(qfn, f){
@@ -134,9 +140,9 @@
 			error('cannot have html inside an attribute (' + osel + ')');
 		}
 		// we need 'root' selector because CSS search never finds the root element.
-		var target;
+		var target = [];
 		if(sel === 'root'){
-			target = $(dom);
+			target[0] = dom;
 		}else{
 			target = config.find(dom, sel);
 		}
@@ -153,8 +159,11 @@
 				setstr = function(node, s){
 					// we can have a null parent node
 					// if we get overlapping targets.
-					if(node.parentNode){
-						$(node).replaceWith(s);	// jQuery
+					var pn = node.parentNode;
+					if(pn){
+						var r = node.cloneNode(false);
+						r.innerHTML = s;
+						pn.replaceChild(r, node);
 					}
 				};
 			}else{
@@ -188,14 +197,13 @@
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
 	};
 
-	// XXX could add some randomness to this, to prevent potential backdoors.
-	var Sig = 'sdfvk34rdf';		
+	var Sig = '$p'+Math.random();		
 
 	var setsig = function(target, n){
 		var sig = Sig + n + ':';
 		for(var i = 0; i < target.nodes.length; i++){
 			// could check for overlapping targets here.
-			target.set(target.nodes.get(i), sig);		// jQuery
+			target.set(target.nodes[i], sig);
 		}
 	};
 
@@ -246,12 +254,12 @@
 		var target = gettarget(dom, sel, true, 'html');
 		var nodes = target.nodes;
 		for(i = 0; i < nodes.length; i++){
-			var node = nodes.get(i);
+			var node = nodes[i];
 			// could check for overlapping loop targets here by checking that
 			// root is still ancestor of node.
 			var inner = render0(node, dsel);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
-			target.nodes = $(node);		// N.B. side effect on target.
+			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
 		}
 	};
@@ -287,37 +295,34 @@
 		return concatenator(parts, pfns);
 	};
 
-	jQuery.extend({
-		pureCompile: function(template, directive, fn){
-			var rfn = render0(template.get(0), directive);		// jQuery
-			var dorender = function(data, target, ctxt){
-				if(ctxt === undefined){
-					ctxt = {data: data};
-				}else{
-					ctxt.data = data;
-				}
-				var h = rfn(ctxt);
-				return target ? target.html(h) : h;
+	pure.compile = function(template, directive, fn){
+		var rfn = render0(template, directive);		// template must be a node
+		var dorender = function(data, target, ctxt){
+			if(ctxt === undefined){
+				ctxt = {data: data};
+			}else{
+				ctxt.data = data;
+			}
+			var h = rfn(ctxt);
+			return target ? target.html(h) : h;
+		};
+		if(fn){
+			jQuery.fn[fn] = function(data, ctxt){
+				return dorender(data, this, ctxt);
 			};
-			if(fn){
-				jQuery.fn[fn] = function(data, ctxt){
-					return dorender(data, this, ctxt);
-				};
-			}
-			return dorender;
-		},
-		pureConfig: function(cfg){
-			if(cfg){
-				config = cfg;
-			}
-			return config;
 		}
-	});
+		return dorender;
+	};
 
-	jQuery.fn.extend({
-		pureRender: function(template, directive, data, ctxt){
-			var rfn = jQuery.pureCompile(template, directive);
-			return rfn(data, this, ctxt);
+	pure.config = function(cfg){
+		if(cfg){
+			config = cfg;
 		}
-	});
-}());
+		return config;
+	};
+
+	pure.render = function(template, directive, data, ctxt){
+		var rfn = jQuery.pureCompile(template, directive);
+		return rfn(data, this, ctxt);
+	};
+}($p));

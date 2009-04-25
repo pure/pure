@@ -37,14 +37,8 @@
         </li>
     </ul>
 </div>
-<div class="foobie">
-some bollocks
-</div>
-<div id="myid3"><a href="something">dfbdfg</a><b>bold</b></div>
-
 
 	<script src="../js/jquery.js"></script>
-	<script src="../js/json2.js"></script>
 	<script src="../js/pure2.js"></script>
 
 	<script>
@@ -53,7 +47,7 @@ some bollocks
 				teams: [{
 					name: 'Cats',
 					players: [	
-						{first: 'Alice', last: 'Kea\'sler', score: [14, 15, 99, 100]}, 
+						{first: 'Alice', last: 'Kea\'sler', score: [16, 15, 99, 100]}, 
 						{first: '', name: '', score: 0},
 						{first: 'Vicky', last: 'Benoit', score: [3, 5]}, 
 						{first: 'Wayne', last: 'Dartt', score: [9, 10]}]}, {
@@ -87,8 +81,12 @@ some bollocks
 					}
 				}
 			}
+			//set jquery find
+			jQuery.extend({pureCompile:$p.compile, pureRender:$p.render, pureConfig:$p.config});
+			jQuery.pureConfig({find:function(n, sel){return $(n).find(sel);}});
+
 			var n = $('div.scoreBoard');
-			var elem = jQuery.pureCompile(n, directive)(data);
+			var elem = jQuery.pureCompile(n.get(0), directive)(data);
 			$('div.scoreBoard').get(0).innerHTML = elem;
 
 			var countries = {
@@ -120,7 +118,6 @@ some bollocks
 						'a': 'child.name',
 						'html | =div.children': function(ctxt){
 							if(ctxt.child.item.children){
-console.log('recursive call, arg = ' + JSON.stringify(ctxt));
 								return rfn(ctxt.child.item)
 							} else {
 								return '';
@@ -129,9 +126,8 @@ console.log('recursive call, arg = ' + JSON.stringify(ctxt));
 					}
 				}
 			}
-			var rfn = jQuery.pureCompile($('ul.treeItem'), directive);
+			var rfn = jQuery.pureCompile($('ul.treeItem').get(0), directive);
 			var h = rfn(countries);
-console.log('got ' + h);
 			$('ul.treeItem').get(0).innerHTML = h;
 //			s = $('#myid3').render({'a[href]': 'url', 'b': 'str'}, {'str': 'Hello closures', 'url': 'http:something.com'});
 //			console.log('got ' + s);
