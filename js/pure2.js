@@ -163,7 +163,7 @@ var $p = {};
 					if(pn){
 						//replace node with s
 						node.innerHTML = '_'+s;
-						pn.innerHTML = pn.innerHTML.replace(new RegExp('\<[^\>]+\>\_'+Sig+'([^\<]+)\<[^\>]+\>'), s);
+						pn.innerHTML = pn.innerHTML.replace(new RegExp('\<[^\>]+\>\_'+s+'\<[^\>]+\>'), s);
 					}
 				};
 			}else{
