@@ -161,9 +161,9 @@ var $p = {};
 					// if we get overlapping targets.
 					var pn = node.parentNode;
 					if(pn){
-						var r = node.cloneNode(false);
-						r.innerHTML = s;
-						pn.replaceChild(r, node);
+						//replace node with s
+						node.innerHTML = '_'+s;
+						pn.innerHTML = pn.innerHTML.replace(new RegExp('\<[^\>]+\>\_'+Sig+'([^\<]+)\<[^\>]+\>'), s);
 					}
 				};
 			}else{
@@ -197,7 +197,7 @@ var $p = {};
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
 	};
 
-	var Sig = '$p'+Math.random();		
+	var Sig = 'rS'+Math.random();		
 
 	var setsig = function(target, n){
 		var sig = Sig + n + ':';
@@ -304,7 +304,12 @@ var $p = {};
 				ctxt.data = data;
 			}
 			var h = rfn(ctxt);
-			return target ? target.html(h) : h;
+			if(target){
+				target.innerHTML = h;
+				return target;
+			}else{
+				return h;
+			}
 		};
 		if(fn){
 			jQuery.fn[fn] = function(data, ctxt){
