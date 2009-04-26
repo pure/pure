@@ -162,8 +162,9 @@ var $p = {};
 					var pn = node.parentNode;
 					if(pn){
 						//replace node with s
-						node.innerHTML = '_'+s;
-						pn.innerHTML = pn.innerHTML.replace(new RegExp('\<[^\>]+\>\_'+s+'\<[^\>]+\>'), s);
+						var t = document.createTextNode(s);
+						node.parentNode.insertBefore(t, node.nextSibling);
+						node.parentNode.removeChild(node);
 					}
 				};
 			}else{
