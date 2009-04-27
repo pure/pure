@@ -153,7 +153,7 @@ var $p = {};
 		if(attr){
 			getstr = function(node){return node.getAttribute(attr);};
 			setstr = function(node, s){node.setAttribute(attr, s);};
-			quotefn = function(s){return s.replace(/\"/, '&quot;');};
+			quotefn = function(s){return s.replace(/\"/g, '&quot;');};
 		}else{
 			if(mode === 'self'){
 				setstr = function(node, s){

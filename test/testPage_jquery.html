@@ -116,6 +116,7 @@
 				'li': {
 					'child <- children': {
 						'a': 'child.name',
+						'a[onclick]':'alert("#{child.name}");',
 						'html | =div.children': function(ctxt){
 							if(ctxt.child.item.children){
 								return rfn(ctxt.child.item)
