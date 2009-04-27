@@ -103,7 +103,7 @@ var $p = {};
 		};
 	};
 
-	var gettarget = function(dom, sel, isloop, qdefault){
+	var gettarget = function(dom, sel, isloop){
 		var osel = sel;
 		// e.g. "html | +tr.foo[class]"
 		var m = sel.match(/^(\s*(\w+)\s*\|)?\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
@@ -130,15 +130,6 @@ var $p = {};
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		if(!qtype){
-			qtype = qdefault;
-		}
-		if(qtype !== 'text' && qtype !== 'html'){
-			error('invalid quotation type in '+osel);
-		}
-		if(attr && qtype !== 'text'){
-			error('cannot have html inside an attribute (' + osel + ')');
-		}
 		// we need 'root' selector because CSS search never finds the root element.
 		var target = [];
 		if(sel === 'root'){
@@ -153,7 +144,9 @@ var $p = {};
 		if(attr){
 			getstr = function(node){return node.getAttribute(attr);};
 			setstr = function(node, s){node.setAttribute(attr, s);};
-			quotefn = function(s){return s.replace(/\"/g, '&quot;');};
+			quotefn = function(s){
+				return s.replace(/\"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			};
 		}else{
 			if(mode === 'self'){
 				setstr = function(node, s){
@@ -171,16 +164,7 @@ var $p = {};
 				getstr = function(node){return node.innerHTML;};
 				setstr = function(node, s){node.innerHTML = s;};
 			}
-			if(qtype === 'html'){
-				quotefn = function(s){return s;};
-			}else{
-				quotefn = function(s){
-					s = s.replace(/&/g, '&amp;');
-					s = s.replace(/</g, '&lt;');
-					s = s.replace(/>/g, '&gt;');
-					return s;
-				};
-			}
+			quotefn = function(s){return s;};
 		}
 		var setfn;
 		switch(mode){
@@ -252,7 +236,7 @@ var $p = {};
 		}
 		var spec = parseloopspec(p);
 		var itersel = dataselectfn(spec.sel);
-		var target = gettarget(dom, sel, true, 'html');
+		var target = gettarget(dom, sel, true);
 		var nodes = target.nodes;
 		for(i = 0; i < nodes.length; i++){
 			var node = nodes[i];
@@ -276,7 +260,7 @@ var $p = {};
 			if(directive.hasOwnProperty(sel)){
 				var dsel = directive[sel];
 				if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
-					target = gettarget(dom, sel, false, 'text');
+					target = gettarget(dom, sel, false);
 					setsig(target, fns.length);
 					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
 				}else{
