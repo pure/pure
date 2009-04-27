@@ -66,6 +66,7 @@
 					players: [
 						{first: 'Natalie', last: 'Kinney', score: 16}, 
 						{first: 'Caren', last: 'Cohen', score: 3}]}]}
+						
 			directive = {
 				'table.scoreBoard > tbody > tr': {
 					'team <- teams': {
@@ -84,6 +85,7 @@
 					}
 				}
 			}
+
 			var n = Sizzle('div.scoreBoard')[0];
 			var elem = $p.compile(n, directive)(data);
 			Sizzle('div.scoreBoard')[0].innerHTML = elem;
@@ -129,9 +131,6 @@
 			var rfn = $p.compile(Sizzle('ul.treeItem')[0], directive);
 			var h = rfn(countries);
 			Sizzle('ul.treeItem')[0].innerHTML = h;
-//			s = $('#myid3').render({'a[href]': 'url', 'b': 'str'}, {'str': 'Hello closures', 'url': 'http:something.com'});
-//			console.log('got ' + s);
-//			$('div.scoreBoard').html(s);
 		})();
 	</script>
 

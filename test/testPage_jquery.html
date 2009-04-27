@@ -37,12 +37,18 @@
         </li>
     </ul>
 </div>
+<div class="helloWho">
+	Hello <span class="who+ +who@dataatt" dataatt="_hey">who</span>
+</div>
 
 	<script src="../js/jquery.js"></script>
 	<script src="../js/pure2.js"></script>
 
 	<script>
 		(function(){
+			//set jquery find
+			jQuery.extend({pureCompile:$p.compile, pureRender:$p.render, pureConfig:$p.config, autoRender:$p.autoRender});
+			jQuery.pureConfig({find:function(n, sel){return $(n).find(sel);}});
 			var data = {
 				teams: [{
 					name: 'Cats',
@@ -81,9 +87,6 @@
 					}
 				}
 			}
-			//set jquery find
-			jQuery.extend({pureCompile:$p.compile, pureRender:$p.render, pureConfig:$p.config});
-			jQuery.pureConfig({find:function(n, sel){return $(n).find(sel);}});
 
 			var n = $('div.scoreBoard');
 			var elem = jQuery.pureCompile(n.get(0), directive)(data);
@@ -130,9 +133,12 @@
 			var rfn = jQuery.pureCompile($('ul.treeItem').get(0), directive);
 			var h = rfn(countries);
 			$('ul.treeItem').get(0).innerHTML = h;
-//			s = $('#myid3').render({'a[href]': 'url', 'b': 'str'}, {'str': 'Hello closures', 'url': 'http:something.com'});
-//			console.log('got ' + s);
-//			$('div.scoreBoard').html(s);
+	
+			var hello = {who:'Mary'};
+			var template = $('div.helloWho').get(0);
+			var rfn = jQuery.pureCompile(template, false, hello);
+			template.innerHTML = rfn(hello);
+			
 		})();
 	</script>
 

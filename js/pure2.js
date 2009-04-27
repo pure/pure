@@ -30,6 +30,15 @@ var $p = {};
 		};
 	};
 
+	var walk = function(n, f) {
+		n = n.firstChild;
+		while (n) {
+			walk(n, f);
+			f(n);
+			n = n.nextSibling;
+		}
+	};
+
 	// create a function that concatenates constant string
 	// sections (given in parts) and the results of called
 	// functions to fill in the gaps between parts (fns).
@@ -103,7 +112,7 @@ var $p = {};
 		};
 	};
 
-	var gettarget = function(dom, sel, isloop){
+	var gettarget = function(dom, sel, isloop, node){
 		var osel = sel;
 		// e.g. "html | +tr.foo[class]"
 		var m = sel.match(/^(\s*(\w+)\s*\|)?\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
@@ -132,7 +141,9 @@ var $p = {};
 		}
 		// we need 'root' selector because CSS search never finds the root element.
 		var target = [];
-		if(sel === 'root'){
+		if(node){
+			target = [node];
+		}else if(sel === 'root'){
 			target[0] = dom;
 		}else{
 			target = config.find(dom, sel);
@@ -192,7 +203,7 @@ var $p = {};
 		}
 	};
 
-	var render0;				// for JSLint - defined later.
+	var render0, render1;				// for JSLint - defined later.
 
 	var loopfn = function(name, dselect, inner){
 		return function(ctxt){
@@ -212,7 +223,7 @@ var $p = {};
 		};
 	};
 
-	var loopgen = function(dom, sel, loop, fns){
+	var loopgen = function(dom, sel, loop, fns, node, data, attr){
 		var already = false;
 		var p;
 		for(var i in loop){
@@ -236,13 +247,13 @@ var $p = {};
 		}
 		var spec = parseloopspec(p);
 		var itersel = dataselectfn(spec.sel);
-		var target = gettarget(dom, sel, true);
+		var target = gettarget(dom, sel, true, node);
 		var nodes = target.nodes;
 		for(i = 0; i < nodes.length; i++){
 			var node = nodes[i];
 			// could check for overlapping loop targets here by checking that
 			// root is still ancestor of node.
-			var inner = render0(node, dsel);
+			var inner = render0(node, dsel, data, attr);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
@@ -252,10 +263,10 @@ var $p = {};
 	// render0 returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	// NB. declared above.
-	render0 = function(dom, directive){
-		var fns = [];
+	render0 = function(dom, directive, data, attr){
+		var fns = [], target;
 		dom = clone(dom);
-		var target;
+
 		for(var sel in directive){
 			if(directive.hasOwnProperty(sel)){
 				var dsel = directive[sel];
@@ -268,6 +279,34 @@ var $p = {};
 				}
 			}
 		}
+		
+		if(data){
+			var getAtt = attr ? 
+				function(node){return node.getAttribute('attr');}:
+				function(node){return node.className;};
+			walk(dom, function(node){
+				if(node.nodeType !== 1) {return;}
+				var a, c, i = 0, l, sel;
+				c = getAtt(node);
+				if(c){
+					a = c.split(' ');
+					l = a.length;
+					for(;i<l;i++){
+						sel = a[i].match(/(\+)?([^\@\+]+)@?(\w+)?(\+)?/);
+						var dirSel = (sel[1]||'')+sel[2]+(sel[3] ? '['+sel[3]+']':'')+(sel[4]||'');
+						var val = dataselectfn(sel[2])({data:data});
+						if(typeof val === 'function' || typeof val === 'string'){
+							target = gettarget(dom, dirSel, false, node);
+							setsig(target, fns.length);
+							fns[fns.length] = wrapquote(target.quotefn, dataselectfn(sel[2]));
+						}else{
+							loopgen(dom, sel[0], val, fns, node, data, attr);
+						}
+					}
+				}
+			});
+		}
+
 		var h = outerHTML(dom);
 		var parts = h.split(Sig);
 		var pfns = [];
@@ -279,31 +318,12 @@ var $p = {};
 		}
 		return concatenator(parts, pfns);
 	};
-
-	pure.compile = function(template, directive, fn){
-		var rfn = render0(template, directive);		// template must be a node
-		var dorender = function(data, target, ctxt){
-			if(ctxt === undefined){
-				ctxt = {data: data};
-			}else{
-				ctxt.data = data;
-			}
-			var h = rfn(ctxt);
-			if(target){
-				target.innerHTML = h;
-				return target;
-			}else{
-				return h;
-			}
+	
+	pure.compile = function(template, directive, ctxt){
+		return function(data){
+			return render0(template, directive, ctxt)({data: data});
 		};
-		if(fn){
-			jQuery.fn[fn] = function(data, ctxt){
-				return dorender(data, this, ctxt);
-			};
-		}
-		return dorender;
 	};
-
 	pure.config = function(cfg){
 		if(cfg){
 			config = cfg;
@@ -311,8 +331,12 @@ var $p = {};
 		return config;
 	};
 
-	pure.render = function(template, directive, data, ctxt){
-		var rfn = jQuery.pureCompile(template, directive);
-		return rfn(data, this, ctxt);
+	pure.render = function(template, directive, data){
+		var rfn = pure.compile(template, directive);
+		return rfn(data);
+	};
+	pure.autoRender = function(template, directive, data){
+		var rfn = pure.compile(template, directive, data);
+		return rfn(data);
 	};
 }($p));
