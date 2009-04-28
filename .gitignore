@@ -2,3 +2,4 @@
 test/*
 commit.sh
 js/*.html
+bugs/*
