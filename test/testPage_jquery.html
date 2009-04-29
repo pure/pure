@@ -38,7 +38,9 @@
     </ul>
 </div>
 <div class="helloWho">
-	Hello <span class="who+ +who@dataatt" dataatt="_hey">who</span>
+	<ul class="helloWho">
+		<li class="who who.name">who</li>
+	</ul>
 </div>
 
 	<script src="../js/jquery.js"></script>
@@ -134,10 +136,23 @@
 			var h = rfn(countries);
 			$('ul.treeItem').get(0).innerHTML = h;
 	
-			var hello = {who:'Mary'};
-			var template = $('div.helloWho').get(0);
+			var hello = {
+				who:[
+					{name:'Mary'},
+					{name:'Harry'}
+				]
+			};
+			var dir = {
+				'.who':{
+					'person<-who':{
+						'root':'person.name'
+					}
+				}
+			};
+
+			var template = $('ul.helloWho').get(0);
 			var rfn = jQuery.pureCompile(template, false, hello);
-			template.innerHTML = rfn(hello);
+			$('div.helloWho').get(0).innerHTML = rfn(hello);
 			
 		})();
 	</script>

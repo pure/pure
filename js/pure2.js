@@ -14,7 +14,8 @@ var $p = {};
 		//default to browser internal selector
 		find: function(n, sel){
 			return (n||document).querySelector( sel );
-		}
+		},
+		autoAtt:'class'
 	};
 	//if IE take the internal method otherwise build one
 	var outerHTML = function(node){
@@ -30,14 +31,21 @@ var $p = {};
 		};
 	};
 
-	var walk = function(n, f) {
+	var walk = function(n, bf, af) {
 		n = n.firstChild;
 		while (n) {
-			walk(n, f);
-			f(n);
+			if(bf(n)){ //if true, stop this branch
+				return;
+			};
+			walk(n, bf, af);
+			af(n);
 			n = n.nextSibling;
 		}
 	};
+
+	var getAtt =  config.autoAtt === 'class' ? 
+		function(node){return node.className;}:
+		function(node){return node.getAttribute(config.autoAtt);};
 
 	// create a function that concatenates constant string
 	// sections (given in parts) and the results of called
@@ -203,7 +211,7 @@ var $p = {};
 		}
 	};
 
-	var render0, render1;				// for JSLint - defined later.
+	var render0;				// for JSLint - defined later.
 
 	var loopfn = function(name, dselect, inner){
 		return function(ctxt){
@@ -223,22 +231,27 @@ var $p = {};
 		};
 	};
 
-	var loopgen = function(dom, sel, loop, fns, node, data, attr){
+	var loopgen = function(dom, sel, loop, fns, currNode, data){
 		var already = false;
-		var p;
-		for(var i in loop){
-			if(loop.hasOwnProperty(i)){
-				if(already){
-					error('cannot have more than one loop on a target');
+		var p, dsel;
+		if(loop){
+			for(var i in loop){
+				if(loop.hasOwnProperty(i)){
+					if(already){
+						error('cannot have more than one loop on a target');
+					}
+					p = i;
+					already = true;
 				}
-				p = i;
-				already = true;
 			}
+			if(!p){
+				error('no loop spec');
+			}
+			dsel = loop[p];
+		}else{
+			dsel = {};
+			p = sel+'<-'+sel;
 		}
-		if(!p){
-			error('no loop spec');
-		}
-		var dsel = loop[p];
 		// if it's a simple data selector then we default to contents, not replacement.
 		if(typeof(dsel) === 'string' || typeof(dsel) === 'function'){
 			loop = {};
@@ -247,13 +260,13 @@ var $p = {};
 		}
 		var spec = parseloopspec(p);
 		var itersel = dataselectfn(spec.sel);
-		var target = gettarget(dom, sel, true, node);
+		var target = gettarget(dom, sel, true, currNode);
 		var nodes = target.nodes;
 		for(i = 0; i < nodes.length; i++){
 			var node = nodes[i];
 			// could check for overlapping loop targets here by checking that
 			// root is still ancestor of node.
-			var inner = render0(node, dsel, data, attr);
+			var inner = render0(node, dsel, data);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
@@ -263,48 +276,68 @@ var $p = {};
 	// render0 returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	// NB. declared above.
-	render0 = function(dom, directive, data, attr){
-		var fns = [], target;
+	render0 = function(dom, directive, data){
+		var fns = [];
 		dom = clone(dom);
+
+		var buildLoops = function(sel, dsel, fns, node){
+			var val = dataselectfn(sel[2])({data:data});
+			if(typeof val === 'object'){ //array or object
+				loopgen(dom, sel[2], false, fns, node, data);
+				return true;
+			}else{
+				return false;
+			}
+		};
+		var buildParts = function(sel, dsel, fns, node){
+			var target;
+			if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
+				target = gettarget(dom, sel, false);
+				setsig(target, fns.length);
+				fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
+			}else{
+				loopgen(dom, sel, dsel, fns, node, data);
+			}
+		};
 
 		for(var sel in directive){
 			if(directive.hasOwnProperty(sel)){
 				var dsel = directive[sel];
-				if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
-					target = gettarget(dom, sel, false);
-					setsig(target, fns.length);
-					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
-				}else{
-					loopgen(dom, sel, dsel, fns);
-				}
+				buildParts(sel, dsel, fns);
 			}
 		}
 		
 		if(data){
-			var getAtt = attr ? 
-				function(node){return node.getAttribute('attr');}:
-				function(node){return node.className;};
-			walk(dom, function(node){
-				if(node.nodeType !== 1) {return;}
-				var a, c, i = 0, l, sel;
+			var forEachClass = function(node, cb){
+				var a, c, i = 0, l, sel, val, stopWalk;
 				c = getAtt(node);
 				if(c){
 					a = c.split(' ');
 					l = a.length;
 					for(;i<l;i++){
 						sel = a[i].match(/(\+)?([^\@\+]+)@?(\w+)?(\+)?/);
-						var dirSel = (sel[1]||'')+sel[2]+(sel[3] ? '['+sel[3]+']':'')+(sel[4]||'');
-						var val = dataselectfn(sel[2])({data:data});
-						if(typeof val === 'function' || typeof val === 'string'){
-							target = gettarget(dom, dirSel, false, node);
-							setsig(target, fns.length);
-							fns[fns.length] = wrapquote(target.quotefn, dataselectfn(sel[2]));
-						}else{
-							loopgen(dom, sel[0], val, fns, node, data, attr);
+//						if(typeof val.length === 'number' && !(val.propertyIsEnumerable('length')) && typeof val.splice === 'function'){
+//							(sel[1]||'')+sel[2]+(sel[3] ? '['+sel[3]+']':'')+(sel[4]||''),
+						isLoop = cb(sel, {}, fns, node);
+						if(isLoop){
+							stopWalk = true;
 						}
 					}
+					return stopWalk;
 				}
-			});
+			};
+			walk(dom, 
+				//before walk
+				function(node){
+					if(node.nodeType === 1) {
+						return forEachClass(node, buildLoops);}
+				},
+				//after walk
+				function(node){
+					if(node.nodeType === 1) {
+						return forEachClass(node, buildParts);}
+				}
+			);
 		}
 
 		var h = outerHTML(dom);
@@ -320,8 +353,9 @@ var $p = {};
 	};
 	
 	pure.compile = function(template, directive, ctxt){
+		var rfn = render0(template, directive, ctxt);
 		return function(data){
-			return render0(template, directive, ctxt)({data: data});
+			return rfn({data: data});
 		};
 	};
 	pure.config = function(cfg){
