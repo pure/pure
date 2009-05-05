@@ -201,7 +201,7 @@ var $p = {};
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
 	};
 
-	var Sig = 'rS'+Math.random();		
+	var Sig = 'r'+Math.floor(Math.random()*1000000)+'S';		
 
 	var setsig = function(target, n){
 		var sig = Sig + n + ':';
