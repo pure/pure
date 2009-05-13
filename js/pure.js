@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.28
+    revision: 1.29
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -105,7 +105,7 @@ $p = pure = {
 						att = ap.clean.split(/@/);
 						if(openArray.length > 0) {
 							for (k = openArray.length-1; k>=0; k--) {
-								prop = openArray[k] == 'context' ? context[0][att[0]] : $p.$c(context[openArray[k]][0], att[0], true);
+								prop = openArray[k] == 'context' ? $p.$c(context[0], att[0], true) : $p.$c(context[openArray[k]][0], att[0], true);
 								if (prop || prop == 0) {//found a repetition field, break, specific case when 0 is returned as a value
 									repeatPrefix = openArray[k];
 									break;}}}
@@ -119,7 +119,7 @@ $p = pure = {
 								n.setAttribute(this.REPEAT, att[0] + '<-' + att[0]);}
 							else {
 								if(repeatPrefix !== ''){ 
-									att[0] = repeatPrefix + '[\'' + att[0] + '\']';}
+									att[0] = repeatPrefix + '[\'' + att[0].replace(/\./g, '\'][\'') + '\']';}
 								if(!att[1]){ //not an attribute
 									att.push('nodeValue');}
 								if(ap.type){ //append or prepend ?
