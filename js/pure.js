@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.30
+    revision: 1.31
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -524,7 +524,7 @@ $p = pure = {
 			parent.removeChild(div);
 			return newThis.length > 1 ? newThis:newThis[0];}}};
 
-if(typeof jQuery !== 'undefined' && $ == jQuery){ 
+if(typeof jQuery !== 'undefined'){ 
 	//patch jQuery to read namespaced attributes see Ticket #3023
 	if(jQuery.parse) {jQuery.parse[0] = /^(\[) *@?([\w:\-]+) *([!*$\^~=]*) *('?"?)(.*?)\4 *\]/;}
 	$p.utils.domCleaningRules.push({ what: /\s?jQuery[^\s]+\=\"null\"/gi, by: ''});
