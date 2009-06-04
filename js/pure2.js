@@ -19,9 +19,9 @@ var $p = {};
 	};
 	//if IE take the internal method otherwise build one
 	var outerHTML = function(node){
-		return node.outerHTML || (function(node){
+		return node.outerHTML || (function(n){
         	var div = document.createElement('div');
-	        div.appendChild(node);
+	        div.appendChild(n.cloneNode(true));
 	        return div.innerHTML;})(node);
 	};
 
@@ -204,11 +204,12 @@ var $p = {};
 	var Sig = 'r'+Math.floor(Math.random()*1000000)+'S';		
 
 	var setsig = function(target, n){
-		var sig = Sig + n + ':';
-		for(var i = 0; i < target.nodes.length; i++){
-			// could check for overlapping targets here.
+		var sig = Sig + n + ':',
+			i = 0,
+			ii = target.nodes.length;
+		do{
 			target.set(target.nodes[i], sig);
-		}
+		}while( ++i < ii )
 	};
 
 	var render0;				// for JSLint - defined later.
