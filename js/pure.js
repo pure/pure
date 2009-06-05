@@ -7,7 +7,7 @@
 
     Copyright (c) 2008 Michael Cvilic - BeeBole.com
 
-    revision: 1.31
+    revision: 1.32
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -79,6 +79,7 @@ $p = pure = {
 	compiledFunctions:{},
 
 	$outAtt:function(content){
+			(/\"/).test(content[1]) && (content[1] = content[1].replace(/\\\"|\"/g, '&quot;'));
 			var att = content.join('');
 			return (/\=\"\"/.test(att)) ? '' : att;},
  	utils:{
