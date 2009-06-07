@@ -21,8 +21,10 @@ var $p = {};
 	var outerHTML = function(node){
 		return node.outerHTML || (function(n){
         	var div = document.createElement('div');
-	        div.appendChild(n.cloneNode(true));
-	        return div.innerHTML;})(node);
+	        div.appendChild(n);
+			var h = div.innerHTML;
+			div = null;
+	        return h;})(node);
 	};
 
 	var wrapquote = function(qfn, f){
@@ -30,17 +32,9 @@ var $p = {};
 			return qfn('' + f(ctxt));
 		};
 	};
-
-	var walk = function(n, bf, af) {
-		n = n.firstChild;
-		while (n) {
-			if(bf(n)){ //if true, stop this branch
-				return;
-			};
-			walk(n, bf, af);
-			af(n);
-			n = n.nextSibling;
-		}
+	//check if an object is an Array Tx2 J.Resig
+	var isArray = function(o){
+		return Object.prototype.toString.call( o ) === "[object Array]";
 	};
 
 	var getAtt =  config.autoAtt === 'class' ? 
@@ -274,6 +268,59 @@ var $p = {};
 		}
 	};
 
+	function getAutoNodes(n, data){
+		var ns = n.getElementsByTagName('*'),
+			an = [],
+			openLoops = {a:[],l:{}},
+			cspec,
+			i, ii, j, jj, ni, cs, cj;
+		for(i = 0, ii = ns.length;i<ii;i++){
+			ni = ns[i];
+			if(ni.nodeType === 1 && ni.className !== ''){
+				cs = ni.className.split(' ');
+				for(j = 0, jj=cs.length;j<jj;j++){
+					cj = cs[j];
+					cspec = checkClass(cj, data);
+					if(cspec !== false){
+						an.push({n:ni, cspec:cspec});
+					}
+				}
+			}
+		}
+		return an;
+
+		function checkClass(c){
+			var ca = c.match(/^(\+)?([^\@]+)\@?(\w+)?(\+)?$/),
+				cspec = {prpd:!!ca[1], prop:ca[2], attr:ca[3], apnd:!!ca[4]},
+				val = isArray(data) ? data[0][cspec.prop]:data[cspec.prop],
+				i, ii;
+
+			if(typeof val === 'undefined'){
+				for(i=openLoops.a.length-1;i>=0;i--){
+					val = openLoops.a[i].l[0][cspec.prop];
+					if(typeof val !== 'undefined'){
+						cspec.prop = openLoops.a[i].p +'.'+cspec.prop;
+						if(openLoops.l[cspec.prop] === true){
+							val = val[0];
+						}
+						break;
+					}
+				}
+			}
+			if(typeof val === 'undefined'){
+				return false;
+			}
+			if(isArray(val)){
+				openLoops.a.push({l:val, p:cspec.prop});
+				openLoops.l[cspec.prop] = true;
+				cspec.t = 'loop';
+			}else{
+				cspec.t = 'str';
+			}
+			return cspec;
+		}
+	}
+
 	// render0 returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	// NB. declared above.
@@ -281,15 +328,6 @@ var $p = {};
 		var fns = [];
 		dom = clone(dom);
 
-		var buildLoops = function(sel, dsel, fns, node){
-			var val = dataselectfn(sel[2])({data:data});
-			if(typeof val === 'object'){ //array or object
-				loopgen(dom, sel[2], false, fns, node, data);
-				return true;
-			}else{
-				return false;
-			}
-		};
 		var buildParts = function(sel, dsel, fns, node){
 			var target;
 			if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
@@ -300,6 +338,9 @@ var $p = {};
 				loopgen(dom, sel, dsel, fns, node, data);
 			}
 		};
+		if(data){
+			var an = getAutoNodes(dom, data);
+		}
 
 		for(var sel in directive){
 			if(directive.hasOwnProperty(sel)){
@@ -308,39 +349,6 @@ var $p = {};
 			}
 		}
 		
-		if(data){
-			var forEachClass = function(node, cb){
-				var a, c, i = 0, l, sel, val, stopWalk;
-				c = getAtt(node);
-				if(c){
-					a = c.split(' ');
-					l = a.length;
-					for(;i<l;i++){
-						sel = a[i].match(/(\+)?([^\@\+]+)@?(\w+)?(\+)?/);
-//						if(typeof val.length === 'number' && !(val.propertyIsEnumerable('length')) && typeof val.splice === 'function'){
-//							(sel[1]||'')+sel[2]+(sel[3] ? '['+sel[3]+']':'')+(sel[4]||''),
-						isLoop = cb(sel, {}, fns, node);
-						if(isLoop){
-							stopWalk = true;
-						}
-					}
-					return stopWalk;
-				}
-			};
-			walk(dom, 
-				//before walk
-				function(node){
-					if(node.nodeType === 1) {
-						return forEachClass(node, buildLoops);}
-				},
-				//after walk
-				function(node){
-					if(node.nodeType === 1) {
-						return forEachClass(node, buildParts);}
-				}
-			);
-		}
-
 		var h = outerHTML(dom);
 		var parts = h.split(Sig);
 		var pfns = [];

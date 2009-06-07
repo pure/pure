@@ -50,14 +50,14 @@
 		</ul>
 	</div>
 
-	<div class="ar1">
+	<div id="ar1" class="ar1">
 		Hello <span class="who"></span> and
 		<ul>
 			<li class="friends">
-				<a class="name twitter@href" href="http://twitter.com/"></a>
+				<a class="name twitter@href+" href="http://twitter.com/"></a>
 				<ul>
-					<li class="knowledges">
-						<span class="knowledges"></span>
+					<li class="knowledge">
+						<span class="knowledge"></span>
 					</li>
 				</ul>
 			</li>
@@ -82,18 +82,18 @@
 					{
 						name:'Hughes', 
 						twitter:'hugheswaroquier',
-						knowledges:['erlang', 'js', 'css']
+						knowledge:['erlang', 'js', 'css']
 					},{
 						name:'Yves', 
 						twitter:'yveshiernaux',
-						knowledges:['js', 'css', 'buzz']
+						knowledge:['js', 'css', 'buzz']
 					}
 				], 
 				who:'Mic'
 			};
 			
 			directive = {
-				'span.who': 'who',
+				'span.who': 'who'};/*,
 				'li.friends':{
 					'friends <- friends':
 						{
@@ -108,7 +108,7 @@
 							}
 						}
 				}
-			};
+			};*/
 			directive1 = {
 				'$1$': 'who',
 				'$2$':{
@@ -130,7 +130,7 @@
 
 
 			var n = $('div.ar1');
-			var elem = jQuery.pureCompile(n.get(0), directive)(data);
+			var elem = jQuery.pureCompile(n.get(0), false, data);
 			$('div.e1').get(0).innerHTML = elem;
 			
 /*			var data = {
