@@ -5,9 +5,9 @@
     Licensed under the MIT licenses.
     More information at: http://www.opensource.org
 
-    Copyright (c) 2008 Michael Cvilic - BeeBole.com
+    Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
-    revision: 1.32
+    revision: 1.33
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -497,8 +497,8 @@ $p = pure = {
 
 		compile:function(elm, fName, directives, context){
 			var html = elm;
-			if(directives) {html = $p.map( directives, elm);}
 			if(context) {html.setAttribute($p.utils.AUTO, 'true');}
+			if(directives) {html = $p.map( directives, elm);}
 			return $p.compile(html, fName, context||false, false);},//return the compiled JS
 
 		render:function(elm, context, directives, html, auto){
