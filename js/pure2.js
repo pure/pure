@@ -1,5 +1,4 @@
 /*global $p, alert, console */
-/*global $p, alert, console */
 var $p = {};
 (function(pure){
 	var clone = function(node){
@@ -21,7 +20,7 @@ var $p = {};
 	var outerHTML = function(node){
 		return node.outerHTML || (function(node){
         	var div = document.createElement('div');
-	        div.appendChild(node);
+	        div.appendChild(clone(node));
 	        return div.innerHTML;})(node);
 	};
 	var isArray = function(o){
@@ -317,7 +316,6 @@ var $p = {};
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
 			var j, jj, cspec, n;
-			debugger;
 			while(ans.length > 0){
 				cspec = ans[0].cspec;
 				n = ans[0].n;
