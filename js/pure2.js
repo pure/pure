@@ -1,9 +1,6 @@
 /*global $p, alert, console */
 var $p = {};
 (function(pure){
-	var clone = function(node){
-		return node.cloneNode(true);
-	};
 	var error = function(e){
 		alert(e);
 		console.log(e);
@@ -20,7 +17,7 @@ var $p = {};
 	var outerHTML = function(node){
 		return node.outerHTML || (function(node){
         	var div = document.createElement('div');
-	        div.appendChild(clone(node));
+	        div.appendChild(node.cloneNode(true));
 	        return div.innerHTML;})(node);
 	};
 	var isArray = function(o){
@@ -106,30 +103,28 @@ var $p = {};
 	};
 
 	var gettarget = function(dom, sel, isloop){
-		var osel, prepend, sel, attr, append, target = [];
+		var osel, prepend, selector, attr, append, target = [];
 		if(typeof sel === 'string'){
 			osel = sel;
 			// e.g. "html | +tr.foo[class]"
-			var m = sel.match(/^(\s*(\w+)\s*\|)?\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
+			var m = sel.match(/^\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
 			if(!m){
 				error('bad selector: ' + sel);
 			}
-			var qtype = m[2];
-			prepend = m[3];
-			sel = m[4];
-			attr = m[8];
-			append = m[9];
-			if(sel === 'root'){
+			var prepend = m[1],
+				selector = m[2],
+				attr = m[6],
+				append = m[7];
+			if(selector === 'root'){
 				target[0] = dom;
 			}else{
-				target = config.find(dom, sel);
+				target = config.find(dom, selector);
 			}
 			if(!target || target.length === 0){
 				return {attr: null, nodes: target, set: null, sel: osel};
 			}
 		}else{
 			prepend = sel.prepend;
-			sel = sel.prop;
 			attr = sel.attr;
 			append = sel.append;
 			target = [dom];
@@ -199,8 +194,6 @@ var $p = {};
 			target.set(target.nodes[i], sig);
 		}
 	};
-
-	var render0;				// for JSLint - defined later.
 
 	var loopfn = function(name, dselect, inner){
 		return function(ctxt){
@@ -281,12 +274,13 @@ var $p = {};
 			var ca = c.match(/^(\+)?([^\@]+)\@?(\w+)?(\+)?$/),
 				cspec = {prepend:!!ca[1], prop:ca[2], attr:ca[3], append:!!ca[4], sel:c},
 				val = isArray(data) ? data[0][cspec.prop]:data[cspec.prop],
-				i, ii;
+				i, ii, loopi;
 			if(typeof val === 'undefined'){
 				for(i = openLoops.a.length-1; i >= 0; i--){
-					val = openLoops.a[i].l[0][cspec.prop];
+					loopi = openLoops.a[i];
+					val = loopi.l[0][cspec.prop];
 					if(typeof val !== 'undefined'){
-						cspec.prop = openLoops.a[i].p + '.' + cspec.prop;
+						cspec.prop = loopi.p + '.' + cspec.prop;
 						if(openLoops.l[cspec.prop] === true){
 							val = val[0];
 						}
@@ -311,7 +305,7 @@ var $p = {};
 	// render0 returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	// NB. declared above.
-	render0 = function(dom, directive, data, ans){
+	var render0 = function(dom, directive, data, ans){
 		var fns = [];
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
@@ -366,8 +360,7 @@ var $p = {};
 	};
 
 	pure.compile = function(template, directive, ctxt){
-		template = clone(template);
-		var rfn = render0(template, directive, ctxt);
+		var rfn = render0(template.cloneNode(true), directive, ctxt);
 		return function(data){
 			return rfn({data: data});
 		};

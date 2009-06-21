@@ -3,9 +3,18 @@
 </head>
 <body>
 
+	<h2>Auto Rendering</h2>
+
 	<div class="e1">
-		Hello <span class="who">Mary</span>
+		The friends of <span class="who"></span> are
+		<ul>
+			<li class="friends">
+				<a class="name twitter@href+" href="http://twitter.com/"></a>
+			</li>
+		</ul>
 	</div>
+
+	<h2>Nested table</h2>
 
 	<div class="scoreBoard">			
 	  <table class="scoreBoard">
@@ -35,6 +44,8 @@
 	  </table>
 	</div>
 	
+	<h2>Recursion</h2>
+
 	<div class="htmlDoc">
 	    <ul class="treeItem">
 	        <li>
@@ -42,26 +53,6 @@
 	          <div class="children"></div>
 	        </li>
 	    </ul>
-	</div>
-
-	<div class="helloWho">
-		<ul class="helloWho">
-			<li class="who who.name">who</li>
-		</ul>
-	</div>
-
-	<div id="ar1" class="ar1">
-		Hello <span class="who"></span> and
-		<ul>
-			<li class="friends">
-				<a class="name twitter@href+" href="http://twitter.com/"></a>
-				<ul>
-					<li class="knowledge">
-						<span class="knowledge"></span>
-					</li>
-				</ul>
-			</li>
-		</ul>
 	</div>
 
 	<script src="../js/jquery.js"></script>
@@ -82,56 +73,35 @@
 					{
 						name:'Hughes', 
 						twitter:'hugheswaroquier',
-						knowledge:['erlang', 'js', 'css']
+						knowledges:['erlang', 'js', 'css']
 					},{
 						name:'Yves', 
 						twitter:'yveshiernaux',
-						knowledge:['js', 'css', 'buzz']
+						knowledges:['js', 'css', 'buzz']
 					}
 				], 
-				who:'Mic'
+				who:'Mic',
+				who2:'Mac'
 			};
 			
 			directive = {
-				'span.who': 'who'};/*,
-				'li.friends':{
+				'span.who': 'who',
+				'li.friends':
+				{
 					'friends <- friends':
-						{
-							'a':'friends.name',
-							'a[href]+':'friends.twitter',
-							'a[title]':'View twitter account of #{friends.name}',
-							'a[onclick]':'alert(#{friends.name});',
-							'li.knowledges':{
-								'knowledges<-friends.knowledges':{
-									'span.knowledges':'#{knowledges}: #{friends.name}'
-								}
-							}
-						}
+					{
+						'a':'friends.name',
+						'a[href]+':'friends.twitter',
+						'a[title]':'View twitter account of #{friends.name}',
+						'a[onclick]':'alert(#{friends.name});'
+					}
 				}
-			};*/
-			directive1 = {
-				'$1$': 'who',
-				'$2$':{
-					'friends <- friends':
-						{
-							'$3$':'friends.name',
-							'$3$[href]+':'friends.twitter',
-							'$3$[title]':'View twitter account of #{friends.name}',
-							'$3$[onclick]':'alert(#{friends.name});',
-							'$4$':{
-								'knowledge<-friends.knowledges':{
-									'$5$':'#{knowledge}: #{friends.name}'
-								}
-							}
-						}
-				}
-				//,'li a[title]':'View twitter account of #{friends.name}'
 			};
 
-
-			var n = $('div.ar1');
-			var elem = jQuery.pureCompile(n.get(0), false, data);
-			$('div.e1').get(0).innerHTML = elem;
+			//autoRendering (overwritten with a simple directive)
+			var n = $('div.e1').get(0);
+			var rfn = jQuery.pureCompile(n, {'.who':'who2'}, data);
+			n.innerHTML = rfn(data);
 			
 			var data = {
 				teams: [{
@@ -204,7 +174,7 @@
 					'child <- children': {
 						'a': 'child.name',
 						'a[onclick]':'alert(\'#{child.name}\');',
-						'html | =div.children': function(ctxt){
+						'div.children': function(ctxt){
 							if(ctxt.child.item.children){
 								return rfn(ctxt.child.item)
 							} else {
@@ -217,24 +187,6 @@
 			var rfn = jQuery.pureCompile($('ul.treeItem').get(0), directive);
 			var h = rfn(countries);
 			$('ul.treeItem').get(0).innerHTML = h;
-	
-/*			var hello = {
-				who:[
-					{name:'Mary'},
-					{name:'Harry'}
-				]
-			};
-			var dir = {
-				'.who':{
-					'person<-who':{
-						'root':'person.name'
-					}
-				}
-			};
-
-			var template = $('ul.helloWho').get(0);
-			var rfn = jQuery.pureCompile(template, false, hello);
-			$('div.helloWho').get(0).innerHTML = rfn(hello);*/
 			
 		})();
 	</script>
