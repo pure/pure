@@ -1,5 +1,19 @@
-/*global $p, alert, console */
+/* * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    PURE Unobtrusive Rendering Engine for HTML
+
+    Licensed under the MIT licenses.
+    More information at: http://www.opensource.org
+
+    Copyright (c) 2008 Michael Cvilic - BeeBole.com
+
+	Thanks to Rog Peppe for the functional JS jump
+    revision: 2.00
+
+* * * * * * * * * * * * * * * * * * * * * * * * * */
+
 var $p = {};
+/*global $p, alert, console */
 (function(pure){
 	var error = function(e){
 		alert(e);
@@ -359,12 +373,6 @@ var $p = {};
 		return concatenator(parts, pfns);
 	};
 
-	pure.compile = function(template, directive, ctxt){
-		var rfn = render0(template.cloneNode(true), directive, ctxt);
-		return function(data){
-			return rfn({data: data});
-		};
-	};
 	pure.config = function(cfg){
 		if(cfg){
 			config = cfg;
@@ -372,13 +380,21 @@ var $p = {};
 		return config;
 	};
 
-	pure.render = function(template, directive, data){
-		var rfn = pure.compile(template, directive);
-		return rfn(data);
+	pure.compile = function(template, directive, ctxt){
+		var rfn = render0(template.cloneNode(true), directive, ctxt);
+		return function(data){
+			return rfn({data: data});
+		};
 	};
-	pure.autoRender = function(template, directive, data){
-		var rfn = pure.compile(template, directive, data);
-		return rfn(data);
+
+	pure.render = function(template, ctxt, directive){
+		var rfn = pure.compile(template, false, directive);
+		return rfn(ctxt);
+	};
+
+	pure.autoRender = function(template, ctxt, directive){
+		var rfn = pure.compile(template, directive, ctxt);
+		return rfn(ctxt);
 	};
 
 }($p));

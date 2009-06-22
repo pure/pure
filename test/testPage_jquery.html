@@ -3,12 +3,18 @@
 </head>
 <body>
 
+	<h2>Hello Who?</h2>
+
+	<div class="hello">
+		Hello <span class="who"></span>
+	</div>
+
 	<h2>Auto Rendering</h2>
 
-	<div class="e1">
+	<div class="friends">
 		The friends of <span class="who"></span> are
 		<ul>
-			<li class="friends">
+			<li class="friend">
 				<a class="name twitter@href+" href="http://twitter.com/"></a>
 			</li>
 		</ul>
@@ -57,140 +63,7 @@
 
 	<script src="../js/jquery.js"></script>
 	<script src="../js/pure2.js"></script>
-
-	<script>
-		(function(){
-			//set jquery find
-			jQuery.extend({pureCompile:$p.compile, pureRender:$p.render, pureConfig:$p.config, autoRender:$p.autoRender});
-			jQuery.pureConfig(
-				{find:function(n, sel){
-					return $(n).find(sel);
-				}
-			});
-
-			var data = {
-				friends:[
-					{
-						name:'Hughes', 
-						twitter:'hugheswaroquier',
-						knowledges:['erlang', 'js', 'css']
-					},{
-						name:'Yves', 
-						twitter:'yveshiernaux',
-						knowledges:['js', 'css', 'buzz']
-					}
-				], 
-				who:'Mic',
-				who2:'Mac'
-			};
-			
-			directive = {
-				'span.who': 'who',
-				'li.friends':
-				{
-					'friends <- friends':
-					{
-						'a':'friends.name',
-						'a[href]+':'friends.twitter',
-						'a[title]':'View twitter account of #{friends.name}',
-						'a[onclick]':'alert(#{friends.name});'
-					}
-				}
-			};
-
-			//autoRendering (overwritten with a simple directive)
-			var n = $('div.e1').get(0);
-			var rfn = jQuery.pureCompile(n, {'.who':'who2'}, data);
-			n.innerHTML = rfn(data);
-			
-			var data = {
-				teams: [{
-					name: 'Cats',
-					players: [	
-						{first: 'Alice', last: 'Kea\'sler', score: [16, 15, 99, 100]}, 
-						{first: '', name: '', score: 0},
-						{first: 'Vicky', last: 'Benoit', score: [3, 5]}, 
-						{first: 'Wayne', last: 'Dartt', score: [9, 10]}]}, {
-		
-					name: 'Dogs',
-					players: [
-						{first: 'Ray', last: 'Braun', score: 14}, 
-						{first: 'Aaron', last: 'Ben', score: 24}, 
-						{first: 'Steven', last: 'Smith', score: 1}, 
-						{first: 'Kim', last: 'Caffey', score: 19}]}, {
-		
-					name: 'Mice',
-					players: [
-						{first: 'Natalie', last: 'Kinney', score: 16}, 
-						{first: 'Caren', last: 'Cohen', score: 3}]}]}
-			directive = {
-				'table.scoreBoard > tbody > tr': {
-					'team <- teams': {
-						'td.teamName' : 'team.name',
-						'table.teamList > tbody > tr': {
-							'player <- team.players': {
-								'td.player': '#{player.first} (#{player.last})',
-								'td.score': '#{player.score}',
-								'td.position': function(arg){return arg.pos + 1},
-								'root[class]+':
-									function(arg){
-										return (arg.player.pos % 2 == 1) ? ' odd' : ' even'
-									}
-							}
-						}
-					}
-				}
-			}
-
-			var n = $('div.scoreBoard');
-			var elem = jQuery.pureCompile(n.get(0), directive)(data);
-			$('div.scoreBoard').get(0).innerHTML = elem;
-
-			var countries = {
-				children: [{
-					name: 'Europe',
-					children: [{
-						name: 'Belgium',
-						children: [{
-							name: 'Brussels'},{
-							name: 'Namur'},{
-							name: 'Antwerpen'}]},{
-						name: 'Germany'},{
-						name: 'UK'}]},{
-					name: 'America',
-					children: [{
-						name: 'US',
-						children: [{
-							name: 'Alabama'},{
-							name: 'Georgia'}]},{
-						name: 'Canada'},{
-						name: 'Argentina'}]},{
-					name: 'Asia'},{
-					name: 'Africa'},{
-					name: 'Antarctica'}]}
-
-			var directive = {
-				'li': {
-					'child <- children': {
-						'a': 'child.name',
-						'a[onclick]':'alert(\'#{child.name}\');',
-						'div.children': function(ctxt){
-							if(ctxt.child.item.children){
-								return rfn(ctxt.child.item)
-							} else {
-								return '';
-							}
-						}
-					}
-				}
-			}
-			var rfn = jQuery.pureCompile($('ul.treeItem').get(0), directive);
-			var h = rfn(countries);
-			$('ul.treeItem').get(0).innerHTML = h;
-			
-		})();
-	</script>
-
+	<script src="testCode_jquery.js"></script>
 
 </body>
 </html>
