@@ -87,7 +87,10 @@
 					'player <- team.players': {
 						'td.player': '#{player.first} (#{player.last})',
 						'td.score': '#{player.score}',
-						'td.position': function(arg){return arg.pos + 1;},
+						'td.position': 
+							function(arg){
+								return arg.pos + 1;
+							},
 						'root[class]+':
 							function(arg){
 								return (arg.player.pos % 2 == 1) ? ' odd' : ' even';
@@ -133,11 +136,7 @@
 				'a': 'child.name',
 				'a[onclick]':'alert(\'#{child.name}\');',
 				'div.children': function(ctxt){
-					if(ctxt.child.item.children){
-						return countries(ctxt.child.item);
-					} else {
-						return '';
-					}
+					return ctxt.child.item.children ? countries(ctxt.child.item):'';
 				}
 			}
 		}
