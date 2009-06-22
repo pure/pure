@@ -5,10 +5,10 @@
     Licensed under the MIT licenses.
     More information at: http://www.opensource.org
 
-    Copyright (c) 2008 Michael Cvilic - BeeBole.com
+    Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-    revision: 2.00
+    revision: 2.01
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -24,7 +24,15 @@ var $p = {};
 	var config = {
 		//default to browser internal selector
 		find: function(n, sel){
-			return (n||document).querySelector( sel );
+			if(typeof n === 'string'){
+				sel = n;
+				n = false;
+			}
+			if(typeof document.querySelectorAll !== 'undefined'){
+				return (n||document).querySelectorAll( sel );
+			}else{
+				error('No selector engine available. Check out the documentation on how to use the config method');
+			}
 		}
 	};
 	//if IE take the internal method otherwise build one
@@ -120,7 +128,7 @@ var $p = {};
 		var osel, prepend, selector, attr, append, target = [];
 		if(typeof sel === 'string'){
 			osel = sel;
-			// e.g. "html | +tr.foo[class]"
+			// e.g. "+tr.foo[class]"
 			var m = sel.match(/^\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
 			if(!m){
 				error('bad selector: ' + sel);
@@ -257,7 +265,7 @@ var $p = {};
 			var node = nodes[i];
 			// could check for overlapping loop targets here by checking that
 			// root is still ancestor of node.
-			var inner = render0(node, dsel);
+			var inner = render(node, dsel);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
@@ -284,6 +292,7 @@ var $p = {};
 			}
 		}
 		return an;
+		
 		function checkClass(c){
 			var ca = c.match(/^(\+)?([^\@]+)\@?(\w+)?(\+)?$/),
 				cspec = {prepend:!!ca[1], prop:ca[2], attr:ca[3], append:!!ca[4], sel:c},
@@ -316,10 +325,10 @@ var $p = {};
 			return cspec;
 		}
 	}
-	// render0 returns a function that, given a context argument,
+	// render returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	// NB. declared above.
-	var render0 = function(dom, directive, data, ans){
+	var render = function(dom, directive, data, ans){
 		var fns = [];
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
@@ -338,9 +347,9 @@ var $p = {};
 					var nodes = target.nodes;
 					for(j = 0, jj = nodes.length; j < jj; j++){
 						var node = nodes[j];
-						var inner = render0(node, false, data, ans);
+						var inner = render(node, false, data, ans);
 						fns[fns.length] = wrapquote(target.quotefn, loopfn(cspec.sel, itersel, inner));
-						target.nodes = [node];		// N.B. side effect on target.
+						target.nodes = [node];
 						setsig(target, fns.length - 1);
 					}
 				}
@@ -381,14 +390,14 @@ var $p = {};
 	};
 
 	pure.compile = function(template, directive, ctxt){
-		var rfn = render0(template.cloneNode(true), directive, ctxt);
+		var rfn = render(template.cloneNode(true), directive, ctxt);
 		return function(data){
 			return rfn({data: data});
 		};
 	};
 
 	pure.render = function(template, ctxt, directive){
-		var rfn = pure.compile(template, false, directive);
+		var rfn = pure.compile(template, directive);
 		return rfn(ctxt);
 	};
 
