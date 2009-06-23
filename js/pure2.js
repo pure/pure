@@ -8,43 +8,56 @@
     Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-    revision: 2.01
+    revision: 2.02
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-var $p = {};
-/*global $p, alert, console */
-(function(pure){
+var $p = pure = function(){
+	var sel = arguments[0], 
+		ctxt = false;
+
+	if(typeof sel === 'string'){
+		ctxt = arguments[1]||false;
+	}
+  return new $p.core(sel, ctxt, $p.plugins);
+};
+
+$p.core = function(sel, ctxt, plugins){
+	if(typeof sel === 'string'){
+		var template, 
+			templateNodes = plugins.find(ctxt || document, sel);
+		if(templateNodes.length > 1){
+			error('Multiple nodes were selected as a template, insure the selection of the template root is unique');
+		}else{
+			template = templateNodes[0];
+		}
+	}else if(typeof sel === 'object'){
+		template = sel;
+	}
+
+	// error utility
 	var error = function(e){
 		alert(e);
 		console.log(e);
 		debugger;
 		throw('pure error: ' + e);
 	};
-	var config = {
-		//default to browser internal selector
-		find: function(n, sel){
-			if(typeof n === 'string'){
-				sel = n;
-				n = false;
-			}
-			if(typeof document.querySelectorAll !== 'undefined'){
-				return (n||document).querySelectorAll( sel );
-			}else{
-				error('No selector engine available. Check out the documentation on how to use the config method');
-			}
-		}
-	};
-	//if IE take the internal method otherwise build one
+
+	// returns the outer HTML of a node
 	var outerHTML = function(node){
+		// if IE take the internal method otherwise build one
 		return node.outerHTML || (function(node){
         	var div = document.createElement('div');
 	        div.appendChild(node.cloneNode(true));
 	        return div.innerHTML;})(node);
 	};
+
+	// check if the argument is an array
 	var isArray = function(o){
 		return Object.prototype.toString.call( o ) === "[object Array]";
 	};
+	
+	// returns the string generator function
 	var wrapquote = function(qfn, f){
 		return function(ctxt){
 			return qfn('' + f(ctxt));
@@ -69,6 +82,7 @@ var $p = {};
 		};
 	};
 
+	// parse and check the loop directive
 	var parseloopspec = function(p){
 		var m = p.match(/^(\w+)\s*<-\s*(\S+)$/);
 		if(m === null){
@@ -124,6 +138,7 @@ var $p = {};
 		};
 	};
 
+	// wrap in an object the target node/attr and their properties
 	var gettarget = function(dom, sel, isloop){
 		var osel, prepend, selector, attr, append, target = [];
 		if(typeof sel === 'string'){
@@ -140,7 +155,7 @@ var $p = {};
 			if(selector === 'root'){
 				target[0] = dom;
 			}else{
-				target = config.find(dom, selector);
+				target = plugins.find(dom, selector);
 			}
 			if(!target || target.length === 0){
 				return {attr: null, nodes: target, set: null, sel: osel};
@@ -208,6 +223,7 @@ var $p = {};
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
 	};
 
+	// set the signature string that will be replaced at render time
 	var Sig = 'r'+Math.floor(Math.random()*1000000)+'S';
 	var setsig = function(target, n){
 		var sig = Sig + n + ':';
@@ -217,6 +233,7 @@ var $p = {};
 		}
 	};
 
+	// read de loop data, and pass it to the inner rendering function
 	var loopfn = function(name, dselect, inner){
 		return function(ctxt){
 			var a = dselect(ctxt);
@@ -235,6 +252,7 @@ var $p = {};
 		};
 	};
 
+	// generate the template for a loop node
 	var loopgen = function(dom, sel, loop, fns){
 		var already = false;
 		var p;
@@ -265,7 +283,7 @@ var $p = {};
 			var node = nodes[i];
 			// could check for overlapping loop targets here by checking that
 			// root is still ancestor of node.
-			var inner = render(node, dsel);
+			var inner = compiler(node, dsel);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
@@ -325,10 +343,10 @@ var $p = {};
 			return cspec;
 		}
 	}
+
 	// render returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
-	// NB. declared above.
-	var render = function(dom, directive, data, ans){
+	var compiler = function(dom, directive, data, ans){
 		var fns = [];
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
@@ -347,7 +365,7 @@ var $p = {};
 					var nodes = target.nodes;
 					for(j = 0, jj = nodes.length; j < jj; j++){
 						var node = nodes[j];
-						var inner = render(node, false, data, ans);
+						var inner = compiler(node, false, data, ans);
 						fns[fns.length] = wrapquote(target.quotefn, loopfn(cspec.sel, itersel, inner));
 						target.nodes = [node];
 						setsig(target, fns.length - 1);
@@ -381,29 +399,68 @@ var $p = {};
 		}
 		return concatenator(parts, pfns);
 	};
+	
+	// add the compiler and template to the plugins to make them available there
+	plugins._compiler = compiler;
+	plugins._template = template;
+	return plugins;
+};
 
-	pure.config = function(cfg){
-		if(cfg){
-			config = cfg;
-		}
-		return config;
-	};
-
-	pure.compile = function(template, directive, ctxt){
-		var rfn = render(template.cloneNode(true), directive, ctxt);
+$p.plugins = {
+	// compile the template with directives
+	// if a context is passed, the autoRendering is triggered automatically
+	// return a function waiting the data as argument
+	compile: function(directive, ctxt){
+		var rfn = this._compiler(this._template.cloneNode(true), directive, ctxt);
 		return function(data){
 			return rfn({data: data});
 		};
-	};
+	},
 
-	pure.render = function(template, ctxt, directive){
-		var rfn = pure.compile(template, directive);
-		return rfn(ctxt);
-	};
+	//compile with the directives as argument
+	// run the template function on the context argument
+	// return an HTML string 
+	// should replace the template and return this
+	render: function(ctxt, directive){
+		return this.replaceWith(this._template, this.compile(directive)(ctxt));
+	},
 
-	pure.autoRender = function(template, ctxt, directive){
-		var rfn = pure.compile(template, directive, ctxt);
-		return rfn(ctxt);
-	};
-
-}($p));
+	// compile the template with autoRender
+	// run the template function on the context argument
+	// return an HTML string 
+	autoRender: function(ctxt, directive){
+		return this.replaceWith(this._template, this.compile(directive, ctxt)(ctxt));
+	},
+	replaceWith:function(elm, html){
+		var ne = elm.cloneNode(false),
+			sn = html.match(/^[^\>]+\>/)[0],
+			en = html.match(/\<[^\>]+\>$/)[0],
+			inner = html.substring(sn.length, html.length-en.length);
+		elm.parentNode.insertBefore(ne, elm);
+		ne.innerHTML = inner;
+		var att,
+			start = sn.match(/^\<[^\s]+\s+/)[0].length;
+		sn = sn.substr(start, sn.length-1);
+		var	atts = sn.split(/\"\s+/);
+		for(var i = 0, ii = atts.length; i < ii; i++){
+			att = atts[i].match(/\s?([^\=]+)\=\"([^\"]+)/);
+			ne.setAttribute(att[1], att[2]);
+		}
+		elm.parentNode.removeChild(elm);
+		this._template = ne;
+		ne = null;
+		return this;
+	},
+	// default find using querySelector when available on the browser
+	find:function(n, sel){
+		if(typeof n === 'string'){
+			sel = n;
+			n = false;
+		}
+		if(typeof document.querySelectorAll !== 'undefined'){
+			return (n||document).querySelectorAll( sel );
+		}else{
+			error('No native selector engine available in your browser. To run PURE you need a JS library with a selector engine.');
+		}
+	}	
+};

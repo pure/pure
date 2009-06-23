@@ -1,0 +1,192 @@
+<html>
+<head>
+	<script>
+		function run(lib){
+			document.getElementById('chooseLib').style.visibility = 'hidden';
+			loadScript('../js/'+lib+'.js', 'with'+lib+'.js');
+			function loadScript(){
+				for(var i=0,ii=arguments.length;i<ii;i++){
+					var s = document.createElement("script");
+					s.charset = "UTF-8";
+					s.src = arguments[i];
+					document.body.appendChild(s);				
+				}
+			}
+		}
+	</script>
+</head>
+<body>
+
+	<div id="chooseLib">
+		Choose a library to run the examples:
+		<input class="lib" type="button" onclick="run('jQuery');" value="jQuery" />
+		<input class="lib" type="button" onclick="run('mootools');" value="mootools" />
+		<input class="lib" type="button" onclick="run('sizzle');" value="sizzle" />
+		<input class="lib" type="button" onclick="run('Sly');" value="Sly" />
+	</div>
+
+	<h2>Hello Who?</h2>
+
+	<div class="hello">
+		Hello <span class="who"></span>
+	</div>
+
+	<h2>Auto Rendering</h2>
+
+	<div class="friends">
+		The friends of <span class="who"></span> are
+		<ul>
+			<li class="friend">
+				<a class="name twitter@href+" href="http://twitter.com/"></a>
+			</li>
+		</ul>
+	</div>
+
+	<h2>Nested table</h2>
+
+	<div class="scoreBoard">			
+	  <table class="scoreBoard">
+	    <tbody>
+	      <tr>
+	        <td class="teamName">Team Name</td>
+	        <td class="teamPlace">
+	          <table class="teamList">
+	            <thead>
+	              <tr>
+	                <th class="position">Position</th>
+	                <th class="player">Player</th>
+	                <th class="score">Score</th>
+	              </tr>
+	            </thead>
+	            <tbody>
+	              <tr class="foo">
+	                <td class="position">1</td>
+	                <td class="player">Chloe</td>
+	                <td class="score">3</td>
+	              </tr>
+	            </tbody>
+	          </table>
+	        </td>
+	      </tr>
+	    </tbody>
+	  </table>
+	</div>
+	
+	<h2>Recursion</h2>
+
+	<div class="htmlDoc">
+	    <ul class="treeItem">
+	        <li>
+	          <a class="name" href="#">name</a>
+	          <div class="children"></div>
+	        </li>
+	    </ul>
+	</div>
+
+	<script src="../js/pure2.js"></script>
+
+	<script>
+
+		// data & directives for the examples
+		
+		var data1 = { who:'Wrrrld' };
+
+		var data2 = {
+			friend:[
+				{
+					name:'Hughes', 
+					twitter:'hugheswaroquier',
+					knowledges:['erlang', 'js', 'css']
+				},{
+					name:'Yves', 
+					twitter:'yveshiernaux',
+					knowledges:['js', 'css', 'buzz']
+				}
+			], 
+			who:'Mic',
+			who2:'Mac'
+		};
+
+		var data3 = {
+			teams: [{
+				name: 'Cats',
+				players: [	
+					{first: 'Alice', last: 'Kea\'sler', score: [16, 15, 99, 100]}, 
+					{first: '', name: '', score: 0},
+					{first: 'Vicky', last: 'Benoit', score: [3, 5]}, 
+					{first: 'Wayne', last: 'Dartt', score: [9, 10]}]}, {
+
+				name: 'Dogs',
+				players: [
+					{first: 'Ray', last: 'Braun', score: 14}, 
+					{first: 'Aaron', last: 'Ben', score: 24}, 
+					{first: 'Steven', last: 'Smith', score: 1}, 
+					{first: 'Kim', last: 'Caffey', score: 19}]}, {
+
+				name: 'Mice',
+				players: [
+					{first: 'Natalie', last: 'Kinney', score: 16}, 
+					{first: 'Caren', last: 'Cohen', score: 3}]}]};
+
+		var directive3 = {
+			'table.scoreBoard > tbody > tr': {
+				'team <- teams': {
+					'td.teamName' : 'team.name',
+					'table.teamList > tbody > tr': {
+						'player <- team.players': {
+							'td.player': '#{player.first} (#{player.last})',
+							'td.score': '#{player.score}',
+							'td.position': 
+								function(arg){
+									return arg.pos + 1;
+								},
+							'root[class]+':
+								function(arg){
+									return (arg.player.pos % 2 == 1) ? ' odd' : ' even';
+								}
+						}
+					}
+				}
+			}
+		};
+
+		var data4 = {
+			children: [{
+				name: 'Europe',
+				children: [{
+					name: 'Belgium',
+					children: [{
+						name: 'Brussels'},{
+						name: 'Namur'},{
+						name: 'Antwerpen'}]},{
+					name: 'Germany'},{
+					name: 'UK'}]},{
+				name: 'America',
+				children: [{
+					name: 'US',
+					children: [{
+						name: 'Alabama'},{
+						name: 'Georgia'}]},{
+					name: 'Canada'},{
+					name: 'Argentina'}]},{
+				name: 'Asia'},{
+				name: 'Africa'},{
+				name: 'Antarctica'}
+			]
+		};
+
+		var directive4 = {
+			'li': {
+				'child <- children': {
+					'a': 'child.name',
+					'a[onclick]':'alert(\'#{child.name}\');',
+					'div.children': function(ctxt){
+						return ctxt.child.item.children ? countries(ctxt.child.item):'';
+					}
+				}
+			}
+		};
+	</script>
+
+</body>
+</html>
