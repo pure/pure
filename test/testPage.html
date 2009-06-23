@@ -2,7 +2,7 @@
 <head>
 	<script>
 		function run(lib){
-			document.getElementById('chooseLib').style.visibility = 'hidden';
+			document.getElementById('chooseLib').innerHTML = 'Running ' + lib;
 			loadScript('../js/'+lib+'.js', 'with'+lib+'.js');
 			function loadScript(){
 				for(var i=0,ii=arguments.length;i<ii;i++){
@@ -17,7 +17,7 @@
 </head>
 <body>
 
-	<div id="chooseLib">
+	<div id="chooseLib" style="height:2em">
 		Choose a library to run the examples:
 		<input class="lib" type="button" onclick="run('jQuery');" value="jQuery" />
 		<input class="lib" type="button" onclick="run('mootools');" value="mootools" />
