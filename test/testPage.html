@@ -3,13 +3,23 @@
 	<script>
 		function run(lib){
 			document.getElementById('chooseLib').innerHTML = 'Running ' + lib;
-			loadScript('../js/'+lib+'.js', 'with'+lib+'.js');
-			function loadScript(){
-				for(var i=0,ii=arguments.length;i<ii;i++){
-					var s = document.createElement("script");
+			loadScript(['../js/'+lib+'.js', 'with'+lib+'.js']);
+			function loadScript(srcs){
+				if(srcs.length > 0){
+					var src = srcs.shift(),
+						s = document.createElement("script");
 					s.charset = "UTF-8";
-					s.src = arguments[i];
-					document.body.appendChild(s);				
+					s.src = src;
+					document.body.appendChild(s);	
+					if(typeof s.onreadystatechange === 'function'){
+						s.onreadystatechange = function(){
+							loadScript(srcs);
+						};
+					}else{
+						s.onload = function(){
+							loadScript(srcs);
+						};
+					}
 				}
 			}
 		}
