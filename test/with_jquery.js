@@ -47,11 +47,11 @@ function runLib(ex, debug){
 		break;
 		case 'ex07':
 			/* Recursion */
-			var n = $(ex.template);
-			var countries = n.compile(ex.directive);
-			$(ex.target).get(0).innerHTML = countries(ex.data);
+			countries = $(ex.template).compile( ex.directive );
+			$( ex.template )[0].parentNode.innerHTML = countries( ex.data );
 		break;
 		default:
 			alert('Example ' + ex.id + ' does not exist');
 	}
 }
+var countries;

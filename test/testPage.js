@@ -1,6 +1,6 @@
 function loadLib(lib){
-	document.getElementById('chooseLib').innerHTML += ' Loading' + lib;
-	loadScript(['../libs/'+lib+'.js', 'with'+lib+'.js']);
+	document.getElementById( 'chooseLib' ).innerHTML += ' Loading... ' + lib;
+	loadScript([ '../libs/' + lib + '.js', 'with_' + lib + '.js' ]);
 	var cnt = 0;
 	function loadScript(srcs){
 		if(srcs.length > 0){
@@ -20,9 +20,9 @@ function loadLib(lib){
 		}
 	}
 	function done(){
-		document.getElementById('chooseLib').innerHTML = lib + ' loaded. You can now run the examples below.';
-		document.getElementById('examples').style.display = 'block';
-		var lis = $p('ul.exampleList li'),
+		document.getElementById( 'chooseLib' ).innerHTML = lib + ' loaded. You can now run the examples below.';
+		document.getElementById( 'examples' ).style.display = 'block';
+		var lis = $p( 'ul.exampleList li' ),
 			lii,
 			cn,
 			span;
@@ -35,7 +35,7 @@ function loadLib(lib){
 			var h = $p('h3', lii);
 			if(h[0]){
 				h = h[0];
-				span = document.createElement('SPAN');
+				span = document.createElement( 'SPAN' );
 				h.parentNode.insertBefore(span, h.nextSibling);
 				var cn = lis[i].className;
 				window[cn].id = cn;

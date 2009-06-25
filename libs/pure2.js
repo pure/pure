@@ -46,8 +46,11 @@ $p.core = function(sel, ctxt, plugins){
 	plugins._error = error;
 
 	// set the signature string that will be replaced at render time
-	var Sig = 'r' + Math.floor( Math.random() * 1000000 ) + 'S';
-
+	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_';
+	
+	// keep the json data root
+	var json;
+	
 	return plugins;
 
 	/*
@@ -197,17 +200,19 @@ $p.core = function(sel, ctxt, plugins){
 	// wrap in an object the target node/attr and their properties
 	function gettarget(dom, sel, isloop){
 		var osel, prepend, selector, attr, append, target = [];
-		if(typeof sel === 'string'){
+		if( typeof sel === 'string' ){
 			osel = sel;
 			// e.g. "+tr.foo[class]"
 			var m = sel.match(/^\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
-			if(!m){
-				error('bad selector: ' + sel);
+			if( !m ){
+				error( 'bad selector: ' + sel );
 			}
-			var prepend = m[1],
-				selector = m[2],
-				attr = m[6],
-				append = m[7];
+			
+			prepend = m[1];
+			selector = m[2];
+			attr = m[6];
+			append = m[7];
+			
 			if(selector === '.' || ( selector === '' && typeof attr !== 'undefined' ) ){
 				target[0] = dom;
 			}else{
@@ -217,35 +222,46 @@ $p.core = function(sel, ctxt, plugins){
 				return {attr: null, nodes: target, set: null, sel: osel};
 			}
 		}else{
+			// autoRender node
 			prepend = sel.prepend;
 			attr = sel.attr;
 			append = sel.append;
 			target = [dom];
 		}
-		var mode = (attr || isloop) ? 'self' : 'contents';
-		if(prepend || append){
-			if(prepend && append){
-				error('conflicting append/prepend/replace modifiers');
-			}
-			if(isloop){
+		
+		if( prepend || append ){
+			if( prepend && append ){
+				error('append/prepend cannot take place at the same time');
+			}else if( isloop ){
 				error('no append/prepend/replace modifiers allowed for loop target');
-			}
-			var c = prepend || append;
-			mode = c === '=' ? 'self' : (append ? 'append' : 'prepend');
-			if(mode === 'append' && isloop){
+			}else if( append && isloop ){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
 		// we need 'root' selector because CSS search never finds the root element.
 		var setstr, getstr, quotefn;
 		if(attr){
-			getstr = function(node){return node.getAttribute(attr);};
-			setstr = function(node, s){node.setAttribute(attr, s);};
+			getstr = function(node){ 
+				if((/^style$/i).test(attr)){
+					var css = node.style.cssText;
+					node.removeAttribute( 'style' );
+					return css;
+				}else{
+					return node.getAttribute(attr); 					
+				}
+			};
+			setstr = function(node, s){
+				if((/^style$/i).test(attr)){
+					node.setAttribute( attr + Math.floor( Math.random() * 100000 ), s );
+				}else{
+					node.setAttribute(attr, s);
+				};
+			};
 			quotefn = function(s){
 				return s.replace(/\"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 			};
 		}else{
-			if(mode === 'self'){
+			if(isloop){
 				setstr = function(node, s){
 					// we can have a null parent node
 					// if we get overlapping targets.
@@ -258,23 +274,18 @@ $p.core = function(sel, ctxt, plugins){
 					}
 				};
 			}else{
-				getstr = function(node){return node.innerHTML;};
-				setstr = function(node, s){node.innerHTML = s;};
+				getstr = function(node){ return node.innerHTML; };
+				setstr = function(node, s){ node.innerHTML = s; };
 			}
-			quotefn = function(s){return s;};
+			quotefn = function(s){ return s; };
 		}
 		var setfn;
-		switch(mode){
-		case 'prepend':
-			setfn = function(node, s){setstr(node, s + getstr(node));};
-			break;
-		case 'self':
-		case 'contents':
-			setfn = function(node, s){setstr(node, s);};
-			break;
-		case 'append':
-			setfn = function(node, s){setstr(node, getstr(node) + s);};
-			break;
+		if(prepend){
+			setfn = function(node, s){ setstr( node, s + getstr( node ) );};
+		}else if(append){
+			setfn = function(node, s){ setstr( node, getstr( node ) + s );};
+		}else{
+			setfn = function(node, s){ setstr( node, s );};
 		}
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
 	}
@@ -283,26 +294,28 @@ $p.core = function(sel, ctxt, plugins){
 		var sig = Sig + n + ':';
 		for(var i = 0; i < target.nodes.length; i++){
 			// could check for overlapping targets here.
-			target.set(target.nodes[i], sig);
+			target.set( target.nodes[i], sig );
 		}
 	}
 
 	// read de loop data, and pass it to the inner rendering function
 	function loopfn(name, dselect, inner){
 		return function(ctxt){
-			var a = dselect(ctxt);
-			var oldvctxt = ctxt[name];
-			var vctxt = {items: a};
-			ctxt[name] = vctxt;
-			var n = (a && a.length) || 0;
-			var strs = [];
+			var a = dselect(ctxt),
+				n = (a && a.length) || 0,
+				loopCtxt={ json:ctxt.json },
+				strs = [];
+			loopCtxt[name] = { items:a };
+
 			for(var i = 0; i < n; i++){
-				ctxt.pos = vctxt.pos = i;
-				ctxt.item = vctxt.item = a[i];
-				strs.push(inner(ctxt));
+				loopCtxt.data = ctxt.data;
+				loopCtxt.pos = loopCtxt[ name ].pos = i;
+				loopCtxt.item = loopCtxt[ name ].item = a[ i ];
+				strs.push( inner( loopCtxt ) );
 			}
-			ctxt[name] = oldvctxt;
+
 			return strs.join('');
+
 		};
 	}
 
@@ -406,7 +419,7 @@ $p.core = function(sel, ctxt, plugins){
 		var fns = [];
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
-			var j, jj, cspec, n;
+			var j, jj, cspec, n, target, nodes, itersel, node, inner;
 			while(ans.length > 0){
 				cspec = ans[0].cspec;
 				n = ans[0].n;
@@ -416,12 +429,12 @@ $p.core = function(sel, ctxt, plugins){
 					setsig(target, fns.length);
 					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(cspec.prop));
 				}else{
-					var itersel = dataselectfn(cspec.sel);
-					var target = gettarget(n, cspec, true);
-					var nodes = target.nodes;
+					itersel = dataselectfn(cspec.sel);
+					target = gettarget(n, cspec, true);
+					nodes = target.nodes;
 					for(j = 0, jj = nodes.length; j < jj; j++){
-						var node = nodes[j];
-						var inner = compiler(node, false, data, ans);
+						node = nodes[j];
+						inner = compiler(node, false, data, ans);
 						fns[fns.length] = wrapquote(target.quotefn, loopfn(cspec.sel, itersel, inner));
 						target.nodes = [node];
 						setsig(target, fns.length - 1);
@@ -444,14 +457,21 @@ $p.core = function(sel, ctxt, plugins){
 			}
 		}
 		
-		var h = outerHTML(dom);
-		var parts = h.split(Sig);
-		var pfns = [];
+		var h = outerHTML( dom ),
+			checkStyle = new RegExp( 'style[0-9]+="?' + Sig ),
+			pfns = [];
+
+		// style attribute cannot be set using setAttribute
+		if( checkStyle.test( h ) ){
+			h = h.replace( checkStyle, 'style="' + Sig );
+		}
+
+		var parts = h.split( Sig ), p;
 		for(var i = 1; i < parts.length; i++){
-			var p = parts[i];
+			p = parts[i];
 			// part is of the form "fn-number:..." as placed there by setsig.
 			pfns[i] = fns[parseInt(p, 10)];
-			parts[i] = p.slice(p.indexOf(':') + 1, p.length);
+			parts[i] = p.substring(p.indexOf(':')+1);
 		}
 		return concatenator(parts, pfns);
 	}
@@ -463,8 +483,10 @@ $p.plugins = {
 	// return a function waiting the data as argument
 	compile:function(directive, ctxt, template){
 		var rfn = this._compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
+		var json;
 		return function(data){
-			return rfn({data: data});
+			json = json || data;
+			return rfn({data: data, json:json});
 		};
 	},
 	//compile with the directive as argument

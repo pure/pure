@@ -4,15 +4,16 @@
 		<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 		<title>PURE Unobtrusive Rendering Engine for HTML - Version 2</title>
 		<style>
-			.exampleList{padding:0;list-style-type:none;}
+			.exampleList{padding:0; list-style-type:none;}
 
-			h3{margin:1em 0 0;float:left;}
+			h3{margin:1em 0 .3em;float:left;}
 			a{color:#369;text-decoration:none;}
 			a:hover{background:#369;color:#FFF;}
 
 			.run, .debug{ display:block; float:left;margin:1.3em 0 0 .5em;padding:0 .5em;}
 
 			.template{clear:both;padding:1em;background:#DEF;margin:0 0  0 1em;}
+			
 			#examples{display:none;}
 		</style>
 		<script src="../libs/pure2.js"></script>
@@ -22,9 +23,11 @@
 
 		<div id="chooseLib" style="height:2em">
 			Choose a library to run the examples:
+			<input class="lib" type="button" onclick="loadLib('domassistant');" value="DomAssistant" />
 			<input class="lib" type="button" onclick="loadLib('jQuery');" value="jQuery" />
-			<input class="lib" type="button" onclick="loadLib('mootools');" value="mootools" />
-			<input class="lib" type="button" onclick="loadLib('sizzle');" value="sizzle" />
+			<input class="lib" type="button" onclick="loadLib('mootools');" value="Mootools" />
+			<input class="lib" type="button" onclick="loadLib('prototype');" value="Prototype" />
+			<input class="lib" type="button" onclick="loadLib('sizzle');" value="Sizzle" />
 			<input class="lib" type="button" onclick="loadLib('Sly');" value="Sly" />
 		</div>
 	
@@ -35,7 +38,7 @@
 					<h3>Hello World</h3>
 
 					<div class="template">
-						<div class="who" />
+						<div class="who"></div>
 					</div>
 
 					<script>
@@ -69,10 +72,10 @@
 					<h3>Auto Rendering with loops (+ directives)</h3>
 					<div class="template">
 						<div class="friends">
-							The friends of <a target="_blank" class="who"></a> are
+							The friends of <a target="_blank" href="http://twitter.com/" class="who"></a> are
 							<ul>
 								<li class="friend">
-									<a target="_blank" class="name twitter@href+" href="http://twitter.com/"></a>
+									<a target="_blank" class="name twitter@title twitter@href+" href="http://twitter.com/"></a>
 								</li>
 							</ul>
 						</div>
@@ -83,25 +86,23 @@
 							template:'div.friends',
 							directive:{
 								'.who':'who2.name',
-								'.who[href]':'http://twitter/#{who2.twitter}'
+								'.who[title]':'See the tweets of #{who2.twitter}',
+								'.who[href]+':'who2.twitter'
 							},
 							data:{
 								friend:[
 									{
 										name:'Hughes', 
-										twitter:'hugheswaroquier',
-										knowledges:['erlang', 'js', 'css']
+										twitter:'hugheswaroquier'
 									},{
 										name:'Yves', 
-										twitter:'yveshiernaux',
-										knowledges:['js', 'css', 'HTML', 'buzz']
+										twitter:'yveshiernaux'
 									}
 								], 
 								who:'dono',
 								who2:{
 									name:'Mic', 
-									twitter:'tchvil',
-									knowledges:['js', 'css', 'HTML']
+									twitter:'tchvil'
 								}
 							}
 						};
@@ -125,6 +126,12 @@
 					     </tbody>
 					   </table>
 					</div>
+					<style>
+						.playerList td{
+							padding:0 1em;
+							border:1px solid #999;
+						}
+					</style>
 
 					<script>
 						var ex04 = {
@@ -175,16 +182,22 @@
 					     </tbody>
 					   </table>
 					</div>
-
+					<style>
+						.partialTable td{
+							padding:0 1em;
+							border:1px solid #999;
+						}
+					</style>
 					<script>
 						var ex05 = {
 							template:'table.partialTable',
 							data:{
 								cols:['name', 'food', 'legs'],
 								animals:[
-									{name:'cat', food:'mouse', legs:4},
-									{name:'mouse', food:'cheese', legs:4},
-									{name:'dog', food:'bones', legs:4}
+									{name:'bird', food:'seed', legs:2},
+									{name:'cat', food:'mouse, bird', legs:4},
+									{name:'dog', food:'bone', legs:4},
+									{name:'mouse', food:'cheese', legs:4}
 								]
 							},
 							directive1:{
@@ -244,6 +257,15 @@
 						  </table>
 						</div>
 					</div>
+					<style>
+						.teamPlace table{
+							width:100%;
+						}
+						.scoreBoard td{
+							padding:0 1em;
+							border:1px solid #999;
+						}
+					</style>
 
 					<script>
 						var ex06 = {
@@ -300,52 +322,51 @@
 
 				</li>
 
-				<li>
+				<li class="ex07">
 					<h3>Recursion</h3>
 					<div class="template">
-						<div class="htmlDoc">
-						    <ul class="treeItem">
-						        <li>
-						          <a class="name" href="#">name</a>
-						          <div class="children"></div>
-						        </li>
-						    </ul>
-						</div>
+					    <ul class="treeItem">
+					        <li>
+					          <a class="name" href="#">name</a>
+					          <div class="children"></div>
+					        </li>
+					    </ul>
 					</div>
-
 					<script>
-						var data4 = {
-							children: [{
-								name: 'Europe',
+						var ex07 = {
+							template:'ul.treeItem',
+							data:{
 								children: [{
-									name: 'Belgium',
+									name: 'Europe',
 									children: [{
-										name: 'Brussels'},{
-										name: 'Namur'},{
-										name: 'Antwerpen'}]},{
-									name: 'Germany'},{
-									name: 'UK'}]},{
-								name: 'America',
-								children: [{
-									name: 'US',
+										name: 'Belgium',
+										children: [{
+											name: 'Brussels'},{
+											name: 'Namur'},{
+											name: 'Antwerpen'}]},{
+										name: 'Germany'},{
+										name: 'UK'}]},{
+									name: 'America',
 									children: [{
-										name: 'Alabama'},{
-										name: 'Georgia'}]},{
-									name: 'Canada'},{
-									name: 'Argentina'}]},{
-								name: 'Asia'},{
-								name: 'Africa'},{
-								name: 'Antarctica'}
-							]
-						};
-
-						var directive4 = {
-							'li': {
-								'child <- children': {
-									'a': 'child.name',
-									'a[onclick]':'alert(\'#{child.name}\');',
-									'div.children': function(ctxt){
-										return ctxt.child.item.children ? countries(ctxt.child.item):'';
+										name: 'US',
+										children: [{
+											name: 'Alabama'},{
+											name: 'Georgia'}]},{
+										name: 'Canada'},{
+										name: 'Argentina'}]},{
+									name: 'Asia'},{
+									name: 'Africa'},{
+									name: 'Antarctica'}
+								]
+							},
+							directive:{
+								'li': {
+									'child <- children': {
+										'a': 'child.name',
+										'a[onclick]':'alert(\'#{child.name}\');',
+										'div.children': function(ctxt){
+											return ctxt.child.item.children ? countries(ctxt.child.item):'';
+										}
 									}
 								}
 							}
