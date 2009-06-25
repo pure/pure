@@ -8,7 +8,7 @@
     Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-    revision: 2.03
+    revision: 2.04
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
