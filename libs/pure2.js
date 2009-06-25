@@ -8,7 +8,7 @@
     Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-    revision: 2.02
+    revision: 2.03
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -19,58 +19,105 @@ var $p = pure = function(){
 	if(typeof sel === 'string'){
 		ctxt = arguments[1]||false;
 	}
-  return new $p.core(sel, ctxt, $p.plugins);
+	return $p.core(sel, ctxt);
 };
 
 $p.core = function(sel, ctxt, plugins){
+	//get an instance of the plugins
+	var plugins = getPlugins(),
+		templates = [];
+
+	//search for the template node(s)
 	if(typeof sel === 'string'){
-		var template, 
-			templateNodes = plugins.find(ctxt || document, sel);
-		if(templateNodes.length > 1){
-			error('Multiple nodes were selected as a template, insure the selection of the template root is unique');
-		}else{
-			template = templateNodes[0];
-		}
+		templates = plugins.find(ctxt || document, sel);
 	}else if(typeof sel === 'object'){
-		template = sel;
+		templates = [sel];
+	}else{
+		error('No templates found. Review your selector');
 	}
+	
+	for(var i = 0, ii = templates.length; i < ii; i++){
+		plugins[i] = templates[i];
+	}
+	plugins.length = ii;
+
+	//set the properties that will be available for the plugins
+	plugins._compiler = compiler;
+	plugins._error = error;
+
+	// set the signature string that will be replaced at render time
+	var Sig = 'r' + Math.floor( Math.random() * 1000000 ) + 'S';
+
+	return plugins;
+
+	/*
+	
+		core functions
+	
+	*/
 
 	// error utility
-	var error = function(e){
+	function error(e){
 		alert(e);
-		console.log(e);
-		debugger;
+		if(typeof console !== 'undefined'){
+			console.log(e);
+			debugger;
+		}
 		throw('pure error: ' + e);
-	};
+	}
+	
+	//return a new instance of plugins
+	function getPlugins(){
+		function f(){}
+        f.prototype = $p.plugins;
+        return new f();
+	}
 
 	// returns the outer HTML of a node
-	var outerHTML = function(node){
+	function outerHTML(node){
 		// if IE take the internal method otherwise build one
 		return node.outerHTML || (function(node){
         	var div = document.createElement('div');
 	        div.appendChild(node.cloneNode(true));
 	        return div.innerHTML;})(node);
-	};
+	}
 
 	// check if the argument is an array
-	var isArray = function(o){
+	function isArray(o){
 		return Object.prototype.toString.call( o ) === "[object Array]";
-	};
+	}
 	
 	// returns the string generator function
-	var wrapquote = function(qfn, f){
+	function wrapquote(qfn, f){
 		return function(ctxt){
 			return qfn('' + f(ctxt));
 		};
-	};
+	}
 
+	// convert a JSON HTML structure to a dom node and returns the leaf
+	function domify(ns, pa){
+		pa = pa || document.createDocumentFragment();
+		var nn, leaf;
+		for(var n in ns){
+			nn = document.createElement(n);
+			pa.appendChild(nn);
+			if(typeof ns[n] === 'object'){
+				leaf = domify(ns[n], nn);
+			}else{
+				leaf = document.createElement(ns[n]);
+				nn.appendChild(leaf);
+			}
+		}
+		return leaf;
+	};
+	
 	// create a function that concatenates constant string
 	// sections (given in parts) and the results of called
 	// functions to fill in the gaps between parts (fns).
 	// fns[n] fills in the gap between parts[n-1] and parts[n];
 	// fns[0] is unused.
 	// this is the inner template evaluation loop.
-	var concatenator = function(parts, fns){
+	function concatenator(parts, fns){
 		return function(ctxt){
 			var strs = [parts[0]];
 			var n = parts.length;
@@ -80,40 +127,49 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			return strs.join('');
 		};
-	};
+	}
 
 	// parse and check the loop directive
-	var parseloopspec = function(p){
+	function parseloopspec(p){
 		var m = p.match(/^(\w+)\s*<-\s*(\S+)$/);
 		if(m === null){
 			error('bad loop spec: "' + p + '"');
 		}
 		return {name: m[1], sel: m[2]};
-	};
+	}
 
 	// parse a data selector and return a function that
 	// can traverse the data accordingly, given a context.
-	var dataselectfn = function(sel){
+	function dataselectfn(sel){
 		if(typeof(sel) === 'function'){
 			return sel;
 		}
 		var m = sel.match(/^(\w+)(\.(\w+))*$/);
-		if(!m){
-			var found = false;
-			var s = sel;
-			var parts = [];
-			var pfns = [];
-			var i = 0;
-			while((m = s.match(/#\{([^{}]+)\}/)) !== null){
-				found = true;
-				parts[i++] = s.slice(0, m.index);
-				pfns[i] = dataselectfn(m[1]);
-				s = s.slice(m.index + m[0].length, s.length);
+		if(m === null){
+			var found = false, 
+				s = sel,
+				parts = [],
+				pfns = [],
+				i = 0;
+			// check if literal
+			if(/\'|\"/.test( s.charAt(0) )){
+				if(/\'|\"/.test( s.charAt(s.length-1) )){
+					var retStr = s.substring(1, s.length-1);
+					return function(){ return retStr; };
+				}
+			}else{
+				// check if literal + #{var}
+				while((m = s.match(/#\{([^{}]+)\}/)) !== null){
+					found = true;
+					parts[i++] = s.slice(0, m.index);
+					pfns[i] = dataselectfn(m[1]);
+					s = s.slice(m.index + m[0].length, s.length);
+				}
 			}
-			parts[i] = s;
 			if(!found){
 				error('bad data selector syntax: ' + sel);
 			}
+			parts[i] = s;
 			return concatenator(parts, pfns);
 		}
 		m = sel.split('.');
@@ -136,10 +192,10 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			return data;
 		};
-	};
+	}
 
 	// wrap in an object the target node/attr and their properties
-	var gettarget = function(dom, sel, isloop){
+	function gettarget(dom, sel, isloop){
 		var osel, prepend, selector, attr, append, target = [];
 		if(typeof sel === 'string'){
 			osel = sel;
@@ -152,7 +208,7 @@ $p.core = function(sel, ctxt, plugins){
 				selector = m[2],
 				attr = m[6],
 				append = m[7];
-			if(selector === 'root'){
+			if(selector === '.' || ( selector === '' && typeof attr !== 'undefined' ) ){
 				target[0] = dom;
 			}else{
 				target = plugins.find(dom, selector);
@@ -221,20 +277,18 @@ $p.core = function(sel, ctxt, plugins){
 			break;
 		}
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
-	};
+	}
 
-	// set the signature string that will be replaced at render time
-	var Sig = 'r'+Math.floor(Math.random()*1000000)+'S';
-	var setsig = function(target, n){
+	function setsig(target, n){
 		var sig = Sig + n + ':';
 		for(var i = 0; i < target.nodes.length; i++){
 			// could check for overlapping targets here.
 			target.set(target.nodes[i], sig);
 		}
-	};
+	}
 
 	// read de loop data, and pass it to the inner rendering function
-	var loopfn = function(name, dselect, inner){
+	function loopfn(name, dselect, inner){
 		return function(ctxt){
 			var a = dselect(ctxt);
 			var oldvctxt = ctxt[name];
@@ -250,10 +304,10 @@ $p.core = function(sel, ctxt, plugins){
 			ctxt[name] = oldvctxt;
 			return strs.join('');
 		};
-	};
+	}
 
 	// generate the template for a loop node
-	var loopgen = function(dom, sel, loop, fns){
+	function loopgen(dom, sel, loop, fns){
 		var already = false;
 		var p;
 		for(var i in loop){
@@ -288,7 +342,7 @@ $p.core = function(sel, ctxt, plugins){
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
 		}
-	};
+	}
 	
 	function getAutoNodes(n, data){
 		var ns = n.getElementsByTagName('*'),
@@ -296,8 +350,10 @@ $p.core = function(sel, ctxt, plugins){
 			openLoops = {a:[],l:{}},
 			cspec,
 			i, ii, j, jj, ni, cs, cj;
-		for(i = -1, ii = ns.length;i<ii;i++){
-			ni = i > -1 ? ns[i] : n; //include the root too
+			ns = Array.prototype.slice.call(ns);
+			ns.push(n);
+		for(i = 0, ii = ns.length; i < ii; i++){
+			ni = ns[i];
 			if(ni.nodeType === 1 && ni.className !== ''){
 				cs = ni.className.split(' ');
 				for(j = 0, jj=cs.length;j<jj;j++){
@@ -312,9 +368,9 @@ $p.core = function(sel, ctxt, plugins){
 		return an;
 		
 		function checkClass(c){
-			var ca = c.match(/^(\+)?([^\@]+)\@?(\w+)?(\+)?$/),
+			var ca = c.match(/^(\+)?([^\@\+]+)\@?(\w+)?(\+)?$/),
 				cspec = {prepend:!!ca[1], prop:ca[2], attr:ca[3], append:!!ca[4], sel:c},
-				val = isArray(data) ? data[0][cspec.prop]:data[cspec.prop],
+				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop],
 				i, ii, loopi;
 			if(typeof val === 'undefined'){
 				for(i = openLoops.a.length-1; i >= 0; i--){
@@ -344,9 +400,9 @@ $p.core = function(sel, ctxt, plugins){
 		}
 	}
 
-	// render returns a function that, given a context argument,
+	// returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
-	var compiler = function(dom, directive, data, ans){
+	function compiler(dom, directive, data, ans){
 		var fns = [];
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
@@ -398,58 +454,61 @@ $p.core = function(sel, ctxt, plugins){
 			parts[i] = p.slice(p.indexOf(':') + 1, p.length);
 		}
 		return concatenator(parts, pfns);
-	};
-	
-	// add the compiler and template to the plugins to make them available there
-	plugins._compiler = compiler;
-	plugins._template = template;
-	return plugins;
+	}
 };
 
 $p.plugins = {
-	// compile the template with directives
+	// compile the template with directive
 	// if a context is passed, the autoRendering is triggered automatically
 	// return a function waiting the data as argument
-	compile: function(directive, ctxt){
-		var rfn = this._compiler(this._template.cloneNode(true), directive, ctxt);
+	compile:function(directive, ctxt, template){
+		var rfn = this._compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
 		return function(data){
 			return rfn({data: data});
 		};
 	},
-
-	//compile with the directives as argument
+	//compile with the directive as argument
 	// run the template function on the context argument
 	// return an HTML string 
 	// should replace the template and return this
-	render: function(ctxt, directive){
-		return this.replaceWith(this._template, this.compile(directive)(ctxt));
+	render:function(ctxt, directive){
+		for(var i = 0, ii = this.length; i < ii; i++){
+			this.replaceWith( this[i], this.compile( directive, false, this[i] )( ctxt ));
+		}
+		return this;
 	},
 
 	// compile the template with autoRender
 	// run the template function on the context argument
 	// return an HTML string 
-	autoRender: function(ctxt, directive){
-		return this.replaceWith(this._template, this.compile(directive, ctxt)(ctxt));
-	},
-	replaceWith:function(elm, html){
-		var ne = elm.cloneNode(false),
-			sn = html.match(/^[^\>]+\>/)[0],
-			en = html.match(/\<[^\>]+\>$/)[0],
-			inner = html.substring(sn.length, html.length-en.length);
-		elm.parentNode.insertBefore(ne, elm);
-		ne.innerHTML = inner;
-		var att,
-			start = sn.match(/^\<[^\s]+\s+/)[0].length;
-		sn = sn.substr(start, sn.length-1);
-		var	atts = sn.split(/\"\s+/);
-		for(var i = 0, ii = atts.length; i < ii; i++){
-			att = atts[i].match(/\s?([^\=]+)\=\"([^\"]+)/);
-			ne.setAttribute(att[1], att[2]);
+	autoRender:function(ctxt, directive){
+		for(var i = 0, ii = this.length; i < ii; i++){
+			this.replaceWith( this[i], this.compile( directive, ctxt, this[i] )( ctxt ));
 		}
-		elm.parentNode.removeChild(elm);
-		this._template = ne;
-		ne = null;
 		return this;
+	},
+
+	replaceWith:function(elm, html){
+		var div = document.createElement('DIV'),
+			tagName = elm.tagName.toLowerCase(),
+			ne, pa;
+
+		if((/td|tr|th/).test(tagName)){
+			var parents = {	tr:{'table':'tbody'}, td:{'table':{'tbody':'tr'}}, th:{'table':{'thead':'tr'}} };
+			pa = domify( parents[ tagName ] );
+		}else if((/tbody|thead|tfoot/).test(tagName)){
+			pa = document.createElement('table');
+		}else{
+			pa = document.createElement('div');
+		}
+		pa.innerHTML = html;
+		ne = pa.firstChild;
+		elm.parentNode.insertBefore(ne, elm);
+		elm.parentNode.removeChild(elm);
+		this[0] = ne;
+		pa = ne = null;
+		return this;
+
 	},
 	// default find using querySelector when available on the browser
 	find:function(n, sel){
@@ -460,7 +519,7 @@ $p.plugins = {
 		if(typeof document.querySelectorAll !== 'undefined'){
 			return (n||document).querySelectorAll( sel );
 		}else{
-			error('No native selector engine available in your browser. To run PURE you need a JS library with a selector engine.');
+			this._error('No native selector engine available in your browser. To run PURE you need a JS library with a selector engine.');
 		}
-	}	
+	}
 };

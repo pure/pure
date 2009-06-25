@@ -12,22 +12,46 @@ jQuery.fn.extend({
 });
 
 // set the find if not native
-if (typeof document.querySelector === 'undefined'){
+if ( typeof document.querySelector === 'undefined' ){
 	$p.plugins.find = function(n, sel){
 		return $(n).find(sel);
 	};
 }
 
-/* Hello world */
-$( 'div.hello' ).autoRender( data1 );
+function runLib(ex, debug){
 
-/* Auto Rendering (overwritten with a simple directive) */
-$('div.friends').autoRender( data2, {'.who':'who2'} );
-
-/* Nested table */
-$('div.scoreBoard').render( data3, directive3 );
-
-/* Recursion */
-var n = $('ul.treeItem');
-var countries = n.compile(directive4);
-$('div.htmlDoc').get(0).innerHTML = countries(data4);
+	switch(ex.id){
+		case 'ex01':
+			/* Hello world AutoRendering*/
+			$( ex.template ).autoRender( ex.data );
+		break;
+		case 'ex02':
+			/* Hello world Render*/
+			$( ex.template ).autoRender( ex.data , ex.directive);
+		break;
+		case 'ex03':
+			/* Auto Rendering (overwritten with a simple directive) */
+			$(ex.template).autoRender( ex.data, ex.directive );
+		break;
+		case 'ex04':
+			/* Loop on table with events */
+			$(ex.template).render( ex.data, ex.directive );
+		break;
+		case 'ex05':
+			/* Loop on table with events */
+			$(ex.template).render( ex.data, ex.directive1 ).render( ex.data, ex.directive2 );
+		break;
+		case 'ex06':
+			/* Nested table */
+			$(ex.template).render( ex.data, ex.directive );
+		break;
+		case 'ex07':
+			/* Recursion */
+			var n = $(ex.template);
+			var countries = n.compile(ex.directive);
+			$(ex.target).get(0).innerHTML = countries(ex.data);
+		break;
+		default:
+			alert('Example ' + ex.id + ' does not exist');
+	}
+}

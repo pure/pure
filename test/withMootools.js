@@ -22,6 +22,9 @@ $(document).getElement('div.hello' ).autoRender( data1 );
 /* Auto Rendering (overwritten with a simple directive) */
 $(document).getElement('div.friends').autoRender( data2, {'.who':'who2'} );
 
+/* Loop on table with events */
+$(document).getElement('table.playerList').render( data2a, directive2a );
+
 /* Nested table */
 $(document).getElement('div.scoreBoard').render( data3, directive3 );
 
