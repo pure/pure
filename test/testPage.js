@@ -4,9 +4,9 @@ function loadLib(lib){
 	document.getElementById( 'chooseLib' ).innerHTML = '<div id="libLoaded"> Loading... '+  lib + '</div>';
 	loadScript([ '../libs/' + lib + '.js'], showExamples);
 	var cnt = 0;
-	function loadScript(srcs, done){
+	function loadScript(srcs, done, endAt){
 		//load scripts sequentially
-		var endAt = srcs.length;
+		endAt = endAt || srcs.length;
 		if(srcs.length > 0){
 			var src = srcs.shift(),
 				s = document.createElement("script");
@@ -14,11 +14,15 @@ function loadLib(lib){
 			s.src = src;
 			document.body.appendChild(s);
 			s.onreadystatechange = function() {
-			    loadScript(srcs);
-				(++cnt === endAt) && done();
+				if(s.readyState === 4){
+				    loadScript(srcs, endAt);
+					if(++cnt === endAt){
+						done();
+					}
+				}
 			};
 			s.onload = function(){
-				loadScript(srcs);
+				loadScript(srcs, endAt);
 				(++cnt === endAt) && done();
 			};
 		}
@@ -27,7 +31,7 @@ function loadLib(lib){
 		//initialise the lib
 		$p.libs[lib]();
 		
-		document.getElementById( 'libLoaded' ).innerHTML = '<a style="float:right" href="#" onclick="window.location.reload()">Get the Library selection back...</a><b>'+ lib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this)">all at once</a>';
+		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ lib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this)">all at once</a>';
 		document.getElementById( 'examples' ).style.display = 'block';
 		var lis = $p( 'ul.exampleList > li' ),
 			lii,
@@ -99,7 +103,7 @@ function transform(ex, debug){
 	
 	switch(currLib){
 		case 'domassistant':
-		case 'jQuery':
+		case 'jquery':
 			template = $( ex.template );
 		break;
 		case 'mootools':
@@ -109,30 +113,11 @@ function transform(ex, debug){
 		default:
 			template = $p( ex.template );
 	}
+
 	switch(ex.id){
-		case 'ex01':
-			/* Hello world AutoRendering*/
-			template.autoRender( ex.data );
-		break;
-		case 'ex02':
-			/* Hello world Render*/
-			template.autoRender( ex.data , ex.directive );
-		break;
-		case 'ex03':
-			/* Auto Rendering (overwritten with a simple directive) */
-			template.autoRender( ex.data, ex.directive );
-		break;
-		case 'ex04':
-			/* Loop on table with events */
-			template.render( ex.data, ex.directive );
-		break;
 		case 'ex05':
 			/* Loop on table with events */
 			template.render( ex.data, ex.directive1 ).render( ex.data, ex.directive2 );
-		break;
-		case 'ex06':
-			/* Nested table */
-			template.render( ex.data, ex.directive );
 		break;
 		case 'ex07':
 			/* Recursion */
@@ -145,7 +130,8 @@ function transform(ex, debug){
 			(template[0] || template).parentNode.innerHTML = countries( ex.data );
 		break;
 		default:
-			alert('Example ' + ex.id + ' does not exist');
+			template.autoRender( ex.data , ex.directive );
 	}
+
 }
 var countries;
