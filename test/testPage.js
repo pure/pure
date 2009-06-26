@@ -1,8 +1,12 @@
+var currLib = '';
 function loadLib(lib){
-	document.getElementById( 'chooseLib' ).innerHTML += ' Loading... ' + lib;
-	loadScript([ '../libs/' + lib + '.js', 'with_' + lib + '.js' ]);
+	currLib = lib;
+	document.getElementById( 'chooseLib' ).innerHTML = '<div id="libLoaded"> Loading... '+  lib + '</div>';
+	loadScript([ '../libs/' + lib + '.js'], showExamples);
 	var cnt = 0;
-	function loadScript(srcs){
+	function loadScript(srcs, done){
+		//load scripts sequentially
+		var endAt = srcs.length;
 		if(srcs.length > 0){
 			var src = srcs.shift(),
 				s = document.createElement("script");
@@ -11,18 +15,21 @@ function loadLib(lib){
 			document.body.appendChild(s);
 			s.onreadystatechange = function() {
 			    loadScript(srcs);
-				(++cnt === 2) && done();
+				(++cnt === endAt) && done();
 			};
 			s.onload = function(){
 				loadScript(srcs);
-				(++cnt === 2) && done();
+				(++cnt === endAt) && done();
 			};
 		}
 	}
-	function done(){
-		document.getElementById( 'chooseLib' ).innerHTML = lib + ' loaded. You can now run the examples below.';
+	function showExamples(){
+		//initialise the lib
+		$p.libs[lib]();
+		
+		document.getElementById( 'libLoaded' ).innerHTML = '<a style="float:right" href="#" onclick="window.location.reload()">Get the Library selection back...</a><b>'+ lib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this)">all at once</a>';
 		document.getElementById( 'examples' ).style.display = 'block';
-		var lis = $p( 'ul.exampleList li' ),
+		var lis = $p( 'ul.exampleList > li' ),
 			lii,
 			cn,
 			span;
@@ -35,10 +42,15 @@ function loadLib(lib){
 			var h = $p('h3', lii);
 			if(h[0]){
 				h = h[0];
-				span = document.createElement( 'SPAN' );
-				h.parentNode.insertBefore(span, h.nextSibling);
+				if(!(/SPAN/).test(h.nextSibling.tagName)){
+					span = document.createElement( 'SPAN' );
+					h.parentNode.insertBefore(span, h.nextSibling);
+				}else{
+					span = h.nextSibling;
+				}
 				var cn = lis[i].className;
 				window[cn].id = cn;
+				span.id = cn;
 				span.innerHTML = 
 					'<a class="run"   href="#" onclick="run(this, '+cn+');return false;">Run</a>'+
 					'<a class="debug" href="#" onclick="run(this, '+cn+', true);return false;">Debug</a>';
@@ -47,24 +59,93 @@ function loadLib(lib){
 	}
 }
 
-$p.plugins.compileDebug = function(directive, ctxt){
+$p.plugins.compileDebug = function(directive, ctxt, template){
 	debugger;
-	var rfn = this._compiler(this[0].cloneNode(true), directive, ctxt);
+	var rfn = this._compiler( ( template || this[0] ).cloneNode( true ), directive, ctxt);
+	var json;
 	return function(data){
-		return rfn({data: data});
+		json = json || data;
+		return rfn( { data: data, json:json } );
 	};
 };
-
+function runAll(a){
+	a.onclick = null;
+	var lis = $p( 'ul.exampleList > li' ),
+		lii;
+	for(var i = 0, ii = lis.length; i < ii; i++){
+		lii = lis[i];
+		if(!(/^ex[0-9]+$/).test(lis[i].className)){ 
+			continue; 
+		}
+		run( $p('a.run', lii)[0], window[lii.className] );
+	}
+	
+}
 function run(elm, fn, debug){
-	var otherA = elm.className === 'run' ? elm.nextSibling : elm.previousSibling;
-	otherA.parentNode.removeChild(otherA);
-	elm.parentNode.removeChild(elm);
+	if(!elm){return;}
+	elm.parentNode.innerHTML = '';
 	if(debug === true){
 		$p.plugins.__compile = $p.plugins.compile;
 		$p.plugins.compile = $p.plugins.compileDebug;
 	}
-	runLib(fn, debug);
+	transform(fn, debug);
 	if(debug === true){
 		$p.plugins.compile = $p.plugins.__compile;
 	}
 }
+
+function transform(ex, debug){
+	var template;
+	
+	switch(currLib){
+		case 'domassistant':
+		case 'jQuery':
+			template = $( ex.template );
+		break;
+		case 'mootools':
+			template = $(document).getElement( ex.template );
+		case 'prototype':
+			template = $$( ex.template )[0];
+		default:
+			template = $p( ex.template );
+	}
+	switch(ex.id){
+		case 'ex01':
+			/* Hello world AutoRendering*/
+			template.autoRender( ex.data );
+		break;
+		case 'ex02':
+			/* Hello world Render*/
+			template.autoRender( ex.data , ex.directive );
+		break;
+		case 'ex03':
+			/* Auto Rendering (overwritten with a simple directive) */
+			template.autoRender( ex.data, ex.directive );
+		break;
+		case 'ex04':
+			/* Loop on table with events */
+			template.render( ex.data, ex.directive );
+		break;
+		case 'ex05':
+			/* Loop on table with events */
+			template.render( ex.data, ex.directive1 ).render( ex.data, ex.directive2 );
+		break;
+		case 'ex06':
+			/* Nested table */
+			template.render( ex.data, ex.directive );
+		break;
+		case 'ex07':
+			/* Recursion */
+			countries = template.compile( ex.directive );
+
+			if(typeof countries[0] === 'function'){ //DOMAssistant sends back an array?
+				countries = countries[0];
+			}
+			//some libs send back an array, some send the node
+			(template[0] || template).parentNode.innerHTML = countries( ex.data );
+		break;
+		default:
+			alert('Example ' + ex.id + ' does not exist');
+	}
+}
+var countries;

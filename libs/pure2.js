@@ -17,7 +17,7 @@ var $p = pure = function(){
 		ctxt = false;
 
 	if(typeof sel === 'string'){
-		ctxt = arguments[1]||false;
+		ctxt = arguments[1] || false;
 	}
 	return $p.core(sel, ctxt);
 };
@@ -41,10 +41,6 @@ $p.core = function(sel, ctxt, plugins){
 	}
 	plugins.length = ii;
 
-	//set the properties that will be available for the plugins
-	plugins._compiler = compiler;
-	plugins._error = error;
-
 	// set the signature string that will be replaced at render time
 	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_';
 	
@@ -53,11 +49,11 @@ $p.core = function(sel, ctxt, plugins){
 	
 	return plugins;
 
-	/*
-	
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * *
 		core functions
-	
-	*/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 
 	// error utility
 	function error(e){
@@ -71,11 +67,23 @@ $p.core = function(sel, ctxt, plugins){
 	
 	//return a new instance of plugins
 	function getPlugins(){
+		var plugins = $p.plugins;
 		function f(){}
-        f.prototype = $p.plugins;
-        return new f();
-	}
+		f.prototype = plugins;
 
+		// do not overwrite functions if external definition
+		f.prototype.compile    = plugins.compile || compile;
+		f.prototype.render     = plugins.render || render;
+		f.prototype.autoRender = plugins.autoRender || autoRender;
+		f.prototype.find       = plugins.find || find;
+		
+		// give the compiler and the error handling to the plugin context
+		f.prototype._compiler  = compiler;
+		f.prototype._error     = error;
+ 
+		return new f();
+	}
+	
 	// returns the outer HTML of a node
 	function outerHTML(node){
 		// if IE take the internal method otherwise build one
@@ -113,6 +121,19 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		return leaf;
 	};
+	
+		// default find using querySelector when available on the browser
+	function find(n, sel){
+		if(typeof n === 'string'){
+			sel = n;
+			n = false;
+		}
+		if(typeof document.querySelectorAll !== 'undefined'){
+			return (n||document).querySelectorAll( sel );
+		}else{
+			error('No native selector engine available in your browser. To run PURE you need a JS library with a selector engine.');
+		}
+	}
 	
 	// create a function that concatenates constant string
 	// sections (given in parts) and the results of called
@@ -475,73 +496,153 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		return concatenator(parts, pfns);
 	}
-};
-
-$p.plugins = {
 	// compile the template with directive
 	// if a context is passed, the autoRendering is triggered automatically
 	// return a function waiting the data as argument
-	compile:function(directive, ctxt, template){
-		var rfn = this._compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
+	function compile(directive, ctxt, template){
+		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
 		var json;
 		return function(data){
 			json = json || data;
 			return rfn({data: data, json:json});
 		};
-	},
+	}
 	//compile with the directive as argument
 	// run the template function on the context argument
 	// return an HTML string 
 	// should replace the template and return this
-	render:function(ctxt, directive){
+	function render(ctxt, directive){
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this.replaceWith( this[i], this.compile( directive, false, this[i] )( ctxt ));
+			this[i] = replaceWith( this[i], plugins.compile( directive, false, this[i] )( ctxt ));
 		}
 		return this;
-	},
+	}
 
 	// compile the template with autoRender
 	// run the template function on the context argument
 	// return an HTML string 
-	autoRender:function(ctxt, directive){
+	function autoRender(ctxt, directive){
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this.replaceWith( this[i], this.compile( directive, ctxt, this[i] )( ctxt ));
+			this[i] = replaceWith( this[i], plugins.compile( directive, ctxt, this[i] )( ctxt ));
 		}
 		return this;
-	},
-
-	replaceWith:function(elm, html){
+	}
+	
+	function replaceWith(elm, html){
 		var div = document.createElement('DIV'),
 			tagName = elm.tagName.toLowerCase(),
 			ne, pa;
 
 		if((/td|tr|th/).test(tagName)){
-			var parents = {	tr:{'table':'tbody'}, td:{'table':{'tbody':'tr'}}, th:{'table':{'thead':'tr'}} };
+			var parents = {	tr:{table:'tbody'}, td:{table:{tbody:'tr'}}, th:{table:{thead:'tr'}} };
 			pa = domify( parents[ tagName ] );
-		}else if((/tbody|thead|tfoot/).test(tagName)){
+		}else if( ( /tbody|thead|tfoot/ ).test( tagName )){
 			pa = document.createElement('table');
 		}else{
 			pa = document.createElement('div');
 		}
+
+		var ep = elm.parentNode;
+		// avoid IE mem leak
+		ep.insertBefore(pa, elm);
+		ep.removeChild(elm);
 		pa.innerHTML = html;
 		ne = pa.firstChild;
-		elm.parentNode.insertBefore(ne, elm);
-		elm.parentNode.removeChild(elm);
-		this[0] = ne;
-		pa = ne = null;
-		return this;
+		ep.insertBefore(ne, pa);
+		ep.removeChild(pa);
+		elm = ne;
 
-	},
-	// default find using querySelector when available on the browser
-	find:function(n, sel){
-		if(typeof n === 'string'){
-			sel = n;
-			n = false;
+		pa = ne = ep = null;
+		return elm;
+	}
+};
+
+$p.plugins = {};
+
+$p.libs = {
+	dojo:function(){
+		if(typeof document.querySelector === 'undefined'){
+			$p.plugins.find = function(n, sel){
+				return dojo.query(sel, n);
+			};
 		}
-		if(typeof document.querySelectorAll !== 'undefined'){
-			return (n||document).querySelectorAll( sel );
-		}else{
-			this._error('No native selector engine available in your browser. To run PURE you need a JS library with a selector engine.');
+	},
+	domassistant:function(){
+		if(typeof document.querySelector === 'undefined'){
+			$p.plugins.find = function(n, sel){
+				return $(n).cssSelect(sel);
+			};
+		}
+		DOMAssistant.attach({ 
+			publicMethods : [ 'compile', 'render', 'autoRender'],
+			compile:function(directive, ctxt){ return $p(this).compile(directive, ctxt); },
+			render:function(ctxt, directive){ return $( $p(this).render(ctxt, directive) )[0]; },
+			autoRender:function(ctxt, directive){ return $( $p(this).autoRender(ctxt, directive) )[0]; }
+		});
+	},
+	jquery:function(){
+		if(typeof document.querySelector === 'undefined'){
+			$p.plugins.find = function(n, sel){
+				return $(n).find(sel);
+			};
+		}
+		jQuery.fn.extend({
+			compile:function(directive, ctxt){ return $p(this[0]).compile(directive, ctxt); },
+			render:function(ctxt, directive){ return jQuery( $p( this[0] ).render( ctxt, directive ) ); },
+			autoRender:function(ctxt, directive){ return jQuery( $p( this[0] ).autoRender( ctxt, directive ) ); }
+		});
+	},
+	mootools:function(){
+		if(typeof document.querySelector === 'undefined'){
+			$p.plugins.find = function(n, sel){
+				return $(n).getElements(sel);
+			};
+		}
+		Element.implement({
+			compile:function(directive, ctxt){ return $p(this).compile(directive, ctxt); },
+			render:function(ctxt, directive){ return $p(this).render(ctxt, directive); },
+			autoRender:function(ctxt, directive){ return $p(this).autoRender(ctxt, directive); }
+		});
+	},
+	prototype:function(){
+		if(typeof document.querySelector === 'undefined'){
+			$p.plugins.find = function(n, sel){
+				n = n === document ? n.body : n;
+				return typeof n === 'string' ? $$(n) : $(n).select(sel);
+			};
+		}
+		Element.addMethods({
+			compile:function(element, directive, ctxt){ return $p(element).compile(directive, ctxt); }, 
+			render:function(element, ctxt, directive){ return $p(element).render(ctxt, directive); }, 
+			autoRender:function(element, ctxt, directive){ return $p(element).autoRender(ctxt, directive); }
+		});
+	},
+	sizzle:function(){
+		if(typeof document.querySelector === 'undefined'){
+			$p.plugins.find = function(n, sel){
+				return Sizzle(sel, n);
+			};
+		}
+	},
+	sly:function(){
+		if(typeof document.querySelector === 'undefined'){  
+			$p.plugins.find = function(n, sel){
+				return Sly(sel, n);
+			};
 		}
 	}
 };
+
+// get a lib config if available
+(function(){
+	var libkey = 
+		typeof dojo         !== 'undefined' && 'dojo' || 
+		typeof DOMAssistant !== 'undefined' && 'domassistant' ||
+		typeof jQuery       !== 'undefined' && 'jquery' || 
+		typeof MooTools     !== 'undefined' && 'mootools' ||
+		typeof Prototype    !== 'undefined' && 'prototype' || 
+		typeof Sizzle       !== 'undefined' && 'sizzle' ||
+		typeof Sly          !== 'undefined' && 'sly';
+		
+	libkey && $p.libs[libkey]();
+})();

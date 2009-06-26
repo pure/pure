@@ -4,25 +4,31 @@
 		<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 		<title>PURE Unobtrusive Rendering Engine for HTML - Version 2</title>
 		<style>
-			.exampleList{padding:0; list-style-type:none;}
+			.exampleList{margin:0; padding:0; list-style-type:none;}
 
 			h3{margin:1em 0 .3em;float:left;}
-			a{color:#369;text-decoration:none;}
+			a{color:#369;text-decoration:none;outline: none;padding:0 .5em;}
 			a:hover{background:#369;color:#FFF;}
 
-			.run, .debug{ display:block; float:left;margin:1.3em 0 0 .5em;padding:0 .5em;}
+			.run, .debug{ display:block; float:left;margin:1.3em 0 0 1em;}
 
 			.template{clear:both;padding:1em;background:#DEF;margin:0 0  0 1em;}
 			
 			#examples{display:none;}
+			#chooseLib{
+				line-height:1.5em;
+				border:solid 1px #CCC;
+				padding:1em;
+				background:#FFC;
+			}
 		</style>
 		<script src="../libs/pure2.js"></script>
 		<script src="testPage.js"></script>
 	</head>
 	<body>
 
-		<div id="chooseLib" style="height:2em">
-			Choose a library to run the examples:
+		<div id="chooseLib">
+			Choose a library to run the examples:<br />
 			<input class="lib" type="button" onclick="loadLib('dojo');" value="dojo" />
 			<input class="lib" type="button" onclick="loadLib('domassistant');" value="DomAssistant" />
 			<input class="lib" type="button" onclick="loadLib('jquery');" value="jQuery" />
