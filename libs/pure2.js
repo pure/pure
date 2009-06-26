@@ -131,7 +131,7 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof document.querySelectorAll !== 'undefined'){
 			return (n||document).querySelectorAll( sel );
 		}else{
-			error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nWith your current browser version, you need a JS library with a selector engine to run PURE');
+			error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your current browser, you need a JS library/framework with a selector engine');
 		}
 	}
 	
@@ -155,7 +155,7 @@ $p.core = function(sel, ctxt, plugins){
 
 	// parse and check the loop directive
 	function parseloopspec(p){
-		var m = p.match(/^(\w+)\s*<-\s*(\S+)$/);
+		var m = p.match( /^(\w+)\s*<-\s*(\S+)$/ );
 		if(m === null){
 			error('bad loop spec: "' + p + '"');
 		}
@@ -384,10 +384,8 @@ $p.core = function(sel, ctxt, plugins){
 			openLoops = {a:[],l:{}},
 			cspec,
 			i, ii, j, jj, ni, cs, cj;
-			ns = Array.prototype.slice.call(ns);
-			ns.push(n);
-		for(i = 0, ii = ns.length; i < ii; i++){
-			ni = ns[i];
+		for(i = -1, ii = ns.length; i < ii; i++){
+			ni = i > -1 ?ns[i]:n;
 			if(ni.nodeType === 1 && ni.className !== ''){
 				cs = ni.className.split(' ');
 				for(j = 0, jj=cs.length;j<jj;j++){
@@ -633,7 +631,7 @@ $p.libs = {
 	}
 };
 
-// get a lib config if available
+// get lib specifics if available
 (function(){
 	var libkey = 
 		typeof dojo         !== 'undefined' && 'dojo' || 
