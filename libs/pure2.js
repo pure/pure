@@ -143,11 +143,25 @@ $p.core = function(sel, ctxt, plugins){
 	// this is the inner template evaluation loop.
 	function concatenator(parts, fns){
 		return function(ctxt){
-			var strs = [parts[0]];
-			var n = parts.length;
+			var strs = [ parts[ 0 ] ],
+				n = parts.length,
+				fnVal, pVal, attLine, pos;
+
 			for(var i = 1; i < n; i++){
-				strs[strs.length] = fns[i](ctxt);
-				strs[strs.length] = parts[i];
+				fnVal = fns[i]( ctxt );
+				pVal = parts[i];
+				
+				// if the value is empty and attribute, remove it
+				if(fnVal === ''){
+					attLine = strs[ strs.length - 1 ];
+					if( ( pos = attLine.search( /\s[\w]+=\"$/ ) ) > -1){
+						strs[ strs.length - 1 ] = attLine.substring( 0, pos );
+						pVal = pVal.substr( 1 );
+					}
+				}
+				
+				strs[ strs.length ] = fnVal;
+				strs[ strs.length ] = pVal;
 			}
 			return strs.join('');
 		};
