@@ -2,7 +2,12 @@ var currLib = '';
 function loadLib(lib){
 	currLib = lib;
 	document.getElementById( 'chooseLib' ).innerHTML = '<div id="libLoaded"> Loading... '+  lib + '</div>';
-	loadScript([ '../libs/' + lib + '.js'], showExamples);
+	if(lib === 'pure'){
+		showExamples();
+		return;
+	}
+
+	loadScript([ 'libs/' + lib + '.js'], showExamples);
 	var cnt = 0;
 	function loadScript(srcs, done, endAt){
 		//load scripts sequentially
@@ -12,7 +17,11 @@ function loadLib(lib){
 				s = document.createElement("script");
 			s.charset = "UTF-8";
 			s.src = src;
-			document.body.appendChild(s);
+
+			s.onload = function(){
+				loadScript(srcs, endAt);
+				(++cnt === endAt) && done();
+			};
 			s.onreadystatechange = function() {
 				if(s.readyState === 4){
 				    loadScript(srcs, endAt);
@@ -21,18 +30,16 @@ function loadLib(lib){
 					}
 				}
 			};
-			s.onload = function(){
-				loadScript(srcs, endAt);
-				(++cnt === endAt) && done();
-			};
+			document.body.appendChild(s);
 		}
 	}
 	function showExamples(){
 		//initialise the lib
-		$p.libs[lib]();
-		
+		lib !== 'pure' && $p.libs[lib]();
+
 		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ lib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this)">all at once</a>';
 		document.getElementById( 'examples' ).style.display = 'block';
+
 		var lis = $p( 'ul.exampleList > li' ),
 			lii,
 			cn,
@@ -134,4 +141,5 @@ function transform(ex, debug){
 	}
 
 }
+// global to store the fn and use it in the page
 var countries;

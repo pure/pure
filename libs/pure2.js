@@ -131,7 +131,7 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof document.querySelectorAll !== 'undefined'){
 			return (n||document).querySelectorAll( sel );
 		}else{
-			error('No native selector engine available in your browser. To run PURE you need a JS library with a selector engine.');
+			error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nWith your current browser version, you need a JS library with a selector engine to run PURE');
 		}
 	}
 	
