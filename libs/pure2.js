@@ -44,9 +44,6 @@ $p.core = function(sel, ctxt, plugins){
 	// set the signature string that will be replaced at render time
 	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_';
 	
-	// keep the json data root
-	var json;
-	
 	return plugins;
 
 
@@ -169,9 +166,12 @@ $p.core = function(sel, ctxt, plugins){
 
 	// parse and check the loop directive
 	function parseloopspec(p){
-		var m = p.match( /^(\w+)\s*<-\s*(\S+)$/ );
+		var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
 		if(m === null){
 			error('bad loop spec: "' + p + '"');
+		}
+		if(typeof m[2] === 'undefined'){
+			m[2] = function(ctxt){return ctxt.data;};
 		}
 		return {name: m[1], sel: m[2]};
 	}
@@ -337,20 +337,28 @@ $p.core = function(sel, ctxt, plugins){
 	function loopfn(name, dselect, inner){
 		return function(ctxt){
 			var a = dselect(ctxt),
-				n = (a && a.length) || 0,
-				loopCtxt={ json:ctxt.json },
-				strs = [];
-			loopCtxt[name] = { items:a };
-
-			for(var i = 0; i < n; i++){
-				loopCtxt.data = ctxt.data;
-				loopCtxt.pos = loopCtxt[ name ].pos = i;
-				loopCtxt.item = loopCtxt[ name ].item = a[ i ];
-				strs.push( inner( loopCtxt ) );
+				old = ctxt[name],
+				temp = { items : a },
+				strs = [],
+				buildArg = function(idx){
+					ctxt.pos = temp.pos = idx;
+					ctxt.item = temp.item = a[ idx ];
+					strs.push( inner( ctxt ) );
+				};
+			ctxt[name] = temp;
+			if( isArray(a) ){
+				//loop on array
+				for(var i = 0, ii = a.length || 0; i < ii; i++){  
+					buildArg(i); 
+				}
+			}else{
+				//loop on collections
+				for(var prop in a){ 
+					buildArg(prop); 
+				}
 			}
-
+			ctxt[name] = old;
 			return strs.join('');
-
 		};
 	}
 
@@ -513,10 +521,10 @@ $p.core = function(sel, ctxt, plugins){
 	// return a function waiting the data as argument
 	function compile(directive, ctxt, template){
 		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
-		var json;
+		var context;
 		return function(data){
-			json = json || data;
-			return rfn({data: data, json:json});
+			context = context || data;
+			return rfn({data: data, context:context});
 		};
 	}
 	//compile with the directive as argument
