@@ -385,15 +385,16 @@ $p.core = function(sel, ctxt, plugins){
 			loop[p] = {root: dsel};
 			return loopgen(dom, sel, loop, fns);
 		}
-		var spec = parseloopspec(p);
-		var itersel = dataselectfn(spec.sel);
-		var target = gettarget(dom, sel, true);
-		var nodes = target.nodes;
+		var spec = parseloopspec(p),
+			itersel = dataselectfn(spec.sel),
+			target = gettarget(dom, sel, true),
+			nodes = target.nodes;
+			
 		for(i = 0; i < nodes.length; i++){
-			var node = nodes[i];
 			// could check for overlapping loop targets here by checking that
 			// root is still ancestor of node.
-			var inner = compiler(node, dsel);
+			var node = nodes[i],
+				inner = compiler(node, dsel);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
@@ -406,13 +407,18 @@ $p.core = function(sel, ctxt, plugins){
 			openLoops = {a:[],l:{}},
 			cspec,
 			i, ii, j, jj, ni, cs, cj;
+		//for each node found in the template
 		for(i = -1, ii = ns.length; i < ii; i++){
 			ni = i > -1 ?ns[i]:n;
 			if(ni.nodeType === 1 && ni.className !== ''){
+				//when a className is found
 				cs = ni.className.split(' ');
+				// for each className 
 				for(j = 0, jj=cs.length;j<jj;j++){
 					cj = cs[j];
+					// check if it is related to a context property
 					cspec = checkClass(cj, data);
+					// if so, store the node, plus the type of data
 					if(cspec !== false){
 						an.push({n:ni, cspec:cspec});
 					}
@@ -422,11 +428,14 @@ $p.core = function(sel, ctxt, plugins){
 		return an;
 		
 		function checkClass(c){
+			// read the class
 			var ca = c.match(/^(\+)?([^\@\+]+)\@?(\w+)?(\+)?$/),
 				cspec = {prepend:!!ca[1], prop:ca[2], attr:ca[3], append:!!ca[4], sel:c},
 				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop],
 				i, ii, loopi;
+			// if first level of data is found
 			if(typeof val === 'undefined'){
+				// check in existing open loops
 				for(i = openLoops.a.length-1; i >= 0; i--){
 					loopi = openLoops.a[i];
 					val = loopi.l[0][cspec.prop];
@@ -439,10 +448,13 @@ $p.core = function(sel, ctxt, plugins){
 					}
 				}
 			}
+			// nothing found return
 			if(typeof val === 'undefined'){
 				return false;
 			}
+			// format the selection, directive like
 			cspec.sel = (ca[1]||'') + cspec.prop + (c.indexOf('@') > -1 ? ('[' + cspec.attr + ']'):'') + (ca[4]||'');
+			// set the data type and details
 			if(isArray(val)){
 				openLoops.a.push({l:val, p:cspec.prop});
 				openLoops.l[cspec.prop] = true;
@@ -458,18 +470,22 @@ $p.core = function(sel, ctxt, plugins){
 	// will render the template defined by dom and directive.
 	function compiler(dom, directive, data, ans){
 		var fns = [];
+		// autoRendering nodes parsing -> auto-nodes
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
 			var j, jj, cspec, n, target, nodes, itersel, node, inner;
+			// for each auto-nodes
 			while(ans.length > 0){
 				cspec = ans[0].cspec;
 				n = ans[0].n;
 				ans.splice(0, 1);
 				if(cspec.t === 'str'){
+					// if the target is a value
 					target = gettarget(n, cspec, false);
 					setsig(target, fns.length);
 					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(cspec.prop));
 				}else{
+					// if the target is a loop
 					itersel = dataselectfn(cspec.sel);
 					target = gettarget(n, cspec, true);
 					nodes = target.nodes;
@@ -483,22 +499,25 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			}
 		}
-
+		// read directives
 		var target, dsel;
 		for(var sel in directive){
 			if(directive.hasOwnProperty(sel)){
 				dsel = directive[sel];
 				if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
+					// set the value for the node/attr
 					target = gettarget(dom, sel, false);
 					setsig(target, fns.length);
 					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
 				}else{
+					// loop on node
 					loopgen(dom, sel, dsel, fns);
 				}
 			}
 		}
 		
 		var h = outerHTML( dom ),
+			// special care for the style attribute
 			checkStyle = new RegExp( 'style[0-9]+="?' + Sig ),
 			pfns = [];
 
@@ -507,12 +526,14 @@ $p.core = function(sel, ctxt, plugins){
 			h = h.replace( checkStyle, 'style="' + Sig );
 		}
 
+		// slice the html string at "Sig"
 		var parts = h.split( Sig ), p;
+		// for each slice add the return string of 
 		for(var i = 1; i < parts.length; i++){
 			p = parts[i];
 			// part is of the form "fn-number:..." as placed there by setsig.
-			pfns[i] = fns[parseInt(p, 10)];
-			parts[i] = p.substring(p.indexOf(':')+1);
+			pfns[i] = fns[ parseInt(p, 10) ];
+			parts[i] = p.substring( p.indexOf(':') + 1 );
 		}
 		return concatenator(parts, pfns);
 	}
@@ -532,8 +553,9 @@ $p.core = function(sel, ctxt, plugins){
 	// return an HTML string 
 	// should replace the template and return this
 	function render(ctxt, directive){
+		var fn = typeof directive === 'function' ? directive : false;
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], plugins.compile( directive, false, this[i] )( ctxt ));
+			this[i] = replaceWith( this[i], (fn || plugins.compile( directive, false, this[i] ))( ctxt ));
 		}
 		return this;
 	}
@@ -542,8 +564,9 @@ $p.core = function(sel, ctxt, plugins){
 	// run the template function on the context argument
 	// return an HTML string 
 	function autoRender(ctxt, directive){
+		var fn = typeof directive === 'function' ? directive : false;
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], plugins.compile( directive, ctxt, this[i] )( ctxt ));
+			this[i] = replaceWith( this[i], (fn || plugins.compile( directive, ctxt, this[i] ))( ctxt ));
 		}
 		return this;
 	}
