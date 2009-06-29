@@ -1,14 +1,14 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    PURE Unobtrusive Rendering Engine for HTML
+	PURE Unobtrusive Rendering Engine for HTML
 
-    Licensed under the MIT licenses.
-    More information at: http://www.opensource.org
+	Licensed under the MIT licenses.
+	More information at: http://www.opensource.org
 
-    Copyright (c) 2009 Michael Cvilic - BeeBole.com
+	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-    revision: 2.05
+	revision: 2.06
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -64,8 +64,8 @@ $p.core = function(sel, ctxt, plugins){
 	
 	//return a new instance of plugins
 	function getPlugins(){
-		var plugins = $p.plugins;
-		function f(){}
+		var plugins = $p.plugins,
+			f = function(){};
 		f.prototype = plugins;
 
 		// do not overwrite functions if external definition
@@ -84,10 +84,14 @@ $p.core = function(sel, ctxt, plugins){
 	// returns the outer HTML of a node
 	function outerHTML(node){
 		// if IE take the internal method otherwise build one
-		return node.outerHTML || (function(node){
-        	var div = document.createElement('div');
-	        div.appendChild(node.cloneNode(true));
-	        return div.innerHTML;})(node);
+		return node.outerHTML || (
+			function(n){
+        		var div = document.createElement('div'), h;
+	        	div.appendChild( n.cloneNode(true) );
+				h = div.innerHTML;
+				div = null;
+				return h;
+			})(node);
 	}
 
 	// check if the argument is an array
@@ -128,7 +132,7 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof document.querySelectorAll !== 'undefined'){
 			return (n||document).querySelectorAll( sel );
 		}else{
-			error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your current browser, you need a JS library/framework with a selector engine');
+			error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
 		}
 	}
 	
@@ -169,6 +173,9 @@ $p.core = function(sel, ctxt, plugins){
 		var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
 		if(m === null){
 			error('bad loop spec: "' + p + '"');
+		}
+		if(m[1] === 'item'){
+			error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
 		}
 		if(typeof m[2] === 'undefined'){
 			m[2] = function(ctxt){return ctxt.data;};
@@ -216,8 +223,8 @@ $p.core = function(sel, ctxt, plugins){
 			if(!data){
 				return '';
 			}
-			var v = ctxt[m[0]];
-			var i = 0;
+			var	v = ctxt[m[0]],
+				i = 0;
 			if(v){
 				data = v.item;
 				i += 1;
@@ -341,6 +348,7 @@ $p.core = function(sel, ctxt, plugins){
 				temp = { items : a },
 				strs = [],
 				buildArg = function(idx){
+					ctxt.items = a;
 					ctxt.pos = temp.pos = idx;
 					ctxt.item = temp.item = a[ idx ];
 					strs.push( inner( ctxt ) );
@@ -518,7 +526,7 @@ $p.core = function(sel, ctxt, plugins){
 		
 		var h = outerHTML( dom ),
 			// special care for the style attribute
-			checkStyle = new RegExp( 'style[0-9]+="?' + Sig ),
+			checkStyle = new RegExp( 'style[0-9]+="?' + Sig, 'g' ),
 			pfns = [];
 
 		// style attribute cannot be set using setAttribute
@@ -553,9 +561,9 @@ $p.core = function(sel, ctxt, plugins){
 	// return an HTML string 
 	// should replace the template and return this
 	function render(ctxt, directive){
-		var fn = typeof directive === 'function' ? directive : false;
+		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, false, this[i] );
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], (fn || plugins.compile( directive, false, this[i] ))( ctxt ));
+			this[i] = replaceWith( this[i], fn( ctxt ));
 		}
 		return this;
 	}
@@ -564,9 +572,9 @@ $p.core = function(sel, ctxt, plugins){
 	// run the template function on the context argument
 	// return an HTML string 
 	function autoRender(ctxt, directive){
-		var fn = typeof directive === 'function' ? directive : false;
+		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, ctxt, this[i] );
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], (fn || plugins.compile( directive, ctxt, this[i] ))( ctxt ));
+			this[i] = replaceWith( this[i], fn( ctxt ));
 		}
 		return this;
 	}
