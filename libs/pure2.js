@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.06
+	revision: 2.07
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -42,7 +42,9 @@ $p.core = function(sel, ctxt, plugins){
 	plugins.length = ii;
 
 	// set the signature string that will be replaced at render time
-	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_';
+	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_',
+	// another signature to prepend to special attributes: style, height, ...
+		specAttr = '_a' + Math.floor( Math.random() * 1000000 ) + '_';
 	
 	return plugins;
 
@@ -285,22 +287,26 @@ $p.core = function(sel, ctxt, plugins){
 		if(attr){
 			getstr = function(node){ 
 				if((/^style$/i).test(attr)){
-					var css = node.style.cssText;
-					node.removeAttribute( 'style' );
-					return css;
+					return node.style.cssText;
 				}else{
 					return node.getAttribute(attr); 					
 				}
 			};
 			setstr = function(node, s){
-				if((/^style$/i).test(attr)){
-					node.setAttribute( attr + Math.floor( Math.random() * 100000 ), s );
-				}else{
-					node.setAttribute(attr, s);
-				};
+				switch(attr.toLowerCase()){
+					case 'style':
+					case 'height':
+						// set an attribute to bypass browser checks
+						node.setAttribute( specAttr + attr, s );
+						// remove the original attr
+						node.removeAttribute( attr );
+					break;
+					default:
+						node.setAttribute(attr, s);
+				}
 			};
 			quotefn = function(s){
-				return s.replace(/\"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+				return s.replace(/\"/g, '&quot;');
 			};
 		}else{
 			if(isloop){
@@ -525,13 +531,11 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		
 		var h = outerHTML( dom ),
-			// special care for the style attribute
-			checkStyle = new RegExp( 'style[0-9]+="?' + Sig, 'g' ),
 			pfns = [];
 
-		// style attribute cannot be set using setAttribute
-		if( checkStyle.test( h ) ){
-			h = h.replace( checkStyle, 'style="' + Sig );
+		// special attributes need extra care: style, height,...
+		if( h.indexOf( specAttr ) > - 1 ){
+			h = h.split(specAttr).join('');
 		}
 
 		// slice the html string at "Sig"
@@ -550,8 +554,7 @@ $p.core = function(sel, ctxt, plugins){
 	// return a function waiting the data as argument
 	function compile(directive, ctxt, template){
 		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
-		var context;
-		return function(data){
+		return function(data, context){
 			context = context || data;
 			return rfn({data: data, context:context});
 		};
@@ -561,10 +564,11 @@ $p.core = function(sel, ctxt, plugins){
 	// return an HTML string 
 	// should replace the template and return this
 	function render(ctxt, directive){
-		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, false, this[i] );
+		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, false, this[0] );
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], fn( ctxt ));
+			this[i] = replaceWith( this[i], fn( ctxt, false ));
 		}
+		context = null;
 		return this;
 	}
 
@@ -572,10 +576,11 @@ $p.core = function(sel, ctxt, plugins){
 	// run the template function on the context argument
 	// return an HTML string 
 	function autoRender(ctxt, directive){
-		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, ctxt, this[i] );
+		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, ctxt, this[0] );
 		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], fn( ctxt ));
+			this[i] = replaceWith( this[i], fn( ctxt, false));
 		}
+		context = null;
 		return this;
 	}
 	
