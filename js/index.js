@@ -123,6 +123,9 @@ var loadLib, runAll, run;
 	// run a transformation
 	function transform(ex, debug){
 		var template;
+		if(typeof ex === 'function'){
+			return ex();
+		}
 
 		switch(currLib){
 			case 'domassistant':

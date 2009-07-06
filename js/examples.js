@@ -187,3 +187,54 @@ var ex07 = {
 		}
 	}
 };
+
+var ex08 = function(){
+	var	
+		// Get the html source (cross lib using $p)
+		// adapt it to your library if you want. i.e: $( '#clock' ) for jQuery
+		html = $p( '#clock' ),
+
+		// json service returning the current time for a timezone
+		tz = 'Europe/Brussels',
+		url = 'http://json-time.appspot.com/time.json?tz='+tz+'&callback=showTime&cache=',
+
+		//directive to render the template
+		directive = {
+			'span.hour': overlay('hour'),
+			'span.minute': overlay('minute'),
+			'span.second': overlay('second'),
+			'span.tz': 'tz'
+		},
+
+		// compile the template once
+		template = html.compile( directive );
+
+	// utility fn to add leading 0 to numbers
+	function overlay(what){
+		return function(a){
+			var val = a.context[what];
+			return val === 0 ? '00' : val < 10 ? '0' + val : val;
+		};
+	}
+
+	// JSONP load - script injection with callback function (cross lib GET example)
+	var noCache = 0;
+	function loadTime(){
+		var	old = document.getElementById('dataLoad'),
+			s = document.createElement("script");
+		s.src = url + noCache++;
+		!old ? document.body.appendChild(s) : document.body.replaceChild(s, old);
+		s.id = 'dataLoad';
+	}
+
+	// Render the template
+	window.showTime = function(data){
+		// rendering but reusing the compiled function template
+		html = html.render( data, template );
+		// redo it every sec
+		window._to = setTimeout( loadTime, 1000 );
+	};
+
+	// Call the time service
+	loadTime();
+};
