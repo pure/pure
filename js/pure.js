@@ -7,7 +7,7 @@
 
     Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
-    revision: 1.33
+    revision: 1.34
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 var $p, pure;
@@ -244,7 +244,7 @@ $p = pure = {
 			{what:/\>\s+</g, by:'> <'}, //remove multiple spaces between >..< (IE 6) 
 			{what:/\r|\n/g, by:''},//may be too strong check with pre, textarea,...
 			{what:/\\\'|\'/g, by:'\\\''}, //escape apostrophe
-			{what:/\s+[^\=]+\=\"\"(?=[^\>]|\>)/ig, by:''}, //IE does not remove some attr, ticket #20
+			{what:/\s+[^\s]+\=\"\"(?=[^\>]|\>)/ig, by:''}, //IE does not remove some attr, ticket #20
 			{what:/^\s+/, by:''}],//clean leading white spaces in the html
 		outerHTML:function(elm){
 			return elm.outerHTML || (function(elm){
