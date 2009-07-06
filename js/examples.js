@@ -1,174 +1,189 @@
-// global functions
-var loadLib, runAll, run;
+// examples data
+var ex01 = {
+	template:'div.who',
+	data:{ who:'Hello Wrrrld' }
+};
 
-(function(){
+var ex02 = {
+	template:'div.hello',
+	data:{ who:'Hello Wrrrld' },
+	directive:{ 'span.who':'who' }
+};
 
-	var currLib = '';
-
-	loadLib = function(lib){
-		currLib = lib;
-		document.getElementById( 'chooseLib' ).innerHTML = '<div id="libLoaded"> Loading... '+  lib + '</div>';
-		if(lib === 'pure'){
-			showExamples();
-			return;
-		}
-		loadScript([ 'libs/' + lib + '.js'], showExamples);
-	};
-
-	//load scripts in sequence
-	function loadScript(srcs, done, howMany) {
-		if (srcs.length === 0) { return; }
-		howMany = howMany || srcs.length;
-
-		var s = document.createElement('script'), clunky = false;
-		var almostDone = function() {
-			if ( !clunky || (clunky && (s.readyState === 'complete' || s.readyState === 'loaded') ) ) {
-				loadScript(srcs, done, --howMany);
-				done();
+var ex03 = {
+	template:'div.friends',
+	directive:{
+		'.who':'who2.name',
+		'.who[title]':'See the tweets of #{who2.twitter}',
+		'.who[href]+':'who2.twitter'
+	},
+	data:{
+		friend:[
+			{
+				name:'Hughes', 
+				twitter:'hugheswaroquier'
+			},{
+				name:'Yves', 
+				twitter:'yveshiernaux'
 			}
-		};
-
-		s.charset = "UTF-8";
-		s.src = srcs.shift();
-
-		if (typeof s.addEventListener !== 'undefined') {
-			s.addEventListener('load', almostDone, false);
-		} else if (typeof s.attachEvent !== 'undefined') {
-			clunky = true;
-			s.attachEvent('onreadystatechange', almostDone);
+		], 
+		who:'dono',
+		who2:{
+			name:'Mic', 
+			twitter:'tchvil'
 		}
-
-		document.body.appendChild(s);
 	}
+};
 
-	function showExamples(){
-		//initialise the lib
-		currLib !== 'pure' && $p.libs[currLib]();
-
-		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this)">all at once</a>';
-		document.getElementById( 'examples' ).style.display = 'block';
-
-		var lis = $p( 'ul.exampleList li' ),
-			lii,
-			cn,
-			span;
-		for(var i = 0, ii = lis.length; i < ii; i++){
-			lii = lis[i];
-			if(!(/^ex[0-9]+$/).test(lis[i].className)){ 
-				continue; 
+var ex04 = {
+	template:'table.playerList',
+	directive:{
+		'tbody tr':{
+			'player<-players':{
+				'[class]':function(arg){
+					//arg => {data:data, items:items, pos:pos, item:items[pos]};
+					var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
+					var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.player.items.length - 1) ? 'last' : '';
+					return oddEven + ' ' + firstLast;
+				},
+				'td':'player',
+				'td[style]': '"cursor:pointer"',
+				'td[onclick]':'"clickLine(this);"'
 			}
+		}
+	},
+	data:{
+		players:[
+			"Adrian Meador","Bryan O'Connor","Michèle Noïjû","تصبح عالميا مع يونيكود",
+			"Γέφυρα γρύλων","Chloé Ellemême","глобальных масштабах","יוצא לשוק העולמי",
+			"La \"volante\"","Todd Swift","Valerie Paige","Walter Hagelstein","Wendy Leatherbury"
+		]
+	}
+};
+function clickLine(elm){
+	alert(elm.innerHTML);
+}
 
-			var h = $p('h3', lii);
-			if(h[0]){
-				h = h[0];
-				if(!(/SPAN/).test(h.nextSibling.tagName)){
-					span = document.createElement( 'SPAN' );
-					h.parentNode.insertBefore(span, h.nextSibling);
-				}else{
-					span = h.nextSibling;
+var ex05 = {
+	template:'table.partialTable',
+	data:{
+		cols:['name', 'food', 'legs'],
+		animals:[
+			{name:'bird', food:'seed', legs:2},
+			{name:'cat', food:'mouse, bird', legs:4},
+			{name:'dog', food:'bone', legs:4},
+			{name:'mouse', food:'cheese', legs:4}
+		]
+	},
+	directive1:{
+		'th':{
+			'col<-cols':{
+				'.':'col'
+			}
+		},
+		'td':{
+			'col<-cols':{
+				'[class]':'col'
+			}
+		}
+	},
+	directive2:{
+		'tbody tr':{
+			'animal<-animals':{
+				'td.name':'animal.name',
+				'td.food':'animal.food',
+				'td.legs':'animal.legs'
+			}
+		}
+	}
+};
+
+var ex06 = {
+	//template:'table.scoreBoard',
+	template:'div.scoreBoard',
+	data:{
+		teams: [{
+			name: 'Cats',
+			players: [	
+				{first: 'Alicé', last: 'Kea\'sler', score: [16, 15, 99, 100]}, 
+				{first: '', name: '', score: 0},
+				{first: 'Vicky', last: 'Benoit', score: [3, 5]}, 
+				{first: 'Wayne', last: 'Dartt', score: [9, 10]}
+			]
+		},{
+			name: 'Dogs',
+			players: [
+				{first: 'Ray', last: 'Braun', score: 14}, 
+				{first: 'Aaron', last: 'Ben', score: 24}, 
+				{first: 'Steven', last: 'Smith', score: 1}, 
+				{first: 'Kim', last: 'Caffey', score: 19}
+			]
+		},{
+			name: 'Mice',
+			players: [
+				{first: 'Natalie', last: 'Kinney', score: 16}, 
+				{first: 'Caren', last: 'Cohen', score: 3}
+			]
+		}]
+	},
+	directive:{
+		'tr.scoreBoard': {
+			'team <- teams': {
+				'td.teamName' : 'team.name',
+				'tr.teamList': {
+					'player <- team.players': {
+						'td.player': '#{player.first} (#{player.last})',
+						'td.score': '#{player.score}',
+						'td.position': 
+							function(arg){
+								return arg.pos + 1;
+						},
+						'[class]+':
+							function(arg){
+								return (arg.player.pos % 2 == 1) ? ' odd' : ' even';
+						}
+					}
 				}
-				var cn = lis[i].className;
-				window[cn].id = cn;
-				span.id = cn;
-				span.innerHTML = 
-					'<a class="run"   href="#" onclick="run(this, '+cn+');return false;">Run</a>'+
-					'<a class="debug" href="#" onclick="run(this, '+cn+', true);return false;">Debug</a>';
 			}
 		}
 	}
+};
 
-	// run all examples at once
-	runAll = function(a){
-		a.onclick = null;
-		var lis = $p( 'ul.exampleList li' ),
-			lii;
-		for(var i = 0, ii = lis.length; i < ii; i++){
-			lii = lis[i];
-			if(!(/^ex[0-9]+$/).test(lis[i].className)){ 
-				continue; 
-			}
-			run( $p('a.run', lii)[0], window[lii.className] );
-		}
-
-	};
-	
-	//example of plugin to debug a transformation
-	$p.plugins.compileDebug = function(directive, ctxt, template){
-	  debugger;
-	  var rfn = this._compiler( ( template || this[0] ).cloneNode( true ), directive, ctxt);
-	  var json;
-	  return function(data){
-	    json = json || data;
-	    return rfn( { data: data, json:json } );
-	  };
-	};
-
-
-	// choose between run or debug
-	run = function(elm, fn, debug){
-		if(!elm){return;}
-		elm.parentNode.innerHTML = '';
-		if(debug === true){
-			$p.plugins.__compile = $p.plugins.compile;
-			$p.plugins.compile = $p.plugins.compileDebug;
-		}
-
-		transform(fn, debug);
-
-		if(debug === true){
-			$p.plugins.compile = $p.plugins.__compile;
-		}
-	};
-
-	// run a transformation
-	function transform(ex, debug){
-		var template;
-
-		switch(currLib){
-			case 'domassistant':
-			case 'jquery':
-				template = $( ex.template );
-			break;
-			case 'mootools':
-				template = $(document).getElement( ex.template );
-			case 'prototype':
-				template = $$( ex.template )[0];
-			default:
-				template = $p( ex.template );
-		}
-
-		switch(ex.id){
-			case 'ex01':
-			case 'ex02':
-			case 'ex03':
-			case 'ex04':
-			case 'ex06':
-				//autoRender with data (and directives)
-				template.autoRender( ex.data , ex.directive );
-			break;
-
-			case 'ex05':
-				/* double rendering */
-				template.render( ex.data, ex.directive1 ).render( ex.data, ex.directive2 );
-			break;
-
-			case 'ex07':
-				/* Recursion */
-				var rfn = template.compile( ex.directive );
-
-				if(typeof rfn[0] === 'function'){ //DOMAssistant sends back an array?
-					rfn = rfn[0];
+var ex07 = {
+	template:'ul.treeItem',
+	data:{
+		children: [{
+			name: 'Europe',
+			children: [{
+				name: 'Belgium',
+				children: [{
+					name: 'Brussels'},{
+					name: 'Namur'},{
+					name: 'Antwerpen'}]},{
+				name: 'Germany'},{
+				name: 'UK'}]},{
+			name: 'America',
+			children: [{
+				name: 'US',
+				children: [{
+					name: 'Alabama'},{
+					name: 'Georgia'}]},{
+				name: 'Canada'},{
+				name: 'Argentina'}]},{
+			name: 'Asia'},{
+			name: 'Africa'},{
+			name: 'Antarctica'}
+		]
+	},
+	directive:{
+		'li': {
+			'child <- children': {
+				'a': 'child.name',
+				'a[onclick]':'alert(\'#{child.name}\');',
+				'div.children': function(ctxt){
+					return ctxt.child.item.children ? ex07.rfn(ctxt.child.item):'';
 				}
-				ex.rfn = rfn;
-				//some libs send back an array, some send the node
-				( template[0] || template ).parentNode.innerHTML = rfn( ex.data );
-			break;
-
-			default:
-				// default rendering with data and directive
-				template.render( ex.data, ex.directive );
+			}
 		}
-
 	}
-
-}());
+};

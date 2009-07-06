@@ -3,55 +3,15 @@
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 		<title>PURE Unobtrusive Rendering Engine for HTML - Version 2</title>
-		<style>
-			.exampleList{margin:0; padding:0; list-style-type:none;}
-
-			h3{margin:1em 0 .3em;float:left;}
-			a{
-				color:#369;
-				text-decoration:none;
-				outline: none;
-				padding:0 .5em;
-			}
-			a:hover{
-				background:#369;
-				color:#FFF;
-			}
-
-			.run, .debug{ display:block; float:left;margin:1.3em 0 0 1em;}
-
-			.template{clear:both;padding:1em;background:#DEF;margin:0 0  0 1em;}
-			#chooseLib a{
-				font-size:.8em;
-				background:#FFB;
-				padding:.3em;
-				text-decoration:underline;
-			}
-			#chooseLib a:hover{
-				background:#369;
-			}
-			#examples{display:none;}
-			#chooseLib{
-				line-height:1.5em;
-				border:solid 1px #CCC;
-				padding:1em;
-				background:#FFC;
-			}
-			input.lib{
-				font-weight:bold;
-			}
-			.note{
-				color:#999;
-				font-size:.75em;
-			}
-		</style>
+		<link rel="stylesheet" type="text/css" href="index.css" />
 		<script src="libs/pure2.js"></script>
+		<script src="js/index.js"></script>
 		<script src="js/examples.js"></script>
 	</head>
 	<body>
 
 		<div id="chooseLib">
-			Choose a library to run the examples:<br />
+			Choose a library to run the examples with:<br />
 			<a class="lib" href="#" onclick="loadLib('dojo');">dojo</a>
 			<a class="lib" href="#" onclick="loadLib('domassistant');">DomAssistant</a>
 			<a class="lib" href="#" onclick="loadLib('jquery');">jQuery</a>
@@ -71,14 +31,6 @@
 					<div class="template">
 						<div class="who"></div>
 					</div>
-
-					<script>
-						var ex01 = {
-							template:'div.who',
-							data:{ who:'Hello Wrrrld' }
-						};
-					</script>
-
 				</li>
 
 				<li class="ex02">
@@ -88,15 +40,6 @@
 							<span class="who" />
 						</div>
 					</div>
-
-					<script>
-						var ex02 = {
-							template:'div.hello',
-							data:{ who:'Hello Wrrrld' },
-							directive:{ 'span.who':'who' }
-						};
-					</script>
-
 				</li>
 
 				<li class="ex03">
@@ -111,34 +54,6 @@
 							</ul>
 						</div>
 					</div>
-
-					<script>
-						var ex03 = {
-							template:'div.friends',
-							directive:{
-								'.who':'who2.name',
-								'.who[title]':'See the tweets of #{who2.twitter}',
-								'.who[href]+':'who2.twitter'
-							},
-							data:{
-								friend:[
-									{
-										name:'Hughes', 
-										twitter:'hugheswaroquier'
-									},{
-										name:'Yves', 
-										twitter:'yveshiernaux'
-									}
-								], 
-								who:'dono',
-								who2:{
-									name:'Mic', 
-									twitter:'tchvil'
-								}
-							}
-						};
-					</script>
-
 				</li>
 
 				<li class="ex04">
@@ -157,44 +72,6 @@
 					     </tbody>
 					   </table>
 					</div>
-					<style>
-						.playerList td{
-							padding:0 1em;
-							border:1px solid #999;
-						}
-					</style>
-
-					<script>
-						var ex04 = {
-							template:'table.playerList',
-							directive:{
-								'tbody tr':{
-									'player<-players':{
-										'[class]':function(arg){
-											//arg => {data:data, items:items, pos:pos, item:items[pos]};
-											var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
-											var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.player.items.length - 1) ? 'last' : '';
-											return oddEven + ' ' + firstLast;
-										},
-										'td':'player',
-										'td[style]': '"cursor:pointer"',
-										'td[onclick]':'"clickLine(this);"'
-									}
-								}
-							},
-							data:{
-								players:[
-									"Adrian Meador","Bryan O'Connor","Michèle Noïjû","تصبح عالميا مع يونيكود",
-									"Γέφυρα γρύλων","Chloé Ellemême","глобальных масштабах","יוצא לשוק העולמי",
-									"La \"volante\"","Todd Swift","Valerie Paige","Walter Hagelstein","Wendy Leatherbury"
-								]
-							}
-						};
-						function clickLine(elm){
-							alert(elm.innerHTML);
-						}
-					</script>
-
 				</li>
 
 				<li class="ex05">
@@ -213,48 +90,6 @@
 					     </tbody>
 					   </table>
 					</div>
-					<style>
-						.partialTable td{
-							padding:0 1em;
-							border:1px solid #999;
-						}
-					</style>
-					<script>
-						var ex05 = {
-							template:'table.partialTable',
-							data:{
-								cols:['name', 'food', 'legs'],
-								animals:[
-									{name:'bird', food:'seed', legs:2},
-									{name:'cat', food:'mouse, bird', legs:4},
-									{name:'dog', food:'bone', legs:4},
-									{name:'mouse', food:'cheese', legs:4}
-								]
-							},
-							directive1:{
-								'th':{
-									'col<-cols':{
-										'.':'col'
-									}
-								},
-								'td':{
-									'col<-cols':{
-										'[class]':'col'
-									}
-								}
-							},
-							directive2:{
-								'tbody tr':{
-									'animal<-animals':{
-										'td.name':'animal.name',
-										'td.food':'animal.food',
-										'td.legs':'animal.legs'
-									}
-								}
-							}
-						};
-					</script>
-
 				</li>
 
 				<li class="ex06">
@@ -288,69 +123,6 @@
 						  </table>
 						</div>
 					</div>
-					<style>
-						.teamPlace table{
-							width:100%;
-						}
-						.scoreBoard td{
-							padding:0 1em;
-							border:1px solid #999;
-						}
-					</style>
-
-					<script>
-						var ex06 = {
-							//template:'table.scoreBoard',
-							template:'div.scoreBoard',
-							data:{
-								teams: [{
-									name: 'Cats',
-									players: [	
-										{first: 'Alicé', last: 'Kea\'sler', score: [16, 15, 99, 100]}, 
-										{first: '', name: '', score: 0},
-										{first: 'Vicky', last: 'Benoit', score: [3, 5]}, 
-										{first: 'Wayne', last: 'Dartt', score: [9, 10]}
-									]
-								},{
-									name: 'Dogs',
-									players: [
-										{first: 'Ray', last: 'Braun', score: 14}, 
-										{first: 'Aaron', last: 'Ben', score: 24}, 
-										{first: 'Steven', last: 'Smith', score: 1}, 
-										{first: 'Kim', last: 'Caffey', score: 19}
-									]
-								},{
-									name: 'Mice',
-									players: [
-										{first: 'Natalie', last: 'Kinney', score: 16}, 
-										{first: 'Caren', last: 'Cohen', score: 3}
-									]
-								}]
-							},
-							directive:{
-								'tr.scoreBoard': {
-									'team <- teams': {
-										'td.teamName' : 'team.name',
-										'tr.teamList': {
-											'player <- team.players': {
-												'td.player': '#{player.first} (#{player.last})',
-												'td.score': '#{player.score}',
-												'td.position': 
-													function(arg){
-														return arg.pos + 1;
-												},
-												'[class]+':
-													function(arg){
-														return (arg.player.pos % 2 == 1) ? ' odd' : ' even';
-												}
-											}
-										}
-									}
-								}
-							}
-						};
-					</script>
-
 				</li>
 
 				<li class="ex07">
@@ -363,46 +135,6 @@
 					        </li>
 					    </ul>
 					</div>
-					<script>
-						var ex07 = {
-							template:'ul.treeItem',
-							data:{
-								children: [{
-									name: 'Europe',
-									children: [{
-										name: 'Belgium',
-										children: [{
-											name: 'Brussels'},{
-											name: 'Namur'},{
-											name: 'Antwerpen'}]},{
-										name: 'Germany'},{
-										name: 'UK'}]},{
-									name: 'America',
-									children: [{
-										name: 'US',
-										children: [{
-											name: 'Alabama'},{
-											name: 'Georgia'}]},{
-										name: 'Canada'},{
-										name: 'Argentina'}]},{
-									name: 'Asia'},{
-									name: 'Africa'},{
-									name: 'Antarctica'}
-								]
-							},
-							directive:{
-								'li': {
-									'child <- children': {
-										'a': 'child.name',
-										'a[onclick]':'alert(\'#{child.name}\');',
-										'div.children': function(ctxt){
-											return ctxt.child.item.children ? ex07.rfn(ctxt.child.item):'';
-										}
-									}
-								}
-							}
-						};
-					</script>
 				</li>
 			</ul>
 		</div>
