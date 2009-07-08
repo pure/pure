@@ -14,8 +14,8 @@ var ex03 = {
 	template:'div.friends',
 	directive:{
 		'.who':'who2.name',
-		'.who[title]':'See the tweets of #{who2.twitter}',
-		'.who[href]+':'who2.twitter'
+		'.who@title':'See the tweets of #{who2.twitter}',
+		'.who@href+':'who2.twitter'
 	},
 	data:{
 		friend:[
@@ -40,15 +40,15 @@ var ex04 = {
 	directive:{
 		'tbody tr':{
 			'player<-players':{
-				'[class]':function(arg){
+				'@class':function(arg){
 					//arg => {data:data, items:items, pos:pos, item:items[pos]};
 					var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
 					var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.player.items.length - 1) ? 'last' : '';
 					return oddEven + ' ' + firstLast;
 				},
 				'td':'player',
-				'td[style]': '"cursor:pointer"',
-				'td[onclick]':'"clickLine(this);"'
+				'td@style': '"cursor:pointer"',
+				'td@onclick':'"clickLine(this);"'
 			}
 		}
 	},
@@ -83,7 +83,7 @@ var ex05 = {
 		},
 		'td':{
 			'col<-cols':{
-				'[class]':'col'
+				'@class':'col'
 			}
 		}
 	},
@@ -138,7 +138,7 @@ var ex06 = {
 							function(arg){
 								return arg.pos + 1;
 						},
-						'[class]+':
+						'@class+':
 							function(arg){
 								return (arg.player.pos % 2 == 1) ? ' odd' : ' even';
 						}
@@ -179,7 +179,7 @@ var ex07 = {
 		'li': {
 			'child <- children': {
 				'a': 'child.name',
-				'a[onclick]':'alert(\'#{child.name}\');',
+				'a@onclick':'alert(\'#{child.name}\');',
 				'div.children': function(ctxt){
 					return ctxt.child.item.children ? ex07.rfn(ctxt.child.item):'';
 				}
@@ -267,7 +267,7 @@ var ex09 = function() {
 			},
 			'td':{
 				"c<-column":{
-					"[class]":"c"
+					"@class":"c"
 				}
 			}
 		},
@@ -281,7 +281,7 @@ var ex09 = function() {
 						return Math.floor(parseFloat(a.item.Change) / parseFloat(a.item.LastTradePriceOnly) * 1000000) / 10000 + ' %';
 					},
 					"td.price":"q.LastTradePriceOnly",
-					"td[class]+":function(a){
+					"td@class+":function(a){
 						return (/^-/).test(a.item.Change) ? ' red' : ' green';
 					}
 				}
@@ -290,6 +290,7 @@ var ex09 = function() {
 	};
 
 	var TEMPLATE = $p( WI.template ).render( WI.header, WI.directivehead ).compile( WI.directivebody );
+
 	doYQL(YQL_QUERY,true,null);
 
 	window.showQuotes = function(data){

@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.07
+	revision: 2.08
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -43,8 +43,10 @@ $p.core = function(sel, ctxt, plugins){
 
 	// set the signature string that will be replaced at render time
 	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_',
-	// another signature to prepend to special attributes: style, height, ...
-		specAttr = '_a' + Math.floor( Math.random() * 1000000 ) + '_';
+		// another signature to prepend to special attributes: style, height, ...
+		specAttr = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
+		// rx to parse selectors, e.g. "+tr.foo[class]"
+		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/;
 	
 	return plugins;
 
@@ -246,18 +248,17 @@ $p.core = function(sel, ctxt, plugins){
 		var osel, prepend, selector, attr, append, target = [];
 		if( typeof sel === 'string' ){
 			osel = sel;
-			// e.g. "+tr.foo[class]"
-			var m = sel.match(/^\s*([\+=])?(((\+[^\[])|[^\[\+])*)(\[([^\]]*)\])?([\+=])?\s*$/);
+			var m = sel.match(selRx);
 			if( !m ){
-				error( 'bad selector: ' + sel );
+				error( 'bad selector syntax: ' + sel );
 			}
 			
 			prepend = m[1];
 			selector = m[2];
-			attr = m[6];
-			append = m[7];
+			attr = m[3];
+			append = m[4];
 			
-			if(selector === '.' || ( selector === '' && typeof attr !== 'undefined' ) ){
+			if(selector === '.' || ( typeof selector === 'undefined' && typeof attr !== 'undefined' ) ){
 				target[0] = dom;
 			}else{
 				target = plugins.find(dom, selector);
@@ -443,7 +444,7 @@ $p.core = function(sel, ctxt, plugins){
 		
 		function checkClass(c){
 			// read the class
-			var ca = c.match(/^(\+)?([^\@\+]+)\@?(\w+)?(\+)?$/),
+			var ca = c.match(selRx),
 				cspec = {prepend:!!ca[1], prop:ca[2], attr:ca[3], append:!!ca[4], sel:c},
 				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop],
 				i, ii, loopi;
@@ -466,8 +467,6 @@ $p.core = function(sel, ctxt, plugins){
 			if(typeof val === 'undefined'){
 				return false;
 			}
-			// format the selection, directive like
-			cspec.sel = (ca[1]||'') + cspec.prop + (c.indexOf('@') > -1 ? ('[' + cspec.attr + ']'):'') + (ca[4]||'');
 			// set the data type and details
 			if(isArray(val)){
 				openLoops.a.push({l:val, p:cspec.prop});
