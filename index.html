@@ -12,14 +12,14 @@
 
 		<div id="chooseLib">
 			Choose a library to run the examples with:<br />
-			<a class="lib" href="#" onclick="loadLib('dojo');">dojo</a>
-			<a class="lib" href="#" onclick="loadLib('domassistant');">DomAssistant</a>
-			<a class="lib" href="#" onclick="loadLib('jquery');">jQuery</a>
-			<a class="lib" href="#" onclick="loadLib('mootools');">Mootools</a>
-			<a class="lib" href="#" onclick="loadLib('prototype');">Prototype</a>
-			<a class="lib" href="#" onclick="loadLib('sizzle');">Sizzle</a>
-			<a class="lib" href="#" onclick="loadLib('sly');">Sly</a>
-			<a class="lib" href="#" onclick="loadLib('pure');">PURE Alone (modern browsers only)</a>
+			<a class="lib" href="#" onclick="loadLib('dojo');return false;">dojo</a>
+			<a class="lib" href="#" onclick="loadLib('domassistant');return false;">DomAssistant</a>
+			<a class="lib" href="#" onclick="loadLib('jquery');return false;">jQuery</a>
+			<a class="lib" href="#" onclick="loadLib('mootools');return false;">Mootools</a>
+			<a class="lib" href="#" onclick="loadLib('prototype');return false;">Prototype</a>
+			<a class="lib" href="#" onclick="loadLib('sizzle');return false;">Sizzle</a>
+			<a class="lib" href="#" onclick="loadLib('sly');return false;">Sly</a>
+			<a class="lib" href="#" onclick="loadLib('pure');return false;">PURE Alone (modern browsers only)</a>
 		</div>
 	
 		<div id="examples">
@@ -37,7 +37,7 @@
 					<h3>Hello World with directives</h3>
 					<div class="template">
 						<div class="hello">
-							<span class="who" />
+							<span class="who"></span>
 						</div>
 					</div>
 				</li>
@@ -138,13 +138,34 @@
 				</li>
 				
 				<li class="ex08">
-					<h3>Reuse a template and load JSONP data</h3>
+					<h3>Reuse a template and load JSONP data every sec</h3>
 					<div class="template">
 						<div id="clock">
 							It is now <span class="hour"></span> : <span class="minute"></span> : <span class="second"></span><br />
 							In <span class="tz"></span>
 						</div>
 						<p><a href="#" onclick="clearTimeout(_to);return false;">stop</a></p>
+					</div>
+				</li>
+
+				<li class="ex09">
+					<style>
+						.ex09 table { border:1px solid #999; text-align:left; border-collapse:collapse;}
+						.ex09 th { padding:.5em; background:#FFC;text-align:center;border-bottom:1px solid #999;border-right:1px solid #999;}
+						.ex09 td { padding:.3em; border-right:1px solid #999;border-bottom:1px solid #999;background:#FFF;}
+						.ex09 .percent, .price, .change{text-align:right;}
+						.ex09 .red { color:#900; }
+						.ex09 .green { color:#090; }
+					</style>
+
+					<h3>World Indices: dynamic table, reuse a template and JSONP load every 30 sec</h3>
+
+					<div class="template">
+						<a href="#" onclick="clearTimeout(_to10);this.style.visibility='hidden';return false;">stop it!</a>
+						<table class="indices">
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
 					</div>
 				</li>
 			</ul>
