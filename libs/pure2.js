@@ -235,11 +235,10 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			var n = m.length;
 			for(; i < n; i++){
-				if(!(data = data[m[i]])){
-					return '';
-				}
+				if(!data){break;}
+				data = data[m[i]];
 			}
-			return data;
+			return (!data && data !== 0) ? '':data;
 		};
 	}
 
@@ -587,7 +586,6 @@ $p.core = function(sel, ctxt, plugins){
 		var div = document.createElement('DIV'),
 			tagName = elm.tagName.toLowerCase(),
 			ne, pa;
-
 		if((/td|tr|th/).test(tagName)){
 			var parents = {	tr:{table:'tbody'}, td:{table:{tbody:'tr'}}, th:{table:{thead:'tr'}} };
 			pa = domify( parents[ tagName ] );

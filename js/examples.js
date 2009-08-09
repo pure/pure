@@ -119,6 +119,9 @@ var ex06 = {
 				{first: 'Kim', last: 'Caffey', score: 19}
 			]
 		},{
+			name:'Birds',
+			players:null
+		},{
 			name: 'Mice',
 			players: [
 				{first: 'Natalie', last: 'Kinney', score: 16}, 
@@ -157,7 +160,8 @@ var ex07 = {
 			children: [{
 				name: 'Belgium',
 				children: [{
-					name: 'Brussels'},{
+					name: 'Brussels',
+					children:null},{
 					name: 'Namur'},{
 					name: 'Antwerpen'}]},{
 				name: 'Germany'},{
