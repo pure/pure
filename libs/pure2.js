@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.08
+	revision: 2.10
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -257,7 +257,7 @@ $p.core = function(sel, ctxt, plugins){
 			attr = m[3];
 			append = m[4];
 			
-			if(selector === '.' || ( typeof selector === 'undefined' && typeof attr !== 'undefined' ) ){
+			if(selector === '.' || ( !selector && attr ) ){
 				target[0] = dom;
 			}else{
 				target = plugins.find(dom, selector);
@@ -306,7 +306,9 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			};
 			quotefn = function(s){
-				return s.replace(/\"/g, '&quot;');
+				var r = s.replace(/\"/g, '&quot;');
+				//IE breaks on space as no quotes exist
+				return (/^class$|^style$/i).test(attr) ? r : r.replace(/\s/g, '&nbsp;');
 			};
 		}else{
 			if(isloop){
