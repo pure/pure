@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.10
+	revision: 2.11
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -181,7 +181,7 @@ $p.core = function(sel, ctxt, plugins){
 		if(m[1] === 'item'){
 			error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
 		}
-		if(typeof m[2] === 'undefined'){
+		if( !m[2] ){ //undefined or space(IE) 
 			m[2] = function(ctxt){return ctxt.data;};
 		}
 		return {name: m[1], sel: m[2]};
