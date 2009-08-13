@@ -43,8 +43,8 @@ $p.core = function(sel, ctxt, plugins){
 
 	// set the signature string that will be replaced at render time
 	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_',
-		// another signature to prepend to special attributes: style, height, ...
-		specAttr = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
+		// another signature to prepend to attributes and avoid checks: style, height, on[events]...
+		attPfx = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
 		// rx to parse selectors, e.g. "+tr.foo[class]"
 		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/;
 	
@@ -282,34 +282,24 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		// we need 'root' selector because CSS search never finds the root element.
 		var setstr, getstr, quotefn;
 		if(attr){
-			getstr = function(node){ 
-				if((/^style$/i).test(attr)){
-					return node.style.cssText;
-				}else{
-					return node.getAttribute(attr); 					
-				}
-			};
 			setstr = function(node, s){
-				switch(attr.toLowerCase()){
-					case 'style':
-					case 'height':
-						// set an attribute to bypass browser checks
-						node.setAttribute( specAttr + attr, s );
-						// remove the original attr
-						node.removeAttribute( attr );
-					break;
-					default:
-						node.setAttribute(attr, s);
-				}
+				// set an attribute to bypass browser checks
+				node.setAttribute( attPfx + attr, s );
+				// remove the original attr
+				node.removeAttribute( attr );
 			};
-			quotefn = function(s){
-				var r = s.replace(/\"/g, '&quot;');
-				//IE breaks on space as no quotes exist
-				return (/^class$|^style$/i).test(attr) ? r : r.replace(/\s/g, '&nbsp;');
-			};
+			if( (/^style$/i).test(attr) ){
+				getstr = function(node){ return node.style.cssText;};
+			}else{
+				getstr = function(node){ return node.getAttribute(attr);};
+			}
+			if( (/^class$|^style$/i).test(attr) ){//IE no quotes care
+				quotefn = function(s){ return s.replace(/\"/g, '&quot;');};
+			}else{
+				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;');};
+			}
 		}else{
 			if(isloop){
 				setstr = function(node, s){
@@ -369,8 +359,8 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			}else{
 				//loop on collections
-				for(var prop in a){ 
-					buildArg(prop); 
+				for(var prop in a){
+					a.hasOwnProperty( prop ) && buildArg(prop); 
 				}
 			}
 			ctxt[name] = old;
@@ -529,14 +519,9 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			}
 		}
-		
-		var h = outerHTML( dom ),
+		// convert to a string and remove attribute prefix
+		var h = outerHTML( dom ).split(attPfx).join(''),
 			pfns = [];
-
-		// special attributes need extra care: style, height,...
-		if( h.indexOf( specAttr ) > - 1 ){
-			h = h.split(specAttr).join('');
-		}
 
 		// slice the html string at "Sig"
 		var parts = h.split( Sig ), p;
