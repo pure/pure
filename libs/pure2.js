@@ -159,7 +159,7 @@ $p.core = function(sel, ctxt, plugins){
 				// if the value is empty and attribute, remove it
 				if(fnVal === ''){
 					attLine = strs[ strs.length - 1 ];
-					if( ( pos = attLine.search( /\s[\w]+=\"$/ ) ) > -1){
+					if( ( pos = attLine.search( /[\w]+=\"?$/ ) ) > -1){
 						strs[ strs.length - 1 ] = attLine.substring( 0, pos );
 						pVal = pVal.substr( 1 );
 					}
