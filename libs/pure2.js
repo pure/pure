@@ -287,12 +287,18 @@ $p.core = function(sel, ctxt, plugins){
 		if(attr){
 			isStyle = (/^style$/i).test(attr);
 			isClass = (/^class$/i).test(attr);
-			setstr = function(node, s){
-				// set an attribute to bypass browser checks
-				node.setAttribute( attPfx + attr, s );
-				// remove the original attr
-				node.removeAttribute( isClass ? CLASSNAME : attr );
-			};
+			if ( isClass ){
+				setstr = function(node, s){
+					// set an attribute to bypass browser checks and remove the original
+					node.setAttribute( attPfx + attr, s );
+					node.removeAttribute( CLASSNAME );
+				};
+			}else{
+				setstr = function(node, s){
+					node.setAttribute( attPfx + attr, s );
+					node.removeAttribute(  attr );
+				};
+			}
 			if( isStyle ){
 				getstr = function(node){ return node.style.cssText;};
 			}else{
