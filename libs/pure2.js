@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.11
+	revision: 2.12
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -46,7 +46,8 @@ $p.core = function(sel, ctxt, plugins){
 		// another signature to prepend to attributes and avoid checks: style, height, on[events]...
 		attPfx = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
 		// rx to parse selectors, e.g. "+tr.foo[class]"
-		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/;
+		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
+		CLASSNAME = (/MSIE\s+(6|7)/).test(navigator.userAgent) ? 'className' : 'class';
 	
 	return plugins;
 
@@ -282,20 +283,22 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		var setstr, getstr, quotefn;
+		var setstr, getstr, quotefn, isStyle, isClass;
 		if(attr){
+			isStyle = (/^style$/i).test(attr);
+			isClass = (/^class$/i).test(attr);
 			setstr = function(node, s){
 				// set an attribute to bypass browser checks
 				node.setAttribute( attPfx + attr, s );
 				// remove the original attr
-				node.removeAttribute( attr );
+				node.removeAttribute( isClass ? CLASSNAME : attr );
 			};
-			if( (/^style$/i).test(attr) ){
+			if( isStyle ){
 				getstr = function(node){ return node.style.cssText;};
 			}else{
 				getstr = function(node){ return node.getAttribute(attr);};
 			}
-			if( (/^class$|^style$/i).test(attr) ){//IE no quotes care
+			if( isStyle || isClass ){//IE no quotes care
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;');};
 			}else{
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;');};

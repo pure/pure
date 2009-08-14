@@ -40,11 +40,11 @@ var ex04 = {
 	directive:{
 		'tbody tr':{
 			'player<-players':{
-				'@class':function(arg){
+				'@class+':function(arg){
 					//arg => {data:data, items:items, pos:pos, item:items[pos]};
 					var oddEven = (arg.pos % 2 == 0) ? 'even' : 'odd';
 					var firstLast = (arg.pos == 0) ? 'first' : (arg.pos == arg.player.items.length - 1) ? 'last' : '';
-					return oddEven + ' ' + firstLast;
+					return ' ' + oddEven + ' ' + firstLast;
 				},
 				'td':'player',
 				'td@style': '"cursor:pointer"',

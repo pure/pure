@@ -64,6 +64,9 @@ pre{
 	padding:0 1em;
 	border:1px solid #999;
 }
+.odd td{
+	background:#FFF;
+}
 /* ex 5 */ 
 .partialTable td{
 	padding:0 1em;
