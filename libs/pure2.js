@@ -8,11 +8,11 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.12
+	revision: 2.13
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-var $p = pure = function(){
+var $p, pure = $p = function(){
 	var sel = arguments[0], 
 		ctxt = false;
 
@@ -194,17 +194,14 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof(sel) === 'function'){
 			return sel;
 		}
-		var m = sel.match(/^(\w+)(\.(\w+))*$/);
+		//check for a valid js variable name with hyphen(for properties only) and $
+		var m = sel.match(/^[a-zA-Z$_][\w$]*(\.[\w$-]*[^\.])*$/);
 		if(m === null){
-			var found = false, 
-				s = sel,
-				parts = [],
-				pfns = [],
-				i = 0;
+			var found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
 			// check if literal
 			if(/\'|\"/.test( s.charAt(0) )){
 				if(/\'|\"/.test( s.charAt(s.length-1) )){
-					var retStr = s.substring(1, s.length-1);
+					retStr = s.substring(1, s.length-1);
 					return function(){ return retStr; };
 				}
 			}else{
@@ -372,11 +369,10 @@ $p.core = function(sel, ctxt, plugins){
 					a.hasOwnProperty( prop ) && buildArg(prop); 
 				}
 			}
-			ctxt[name] = old;
+			typeof old !== 'undefined' ? ctxt[name] = old : delete ctxt[name];
 			return strs.join('');
 		};
 	}
-
 	// generate the template for a loop node
 	function loopgen(dom, sel, loop, fns){
 		var already = false;
