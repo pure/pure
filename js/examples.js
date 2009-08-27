@@ -305,3 +305,19 @@ var ex09 = function() {
 		}, 10000);
 	};
 };
+
+var ex10 = {
+	template:'select.sizes',
+	directive:{
+        'option': {
+            'size <- sizes': {
+                '.':'#{size.val} - #{size.name}',
+				'@value':'size.val',
+                '@selected':'size.sel'
+            }
+        }
+	},
+	data:{
+		sizes: [{ val:'S', name: 'small' }, { val:'M', name: 'medium', sel: true }, {val:'L', name:'large'}]
+	}
+};

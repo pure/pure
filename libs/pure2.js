@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.13
+	revision: 2.14
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -47,7 +47,9 @@ $p.core = function(sel, ctxt, plugins){
 		attPfx = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
 		// rx to parse selectors, e.g. "+tr.foo[class]"
 		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
-		CLASSNAME = (/MSIE\s+(6|7)/).test(navigator.userAgent) ? 'className' : 'class';
+		// detect IE
+		isMSIE = navigator.userAgent.match(/MSIE\s+([0-9])/),
+		CLASSNAME = ( isMSIE && (isMSIE[1] === '6' || isMSIE[1] === '7'  )) ? 'className' : 'class';
 	
 	return plugins;
 
@@ -524,9 +526,14 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			}
 		}
-		// convert to a string and remove attribute prefix
-		var h = outerHTML( dom ).split(attPfx).join(''),
-			pfns = [];
+        // convert node to a string 
+        var h = outerHTML(dom), pfns = [];
+        //IE adds a "selected" attribute that cannot be removed
+        if (isMSIE && dom.tagName === 'OPTION') {
+            h = h.replace(/selected[^\=]/, '');
+        }
+        // remove attribute prefix
+        h = h.split(attPfx).join('');
 
 		// slice the html string at "Sig"
 		var parts = h.split( Sig ), p;
