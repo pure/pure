@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.14
+	revision: 2.15
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -46,10 +46,7 @@ $p.core = function(sel, ctxt, plugins){
 		// another signature to prepend to attributes and avoid checks: style, height, on[events]...
 		attPfx = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
 		// rx to parse selectors, e.g. "+tr.foo[class]"
-		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
-		// detect IE
-		isMSIE = navigator.userAgent.match(/MSIE\s+([0-9])/),
-		CLASSNAME = ( isMSIE && (isMSIE[1] === '6' || isMSIE[1] === '7'  )) ? 'className' : 'class';
+		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/;
 	
 	return plugins;
 
@@ -282,28 +279,26 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		var setstr, getstr, quotefn, isStyle, isClass;
+		var setstr, getstr, quotefn, isStyle, isClass, an;
 		if(attr){
 			isStyle = (/^style$/i).test(attr);
 			isClass = (/^class$/i).test(attr);
-			if ( isClass ){
-				setstr = function(node, s){
-					// set an attribute to bypass browser checks and remove the original
-					node.setAttribute( attPfx + attr, s );
-					node.removeAttribute( CLASSNAME );
-				};
-			}else{
-				setstr = function(node, s){
-					node.setAttribute( attPfx + attr, s );
+			attName = isClass ? 'className' : attr;
+			setstr = function(node, s){
+				node.setAttribute( attPfx + attr, s );
+				if(attName in node && !isStyle){ 
+					node[ attName ] = '' ;
+				}
+				if(node.nodeType === 1){ 
 					node.removeAttribute(  attr );
-				};
-			}
+				}
+			};
 			if( isStyle ){
 				getstr = function(node){ return node.style.cssText;};
 			}else{
 				getstr = function(node){ return node.getAttribute(attr);};
 			}
-			if( isStyle || isClass ){//IE no quotes care
+			if( isStyle || isClass ){//IE no quotes special care
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;');};
 			}else{
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;');};
@@ -528,10 +523,6 @@ $p.core = function(sel, ctxt, plugins){
 		}
         // convert node to a string 
         var h = outerHTML(dom), pfns = [];
-        //IE adds a "selected" attribute that cannot be removed
-        if (isMSIE && dom.tagName === 'OPTION') {
-            h = h.replace(/selected[^\=]/, '');
-        }
         // remove attribute prefix
         h = h.split(attPfx).join('');
 

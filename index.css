@@ -1,6 +1,6 @@
 .exampleList{margin:0; padding:0; list-style-type:none;}
 
-h3{margin:1em 0 .3em;float:left;}
+h3{margin:1em 0 .3em;float:left;clear:both;}
 a{
 	color:#369;
 	text-decoration:none;
@@ -38,26 +38,31 @@ input.lib{
 	color:#999;
 	font-size:.75em;
 }
-.html pre, .dir pre{
-	float:left;width:44%;background:#FFF;border:solid 1px #CCC;margin:1%;padding:.5em;
-}
-.sources{
-	width:100%;
-	margin:0 0 0 1em;
-}
-.sources td{
-	width:25%;
-	padding:.5em;
-	background:#FAFAFF;
-	overflow:auto;
-	border:solid 1px #DDD;
-}
-.sources th{
-	text-align:left;
-}
 pre{
 	font-family:Monaco,"Courier New",monospace;
 	color:#444444;
+	font-size:75%;
+}
+#sourceCodes{
+	clear:both;
+}
+.sourceCode{
+	background:#EEF;
+	border:solid 1px #CCC;
+	padding:1%;
+	margin:1%;
+	overflow:auto;
+	max-height:300px;
+}
+.sourceCode pre{
+}
+.cols2 .sourceCode{
+	float:left;
+	width:44%;
+}
+.cols3 .sourceCode{
+	float:left;
+	width:27%;
 }
 /* ex 4 */ 
 .playerList td{

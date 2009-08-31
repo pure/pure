@@ -307,7 +307,7 @@ var ex09 = function() {
 };
 
 var ex10 = {
-	template:'select.sizes',
+	template:'form.sizes',
 	directive:{
         'option': {
             'size <- sizes': {

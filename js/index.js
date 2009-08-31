@@ -45,7 +45,7 @@ var loadLib, runAll, run;
 		//initialise the lib
 		currLib !== 'pure' && $p.libs[currLib]();
 
-		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this)">all at once</a>';
+		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this);return false;">all at once</a><br />';
 		document.getElementById( 'examples' ).style.display = 'block';
 
 		var lis = $p( 'ul.exampleList li' ),
@@ -71,15 +71,14 @@ var loadLib, runAll, run;
 				window[cn].id = cn;
 				span.id = cn;
 				span.innerHTML = 
-					'<a class="run"   href="#" onclick="run(this, '+cn+');return false;">Run</a>'+
-					'<a class="debug" href="#" onclick="run(this, '+cn+', true);return false;">Debug</a>';
+					'<a class="run"   href="#" onclick="run(this, '+cn+');return false;">Run</a>';
 			}
 		}
 	}
 
 	// run all examples at once
 	runAll = function(a){
-		a.onclick = null;
+		a.onclick = function(){return false;};
 		var lis = $p( 'ul.exampleList li' ),
 			lii;
 		for(var i = 0, ii = lis.length; i < ii; i++){
@@ -107,7 +106,12 @@ var loadLib, runAll, run;
 	// choose between run or debug
 	run = function(elm, fn, debug){
 		if(!elm){return;}
-		elm.parentNode.innerHTML = '';
+		elm.innerHTML = 'Show Source';
+		elm.onclick = function(){
+			showSource(fn, this);
+			return false;
+		};
+		
 		if(debug === true){
 			$p.plugins.__compile = $p.plugins.compile;
 			$p.plugins.compile = $p.plugins.compileDebug;
@@ -119,7 +123,44 @@ var loadLib, runAll, run;
 			$p.plugins.compile = $p.plugins.__compile;
 		}
 	};
-
+	function showSource(o, a){
+		var li = $p('li.' + o.id + ' div.template')[0],
+			old = document.getElementById('sourceCodes'),
+			src = document.createElement('DIV'),
+			srcNb = 0,
+			addSrc = function(title, source){
+				srcNb++;
+				var t = document.createElement('DIV'),
+					tt = document.createElement('DIV');
+				t.className = 'sourceTitle';
+				t.innerHTML = title;
+				tt.className = 'sourceCode';
+				tt.innerHTML = '<pre>'+source+'</pre>';
+				tt.insertBefore(t, tt.firstChild);
+				src.appendChild(tt);
+			};
+		if(old){
+			old.parentNode.removeChild(old);
+		}
+		src.id = 'sourceCodes';
+		if(typeof o === 'function'){
+			addSrc('Function', o.toString());
+		}else{
+			o.template && addSrc('HTML', o.original.replace(/\</g,'&lt;').replace(/\>/g,'&gt;').replace(/\t/g, '  '));
+			o.directive && addSrc('Directive', JSON.stringify(o.directive, null, 2));
+			o.data && addSrc('Data', JSON.stringify(o.data, null, 2));
+		};
+		src.className = 'cols' + srcNb;
+		li.parentNode.insertBefore(src, li);
+		var oldClick = a.onclick;
+		a.innerHTML = 'Hide Source';
+		a.onclick = function(){
+			a.innerHTML = 'Show Source';
+			try{li.parentNode.removeChild(src);}catch(e){};//IE fails sometimes on it
+			a.onclick = oldClick;
+			return false;
+		};
+	};
 	// run a transformation
 	function transform(ex, debug){
 		var template;
@@ -139,7 +180,12 @@ var loadLib, runAll, run;
 			default:
 				template = $p( ex.template );
 		}
-
+		
+		//keep a copy of the template
+		var dv = document.createElement('DIV');
+		dv.appendChild((template[0] || template).cloneNode(true));
+		ex.original = dv.innerHTML;
+		
 		switch(ex.id){
 			case 'ex01':
 			case 'ex02':
