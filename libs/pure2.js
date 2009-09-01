@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.15
+	revision: 2.16
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -523,6 +523,11 @@ $p.core = function(sel, ctxt, plugins){
 		}
         // convert node to a string 
         var h = outerHTML(dom), pfns = [];
+		// IE adds an unremovable "selected" attribute
+		// hard replace while waiting for a better solution
+		if (dom.tagName === 'OPTION' && (new RegExp(attPfx + 'selected', 'i')).test(h)) {
+			h = h.replace(/\sselected\s/, ' ');
+		}
         // remove attribute prefix
         h = h.split(attPfx).join('');
 
