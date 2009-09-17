@@ -45,7 +45,7 @@ var loadLib, runAll, run;
 		//initialise the lib
 		currLib !== 'pure' && $p.libs[currLib]();
 
-		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="#" onclick="runAll(this);return false;">all at once</a><br />';
+		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="javascript:void(0)" onclick="runAll(this);">all at once</a><br />';
 		document.getElementById( 'examples' ).style.display = 'block';
 
 		var lis = $p( 'ul.exampleList li' ),
@@ -71,7 +71,7 @@ var loadLib, runAll, run;
 				window[cn].id = cn;
 				span.id = cn;
 				span.innerHTML = 
-					'<a class="run"   href="#" onclick="run(this, '+cn+');return false;">Run</a>';
+					'<a class="run"   href="javascript:void(0)" onclick="run(this, '+cn+');">Run</a>';
 			}
 		}
 	}
@@ -128,6 +128,8 @@ var loadLib, runAll, run;
 			old = document.getElementById('sourceCodes'),
 			src = document.createElement('DIV'),
 			srcNb = 0,
+			txtShow = 'Show Source',
+			txtHide = 'Hide Source',
 			addSrc = function(title, source){
 				srcNb++;
 				var t = document.createElement('DIV'),
@@ -140,6 +142,7 @@ var loadLib, runAll, run;
 				src.appendChild(tt);
 			};
 		if(old){
+			$p('a', old.parentNode)[0].innerHTML = txtShow;
 			old.parentNode.removeChild(old);
 		}
 		src.id = 'sourceCodes';
@@ -153,9 +156,9 @@ var loadLib, runAll, run;
 		src.className = 'cols' + srcNb;
 		li.parentNode.insertBefore(src, li);
 		var oldClick = a.onclick;
-		a.innerHTML = 'Hide Source';
+		a.innerHTML = txtHide;
 		a.onclick = function(){
-			a.innerHTML = 'Show Source';
+			a.innerHTML = txtShow;
 			try{li.parentNode.removeChild(src);}catch(e){};//IE fails sometimes on it
 			a.onclick = oldClick;
 			return false;

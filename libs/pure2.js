@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.16
+	revision: 2.17
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -46,7 +46,12 @@ $p.core = function(sel, ctxt, plugins){
 		// another signature to prepend to attributes and avoid checks: style, height, on[events]...
 		attPfx = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
 		// rx to parse selectors, e.g. "+tr.foo[class]"
-		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/;
+		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
+		// set automatically attributes for some tags
+		autoAttr = {
+			IMG:'src',
+			INPUT:'value'
+		};
 	
 	return plugins;
 
@@ -425,7 +430,7 @@ $p.core = function(sel, ctxt, plugins){
 				for(j = 0, jj=cs.length;j<jj;j++){
 					cj = cs[j];
 					// check if it is related to a context property
-					cspec = checkClass(cj, data);
+					cspec = checkClass(cj, ni.tagName);
 					// if so, store the node, plus the type of data
 					if(cspec !== false){
 						an.push({n:ni, cspec:cspec});
@@ -435,10 +440,10 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		return an;
 		
-		function checkClass(c){
+		function checkClass(c, tagName){
 			// read the class
 			var ca = c.match(selRx),
-				cspec = {prepend:!!ca[1], prop:ca[2], attr:ca[3], append:!!ca[4], sel:c},
+				cspec = {prepend:!!ca[1], prop:ca[2], attr:autoAttr[tagName] || ca[3], append:!!ca[4], sel:c},
 				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop],
 				i, ii, loopi;
 			// if first level of data is found
