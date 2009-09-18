@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.17
+	revision: 2.18
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -419,6 +419,7 @@ $p.core = function(sel, ctxt, plugins){
 			an = [],
 			openLoops = {a:[],l:{}},
 			cspec,
+			isNodeValue,
 			i, ii, j, jj, ni, cs, cj;
 		//for each node found in the template
 		for(i = -1, ii = ns.length; i < ii; i++){
@@ -433,6 +434,13 @@ $p.core = function(sel, ctxt, plugins){
 					cspec = checkClass(cj, ni.tagName);
 					// if so, store the node, plus the type of data
 					if(cspec !== false){
+						isNodeValue = (/nodevalue/i).test(cspec.attr);
+						if(cspec.sel.indexOf('@') > -1 || isNodeValue){
+							ni.className = ni.className.replace('@'+cspec.attr, '');
+							if(isNodeValue){
+								cspec.attr = false;
+							} 
+						}
 						an.push({n:ni, cspec:cspec});
 					}
 				}
@@ -443,7 +451,8 @@ $p.core = function(sel, ctxt, plugins){
 		function checkClass(c, tagName){
 			// read the class
 			var ca = c.match(selRx),
-				cspec = {prepend:!!ca[1], prop:ca[2], attr:autoAttr[tagName] || ca[3], append:!!ca[4], sel:c},
+				attr = ca[3] || autoAttr[tagName],
+				cspec = {prepend:!!ca[1], prop:ca[2], attr:attr, append:!!ca[4], sel:c},
 				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop],
 				i, ii, loopi;
 			// if first level of data is found
@@ -467,7 +476,7 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			// set the data type and details
 			if(isArray(val)){
-				openLoops.a.push({l:val, p:cspec.prop});
+				openLoops.a.push( {l:val, p:cspec.prop} );
 				openLoops.l[cspec.prop] = true;
 				cspec.t = 'loop';
 			}else{
@@ -574,7 +583,7 @@ $p.core = function(sel, ctxt, plugins){
 	// run the template function on the context argument
 	// return an HTML string 
 	function autoRender(ctxt, directive){
-		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, ctxt, this[0] );
+		var fn = plugins.compile( directive, ctxt, this[0] );
 		for(var i = 0, ii = this.length; i < ii; i++){
 			this[i] = replaceWith( this[i], fn( ctxt, false));
 		}
