@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.18
+	revision: 2.19
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -284,29 +284,32 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		var setstr, getstr, quotefn, isStyle, isClass, an;
+		var setstr, getstr, quotefn, isStyle, isClass, attName;
 		if(attr){
 			isStyle = (/^style$/i).test(attr);
 			isClass = (/^class$/i).test(attr);
 			attName = isClass ? 'className' : attr;
-			setstr = function(node, s){
-				node.setAttribute( attPfx + attr, s );
-				if(attName in node && !isStyle){ 
-					node[ attName ] = '' ;
+			setstr = function(node, s) {
+				node.setAttribute(attPfx + attr, s);
+				if (attName in node && !isStyle) {
+					node[attName] = '';
 				}
-				if(node.nodeType === 1){ 
-					node.removeAttribute(  attr );
+				if (node.nodeType === 1) {
+					node.removeAttribute(attr);
+					isClass && node.removeAttribute(attName);
 				}
 			};
-			if( isStyle ){
-				getstr = function(node){ return node.style.cssText;};
+			if(isStyle) {
+				getstr = function(node){ return node.style.cssText; };
+			}else if(isClass) {
+				getstr = function(node){ return node.className;	};
 			}else{
-				getstr = function(node){ return node.getAttribute(attr);};
+				getstr = function(node){ return node.getAttribute(attr); };
 			}
-			if( isStyle || isClass ){//IE no quotes special care
-				quotefn = function(s){ return s.replace(/\"/g, '&quot;');};
-			}else{
-				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;');};
+			if (isStyle || isClass) {//IE no quotes special care
+				quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
+			}else {
+				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;'); };
 			}
 		}else{
 			if(isloop){
