@@ -321,3 +321,55 @@ var ex10 = {
 		sizes: [{ val:'S', name: 'small' }, { val:'M', name: 'medium', sel: true }, {val:'L', name:'large'}]
 	}
 };
+
+var ex11 = function(){
+	var data = {
+		'makes':[
+			{
+				"name":"Ford",
+				"models":[
+					{"name":"Fusion"},
+					{"name":"Mustang"}
+				]
+			},
+			{
+				"name":"Chevrolet",
+				"models":[
+					{"name":"Aveo"},
+					{"name":"Camaro"}
+				]
+			}
+		]
+	};
+	// render the first drop down
+	$p('select.make').render(data, {
+		'@onchange':'"clickSelect(this);"',
+		'option.values':{
+			'make <- makes':{
+				'.':'make.name'
+			}
+		}
+	});
+	// compile the second drop down to reuse it for each changes
+	var subSel = $p('select.model').compile({
+		'@disabled':function(a){
+			return a.context === false ? 'x':''; 
+		},
+		'option':{
+			'model <-':{
+				'.':'model.name'
+			}
+		}
+	});
+	// the onchange function for the first drop down
+	window.clickSelect = function(sel){
+		var idx = sel.selectedIndex-1,
+			models;
+		if(idx >= 0){ 
+			models = data.makes[idx].models;
+			$p('select.model').render(models, subSel);
+		}else{
+			$p('select.model').render(false, subSel);
+		}
+	};
+};
