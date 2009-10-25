@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.19
+	revision: 2.20
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -456,28 +456,29 @@ $p.core = function(sel, ctxt, plugins){
 			var ca = c.match(selRx),
 				attr = ca[3] || autoAttr[tagName],
 				cspec = {prepend:!!ca[1], prop:ca[2], attr:attr, append:!!ca[4], sel:c},
-				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop],
-				i, ii, loopi;
-			// if first level of data is found
-			if(typeof val === 'undefined'){
-				// check in existing open loops
-				for(i = openLoops.a.length-1; i >= 0; i--){
-					loopi = openLoops.a[i];
-					val = loopi.l[0][cspec.prop];
-					if(typeof val !== 'undefined'){
-						cspec.prop = loopi.p + '.' + cspec.prop;
-						if(openLoops.l[cspec.prop] === true){
-							val = val[0];
-						}
-						break;
+				i, ii, loopi, loopil, val;
+			// check in existing open loops
+			for(i = openLoops.a.length-1; i >= 0; i--){
+				loopi = openLoops.a[i];
+				loopil = loopi.l[0];
+				val = loopil && loopil[cspec.prop];
+				if(typeof val !== 'undefined'){
+					cspec.prop = loopi.p + '.' + cspec.prop;
+					if(openLoops.l[cspec.prop] === true){
+						val = val[0];
 					}
+					break;
 				}
 			}
-			// nothing found return
+			// not found check first level of data
 			if(typeof val === 'undefined'){
-				return false;
+				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop];
+				// nothing found return
+				if(typeof val === 'undefined'){
+					return false;
+				}
 			}
-			// set the data type and details
+			// set the spec for autoNode
 			if(isArray(val)){
 				openLoops.a.push( {l:val, p:cspec.prop} );
 				openLoops.l[cspec.prop] = true;
