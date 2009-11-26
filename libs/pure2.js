@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.22
+	revision: 2.23
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -30,10 +30,9 @@ $p.core = function(sel, ctxt, plugins){
 	//search for the template node(s)
 	if(typeof sel === 'string'){
 		templates = plugins.find(ctxt || document, sel);
+		templates.length === 0 && error('The template "' + sel + '" was not found');
 	}else if(typeof sel === 'object'){
 		templates = [sel];
-	}else{
-		error('No templates found. Review your selector');
 	}
 	
 	for(var i = 0, ii = templates.length; i < ii; i++){
@@ -265,7 +264,7 @@ $p.core = function(sel, ctxt, plugins){
 				target = plugins.find(dom, selector);
 			}
 			if(!target || target.length === 0){
-				return error('no node found in the template for the selector ' + sel);
+				return error('The node "' + sel + '" was not found in the template');
 			}
 		}else{
 			// autoRender node
