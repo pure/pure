@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/DTD/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+		<title>PURE Unobtrusive Rendering Engine for HTML - Version 2</title>
+		<link rel="stylesheet" type="text/css" href="index.css" />
+
+		<!--JSON needed to show the source code only -->
+		<script src="libs/json2.js"></script>
+
+		<script src="libs/pure.js"></script>
+
+		<!-- Example page files -->
+		<script src="js/index.js"></script>
+		<script src="js/examples.js"></script>
+	</head>
+	<body>
+
+		<a href="http://github.com/pure/pure/tree/version2" style="float:right">Project site &amp; Download</a>
+		<div id="chooseLib">
+			Choose a library to run the examples with:<br />
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('dojo');">dojo</a>
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('domassistant');">DomAssistant</a>
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('jquery');">jQuery</a>
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('mootools');">Mootools</a>
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('prototype');">Prototype</a>
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('sizzle');">Sizzle</a>
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('sly');">Sly</a> - 
+			<a class="lib" href="javascript:void(0)" onclick="loadLib('pure');">PURE Alone (modern browsers only)</a>
+		</div>
+	
+		<div id="examples">
+			<ul class="exampleList">
+
+
+
+				<li class="ex01">
+					<h3>1. Hello World</h3>
+
+<div class="template">
+<div class="who"></div>
+</div>
+
+				</li>
+
+
+
+				<li class="ex02">
+					<h3>2. Hello World with directives</h3>
+
+<div class="template">
+<div class="hello">
+	<span class="who"></span>
+</div>
+</div>
+
+				</li>
+
+
+
+				<li class="ex03">
+					<h3>3. Auto Rendering with loops (+ directives)</h3>
+
+<div class="template">
+<div class="friends">
+	The friends of <a target="_blank" href="http://twitter.com/" class="who"></a> are
+	<ul>
+		<li class="friend">
+			<a target="_blank" class="name twitter@title twitter@href+" href="http://twitter.com/"></a>
+		</li>
+	</ul>
+</div>
+</div>
+
+				</li>
+
+
+
+				<li class="ex04">
+					<h3>4. Loop on a table and events</h3>
+
+<div class="template">
+<table class="playerList">
+  <thead>
+    <tr>
+      <th>Player</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="player">
+      <td>Chloe</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+				</li>
+
+
+
+				<li class="ex05">
+					<h3>5. Dynamic table</h3>
+
+<div class="template">
+<table class="partialTable">
+  <thead>
+    <tr>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+				</li>
+
+
+
+				<li class="ex06">
+					<h3>6. Nested loops</h3>
+
+<div class="template">
+<div class="scoreBoard">			
+  <table>
+    <tbody>
+      <tr class="scoreBoard">
+        <td class="teamName">Team Name</td>
+        <td class="teamPlace">
+          <table>
+            <thead>
+              <tr>
+                <th class="position">Position</th>
+                <th class="player">Player</th>
+                <th class="score">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="teamList">
+                <td class="position">1</td>
+                <td class="player">Chloe</td>
+                <td class="score">3</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+				</li>
+
+
+
+				<li class="ex07">
+					<h3>7. Recursion</h3>
+
+<div class="template">
+<ul class="treeItem">
+	<li>
+		<a class="name" href="javascript:void(0)">name</a>
+		<div class="children"></div>
+	</li>
+</ul>
+</div>
+
+				</li>
+
+
+				
+				<li class="ex08">
+					<h3>8. Reuse a template and load JSONP data every sec</h3>
+
+<div class="template">
+<div id="clock">
+	It is now <span class="hour"></span> : <span class="minute"></span> : <span class="second"></span><br />
+	In <span class="tz"></span>
+</div>
+</div>
+<p><a href="javascript:void(0)" onclick="clearTimeout(_to);">stop it!</a></p>
+
+				</li>
+
+
+
+				<li class="ex09">
+					<style>
+						.ex09 table { border:1px solid #999; text-align:left; border-collapse:collapse;}
+						.ex09 th { padding:.5em; background:#FFC;text-align:center;border-bottom:1px solid #999;border-right:1px solid #999;}
+						.ex09 td { padding:.3em; border-right:1px solid #999;border-bottom:1px solid #999;background:#FFF;}
+						.ex09 .percent, .price, .change{text-align:right;}
+						.ex09 .red { color:#900; }
+						.ex09 .green { color:#090; }
+					</style>
+
+					<h3>9. World Indices: dynamic table, reuse a template and JSONP load every 10 sec</h3>
+
+<div class="template">
+<table class="indices">
+	<thead><tr><th></th></tr></thead>
+	<tbody><tr><td></td></tr></tbody>
+</table>
+</div>
+<a href="javascript:void(0)" onclick="clearTimeout(_to10);this.style.visibility='hidden';">stop it!</a>
+				</li>
+
+				<li class="ex10">
+					<h3>10. Populate a drop down list and set a default value</h3>
+<div class="template">
+<form class="sizes">
+	<select>
+		<option value="XXS">Extra Small</option>
+	</select>
+</form>
+</div>
+				</li>
+				
+				
+				<li class="ex11">
+					<h3>11. Linked drop down boxes</h3>
+<div class="template">
+Make:
+<select class="make">
+	<option>Choose..</option>
+	<option class="values"></option>
+</select>
+
+Model:
+<select disabled class="model">
+	<option></option>
+</select>
+</div>
+				</li>
+				
+				
+
+			</ul>
+		</div>
+	</body>
+</html>

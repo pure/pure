@@ -1,0 +1,26 @@
+<html>
+<head>
+
+	<title>PURE Unobtrusive Rendering Engine</title>
+
+	<script src="../libs/jquery.js"></script>
+	<script src="../libs/pure.js"></script>
+
+</head>
+<body>
+
+	<!-- the HTML template -->
+	Hello <a class="who" href="#"></a>
+	
+	<script>
+
+		// the JSON data we want to render
+		var data = {'who':'BeeBole!'};
+
+		// run the rendering
+		$('a').autoRender(data);
+
+	</script>
+
+</body>
+</html>

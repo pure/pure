@@ -1,0 +1,87 @@
+.exampleList{margin:0; padding:0; list-style-type:none;}
+
+h3{margin:1em 0 .3em;float:left;clear:both;}
+a{
+	color:#369;
+	text-decoration:none;
+	outline: none;
+	padding:0 .5em;
+}
+a:hover{
+	background:#369;
+	color:#FFF;
+}
+
+.run, .debug{ display:block; float:left;margin:1.3em 0 0 1em;}
+
+.sources, .template{clear:both;padding:1em;background:#DEF;margin:0 0  0 1em;overflow:auto;}
+#chooseLib a{
+	font-size:.8em;
+	background:#FFB;
+	padding:.3em;
+	text-decoration:underline;
+}
+#chooseLib a:hover{
+	background:#369;
+}
+#examples{display:none;}
+#chooseLib{
+	line-height:1.5em;
+	border:solid 1px #CCC;
+	padding:1em;
+	background:#FFC;
+}
+input.lib{
+	font-weight:bold;
+}
+.note{
+	color:#999;
+	font-size:.75em;
+}
+pre{
+	font-family:Monaco,"Courier New",monospace;
+	color:#444444;
+	font-size:75%;
+}
+#sourceCodes{
+	clear:both;
+}
+.sourceCode{
+	background:#EEF;
+	border:solid 1px #CCC;
+	padding:1%;
+	margin:1%;
+	overflow:auto;
+	max-height:300px;
+}
+.sourceCode pre{
+}
+.cols2 .sourceCode{
+	float:left;
+	width:44%;
+}
+.cols3 .sourceCode{
+	float:left;
+	width:27%;
+}
+/* ex 4 */ 
+.playerList td{
+	padding:0 1em;
+	border:1px solid #999;
+}
+.odd td{
+	background:#FFF;
+}
+/* ex 5 */ 
+.partialTable td{
+	padding:0 1em;
+	border:1px solid #999;
+}
+/* ex 6 */ 
+.teamPlace table{
+	width:100%;
+}
+.scoreBoard td{
+	padding:0 1em;
+	border:1px solid #999;
+}
