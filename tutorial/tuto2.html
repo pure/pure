@@ -1,0 +1,25 @@
+<html>
+<head>
+
+	<title>PURE Unobtrusive Rendering Engine</title>
+
+	<script src="../libs/jquery.js"></script>
+	<script src="../libs/pure.js"></script>
+
+</head>
+<body>
+
+	<!-- 
+		same example as before but with an attribute assignment
+		note the property@attribute notation
+		'who@value' means place the value of the property who in the value attribute
+	-->
+	Hello <a class="who site@href"></a>
+
+	<script>
+		var data = {'who':'BeeBole!', site:'http://beebole.com'};
+		$('a').autoRender(data);
+	</script>
+
+</body>
+</html>

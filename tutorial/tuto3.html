@@ -1,0 +1,33 @@
+<html>
+<head>
+	<title>PURE Unobtrusive Rendering Engine</title>
+	<script src="../libs/jquery.js"></script>
+	<script src="../libs/pure.js"></script>
+</head>
+<body>
+	<!-- HTML template -->
+	<ul>
+		<!-- Explanation of the classes of the LI:
+			* 	"animals" points to an array and will trigger an iteration
+			
+			* 	"name" points to the property within the array and will set 
+				the node value of the LI
+		 -->
+		<li class="animals name"></li>
+	</ul>
+
+	<script>
+		// animals is an array and will trigger an iteration
+		var data = {
+			animals:[
+				{name:'bird'},
+				{name:'cat'},
+				{name:'dog'},
+				{name:'mouse'}
+			]
+		};
+		
+		$('ul').autoRender(data);
+	</script>
+</body>
+</html>

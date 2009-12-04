@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<script>
+		function jsonp(src){
+			var s = document.createElement("script");
+			s.charset = "UTF-8";
+			s.src = encodeURI(src);
+			document.body.appendChild(s);
+			return s;
+		};
+		function urlParam(name, w){
+			w = w || window;
+			var rx = new RegExp('[\&|\?]'+name+'=([^\&\#]+)');
+			var val = w.location.href.match(rx);
+			return !val ? '':val[1];
+		};
+	</script>
+</head>
+<body>
+	<script>
+		jsonp( 'http://friendpaste.com/' + urlParam('fp') + '.js' );
+	</script>
+</body>
+</html>
