@@ -1,0 +1,25 @@
+<html>
+<head>
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="../libs/jquery.js"></script>
+  <script src="../libs/pure.js"></script>
+</head>
+<body>
+
+  <!-- HTML template -->
+  <div class="template">
+    Hello <a></a>
+  </div>
+
+  <script>
+    var data = {'who':'BeeBole!', site:'http://beebole.com'},
+        directive = {
+          'a':'who', //look for the tag 'a' and place the value of the property 'who' in its node value
+          'a@href':'site' //look for the tag a, and set its attribute 'href' to the value of the property 'site'
+        }
+
+    //note the use of render instead of autoRender and the 2nd parameter with directive
+    $('div.template').render(data, directive);
+  </script>
+</body>
+</html>

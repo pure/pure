@@ -131,7 +131,7 @@ $p.core = function(sel, ctxt, plugins){
 		return leaf;
 	};
 	
-		// default find using querySelector when available on the browser
+	// default find using querySelector when available on the browser
 	function find(n, sel){
 		if(typeof n === 'string'){
 			sel = n;

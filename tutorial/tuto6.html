@@ -1,0 +1,50 @@
+<html>
+<head>
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="../libs/jquery.js"></script>
+  <script src="../libs/pure.js"></script>
+  <style>
+    .even td { background : #DDD }
+    .odd  td { background : #FFF }
+  </style>
+</head>
+<body>
+  <!-- HTML template -->
+  <table>
+    <tr>
+      <td></td>
+    </tr>
+  </table>
+
+  <script>
+    var directive = {
+    'tr' : { //trigger a loop
+      'animal<-animals' : { // loop on the property animals in the JSON 
+       '@class+':function(arg){ // add(+) the return value of the function to the class
+        var oddEven, firstLast;
+        oddEven = (arg.pos % 2 == 0) ? ' even' : ' odd';
+        firstLast = (arg.pos == 0) ? 
+         ' first' : 
+         (arg.pos == arg.animal.items.length - 1) ? 
+          ' last' : 
+          '';
+        return oddEven + firstLast;
+       },
+       'td':'animal.name'
+       }
+     }
+    };
+
+    var data = {
+      animals:[
+        {name:'bird'},
+        {name:'cat'},
+        {name:'dog'},
+        {name:'mouse'}
+      ]
+    };
+
+    $('table').render(data, directive);
+  </script>
+</body>
+</html>

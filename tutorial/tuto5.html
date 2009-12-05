@@ -1,0 +1,36 @@
+<html>
+<head>
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="../libs/jquery.js"></script>
+  <script src="../libs/pure.js"></script>
+</head>
+<body>
+  <!-- HTML template -->
+  <ul>
+    <li></li>
+  </ul>
+
+  <script>
+    var data = {
+      animals:[
+        {name:'bird'},
+        {name:'cat'},
+        {name:'dog'},
+        {name:'mouse'}
+      ]
+    };
+
+    //declaration of the actions PURE has to do
+    var directive = {
+      'li':{
+        'animal<-animals':{
+          '.':'animal.name'
+        }
+      }
+    };
+
+    // note the use of render instead of autoRender
+    $('ul').render(data, directive);
+</script>
+</body>
+</html>
