@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
 
-<html lang="en">
+<html>
 <head>
 	<script>
 		function jsonp(src){
@@ -21,7 +21,15 @@
 </head>
 <body>
 	<script>
-		jsonp( 'http://friendpaste.com/' + urlParam('fp') + '.js' );
+		var fp = urlParam('fp'),
+			gist = urlParam('gist');
+		if(gist){
+			jsonp( 'http://gist.github.com/' + gist + '.js');
+		}else if(fp){
+			jsonp( 'http://friendpaste.com/' +  fp  + '.js' );
+		}else{
+			document.write('Not a valid gist (gist= ... )or friendpaste fp= ...');
+		}
 	</script>
 </body>
 </html>
