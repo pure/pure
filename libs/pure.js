@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.23
+	revision: 2.25
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -28,11 +28,18 @@ $p.core = function(sel, ctxt, plugins){
 		templates = [];
 
 	//search for the template node(s)
-	if(typeof sel === 'string'){
-		templates = plugins.find(ctxt || document, sel);
-		templates.length === 0 && error('The template "' + sel + '" was not found');
-	}else if(typeof sel === 'object'){
-		templates = [sel];
+	switch(typeof sel){
+		case 'string':
+			templates = plugins.find(ctxt || document, sel);
+			if(templates.length === 0) {
+				error('The template "' + sel + '" was not found');
+			}
+		break;
+		case 'undefined':
+			error('The template root is undefined, check your selector');
+		break;
+		default:
+			templates = [sel];
 	}
 	
 	for(var i = 0, ii = templates.length; i < ii; i++){
@@ -315,12 +322,13 @@ $p.core = function(sel, ctxt, plugins){
 				setstr = function(node, s){
 					// we can have a null parent node
 					// if we get overlapping targets.
-					var pn = node.parentNode;
+					var pn = node.parentNode, t;
 					if(pn){
 						//replace node with s
-						var t = document.createTextNode(s);
-						node.parentNode.insertBefore(t, node.nextSibling);
-						node.parentNode.removeChild(node);
+						t = document.createTextNode(s);
+						pn.insertBefore(t, node.nextSibling);
+						pn.removeChild(node);
+						t = null;
 					}
 				};
 			}else{
@@ -598,29 +606,24 @@ $p.core = function(sel, ctxt, plugins){
 	}
 	
 	function replaceWith(elm, html){
-		var div = document.createElement('DIV'),
-			tagName = elm.tagName.toLowerCase(),
-			ne, pa;
-		if((/td|tr|th/).test(tagName)){
-			var parents = {	tr:{table:'tbody'}, td:{table:{tbody:'tr'}}, th:{table:{thead:'tr'}} };
-			pa = domify( parents[ tagName ] );
-		}else if( ( /tbody|thead|tfoot/ ).test( tagName )){
-			pa = document.createElement('table');
-		}else{
-			pa = document.createElement('span');
+		var tagName = elm.tagName, ne, pa, ep, parent = {TABLE:{}};
+		switch(tagName){
+			case 'TD': parent.TBODY = 'TR';
+			case 'TR': parent.TABLE = 'TBODY';
+			case 'TH': parent.THEAD = 'TR';
+				pa = domify( parent );
+			break;
+			case 'TBODY':case 'THEAD':case 'TFOOT':
+				pa = document.createElement('TABLE');
+			break;
+			default:
+				pa = document.createElement('SPAN');
 		}
-		var ep = elm.parentNode;
-		// avoid IE mem leak
-		ep.insertBefore(pa, elm);
-		ep.removeChild(elm);
+		ep = elm.parentNode;
 		pa.innerHTML = html;
 		ne = pa.firstChild;
-		ep.insertBefore(ne, pa);
-		ep.removeChild(pa);
-		elm = ne;
-
-		pa = ne = ep = null;
-		return elm;
+		ep.replaceChild(ne, elm);
+		return ne;
 	}
 };
 
