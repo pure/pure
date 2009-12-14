@@ -1,9 +1,9 @@
-// global functions
-var loadLib, runAll, run;
+// global functions for cross site example
+var loadLib, runAll, run, transform;
 
 (function(){
 
-	var currLib = '';
+	var currLib = 'jquery'; //default lib
 
 	loadLib = function(lib){
 		currLib = lib;
@@ -165,7 +165,7 @@ var loadLib, runAll, run;
 		};
 	};
 	// run a transformation
-	function transform(ex, debug){
+	transform = function(ex, debug){
 		var template;
 		if(typeof ex === 'function'){
 			return ex();
@@ -221,6 +221,6 @@ var loadLib, runAll, run;
 				template.render( ex.data, ex.directive );
 		}
 
-	}
+	};
 
 }());
