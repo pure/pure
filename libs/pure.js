@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.25
+	revision: 2.26
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -607,17 +607,13 @@ $p.core = function(sel, ctxt, plugins){
 	
 	function replaceWith(elm, html){
 		var tagName = elm.tagName, ne, pa, ep, parent = {TABLE:{}};
-		switch(tagName){
-			case 'TD': parent.TBODY = 'TR';
-			case 'TR': parent.TABLE = 'TBODY';
-			case 'TH': parent.THEAD = 'TR';
-				pa = domify( parent );
-			break;
-			case 'TBODY':case 'THEAD':case 'TFOOT':
-				pa = document.createElement('TABLE');
-			break;
-			default:
-				pa = document.createElement('SPAN');
+		if((/TD|TR|TH/).test(tagName)){
+			var parents = {	TR:{TABLE:'TBODY'}, TD:{TABLE:{TBODY:'TR'}}, TH:{TABLE:{THEAD:'TR'}} };
+			pa = domify( parents[ tagName ] );
+		}else if( ( /TBODY|THEAD|TFOOT/ ).test( tagName )){
+			pa = document.createElement('TABLE');
+		}else{
+			pa = document.createElement('SPAN');
 		}
 		ep = elm.parentNode;
 		pa.innerHTML = html;

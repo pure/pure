@@ -298,11 +298,15 @@ var ex09 = function() {
 	doYQL(YQL_QUERY,true,null);
 
 	window.showQuotes = function(data){
-		var PAYLOAD = data.query.results;
-		$p('table.indices').render( PAYLOAD, TEMPLATE );
-		window._to10 = setTimeout(function(){
-			doYQL(YQL_QUERY,true,null);
-		}, 10000);
+		if(typeof data.error !== 'undefined'){
+			$p('table.indices')[0].innerHTML =  '<tr><td>Error in the service: ' + data.error.description + '</td></tr>';
+		}else{
+			var PAYLOAD = data.query.results;
+			$p('table.indices').render( PAYLOAD, TEMPLATE );
+			window._to10 = setTimeout(function(){
+				doYQL(YQL_QUERY,true,null);
+			}, 10000);
+		}
 	};
 };
 
