@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.26
+	revision: 2.27
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -332,18 +332,31 @@ $p.core = function(sel, ctxt, plugins){
 					}
 				};
 			}else{
-				getstr = function(node){ return node.innerHTML; };
-				setstr = function(node, s){ node.innerHTML = s; };
+				getstr = function(node){ 
+					return node.innerHTML;
+				};
+				setstr = function(node, s){
+					node.innerHTML = '';
+					node.appendChild(document.createTextNode(s));
+				};
 			}
-			quotefn = function(s){ return s; };
+			quotefn = function(s){ 
+				return s;
+			};
 		}
 		var setfn;
 		if(prepend){
-			setfn = function(node, s){ setstr( node, s + getstr( node ) );};
+			setfn = function(node, s){ 
+				setstr( node, s + getstr( node ) );
+			};
 		}else if(append){
-			setfn = function(node, s){ setstr( node, getstr( node ) + s );};
+			setfn = function(node, s){ 
+				setstr( node, getstr( node ) + s );
+			};
 		}else{
-			setfn = function(node, s){ setstr( node, s );};
+			setfn = function(node, s){ 
+				setstr( node, s );
+			};
 		}
 		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
 	}
@@ -613,7 +626,7 @@ $p.core = function(sel, ctxt, plugins){
 		}else if( ( /TBODY|THEAD|TFOOT/ ).test( tagName )){
 			pa = document.createElement('TABLE');
 		}else{
-			pa = document.createElement('SPAN');
+			pa = document.createElement('DIV');
 		}
 		ep = elm.parentNode;
 		pa.innerHTML = html;
