@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.27
+	revision: 2.28
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -322,22 +322,24 @@ $p.core = function(sel, ctxt, plugins){
 				setstr = function(node, s){
 					// we can have a null parent node
 					// if we get overlapping targets.
-					var pn = node.parentNode, t;
+					var pn = node.parentNode;
 					if(pn){
 						//replace node with s
-						t = document.createTextNode(s);
-						pn.insertBefore(t, node.nextSibling);
-						pn.removeChild(node);
-						t = null;
+						pn.insertBefore( document.createTextNode( s ), node.nextSibling );
+						pn.removeChild( node );
 					}
 				};
 			}else{
 				getstr = function(node){ 
 					return node.innerHTML;
 				};
-				setstr = function(node, s){
-					node.innerHTML = '';
-					node.appendChild(document.createTextNode(s));
+				setstr = function(node, s, ap){
+					if(ap === true){
+						node.innerHTML = s;
+					}else{
+						node.innerHTML = '';
+						node.appendChild( document.createTextNode( s ));
+					}
 				};
 			}
 			quotefn = function(s){ 
@@ -347,11 +349,11 @@ $p.core = function(sel, ctxt, plugins){
 		var setfn;
 		if(prepend){
 			setfn = function(node, s){ 
-				setstr( node, s + getstr( node ) );
+				setstr( node, s + getstr( node ) , true);
 			};
 		}else if(append){
 			setfn = function(node, s){ 
-				setstr( node, getstr( node ) + s );
+				setstr( node, getstr( node ) + s , true);
 			};
 		}else{
 			setfn = function(node, s){ 
