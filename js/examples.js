@@ -49,14 +49,16 @@ var ex04 = {
 				'td':'player',
 				'td@style': '"cursor:pointer"',
 				'td@onclick':'"clickLine(this);"'
+			},
+			sort:function(a, b){
+				return a > b ? 1 : -1; 
 			}
 		}
 	},
 	data:{
 		players:[
-			"Adrian Meador","Bryan O'Connor","Michèle Noïjû","تصبح عالميا مع يونيكود",
-			"Γέφυρα γρύλων","Chloé Ellemême","глобальных масштабах","יוצא לשוק העולמי",
-			"La \"volante\"","Todd Swift","Valerie Paige","Walter Hagelstein","Wendy Leatherbury"
+			"Adrian Meador","Wendy Leatherbury","Michèle Noïjû","Chloé Ellemême","Bryan O'Connor","Walter Hagelstein",
+			"La \"volante\"","Todd Swift","Valerie Paige"
 		]
 	}
 };

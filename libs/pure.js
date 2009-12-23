@@ -8,7 +8,7 @@
 	Copyright (c) 2009 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.29
+	revision: 2.30
 
 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -372,7 +372,7 @@ $p.core = function(sel, ctxt, plugins){
 	}
 
 	// read de loop data, and pass it to the inner rendering function
-	function loopfn(name, dselect, inner){
+	function loopfn(name, dselect, inner, sorter){
 		return function(ctxt){
 			var a = dselect(ctxt),
 				old = ctxt[name],
@@ -386,11 +386,17 @@ $p.core = function(sel, ctxt, plugins){
 				};
 			ctxt[name] = temp;
 			if( isArray(a) ){
+				if(typeof sorter !== 'undefined'){
+					a.sort(sorter);
+				}
 				//loop on array
 				for(var i = 0, ii = a.length || 0; i < ii; i++){  
 					buildArg(i); 
 				}
 			}else{
+				if(typeof sorter !== 'undefined'){
+					error('sort is only available on arrays, not objects');
+				}
 				//loop on collections
 				for(var prop in a){
 					a.hasOwnProperty( prop ) && buildArg(prop); 
@@ -402,38 +408,39 @@ $p.core = function(sel, ctxt, plugins){
 	}
 	// generate the template for a loop node
 	function loopgen(dom, sel, loop, fns){
-		var already = false;
-		var p;
-		for(var i in loop){
-			if(loop.hasOwnProperty(i)){
+		var already = false, ls, sorter, prop;
+		for(prop in loop){
+			if(loop.hasOwnProperty(prop)){
+				if(prop === 'sort'){
+					sorter = loop.sort;
+					continue;
+				}
 				if(already){
 					error('cannot have more than one loop on a target');
 				}
-				p = i;
+				ls = prop;
 				already = true;
 			}
 		}
-		if(!p){
+		if(!ls){
 			error('no loop spec');
 		}
-		var dsel = loop[p];
+		var dsel = loop[ls];
 		// if it's a simple data selector then we default to contents, not replacement.
 		if(typeof(dsel) === 'string' || typeof(dsel) === 'function'){
 			loop = {};
-			loop[p] = {root: dsel};
+			loop[ls] = {root: dsel};
 			return loopgen(dom, sel, loop, fns);
 		}
-		var spec = parseloopspec(p),
+		var spec = parseloopspec(ls),
 			itersel = dataselectfn(spec.sel),
 			target = gettarget(dom, sel, true),
 			nodes = target.nodes;
 			
 		for(i = 0; i < nodes.length; i++){
-			// could check for overlapping loop targets here by checking that
-			// root is still ancestor of node.
 			var node = nodes[i],
 				inner = compiler(node, dsel);
-			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner));
+			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner, sorter));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
 		}
