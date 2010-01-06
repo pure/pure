@@ -572,11 +572,7 @@ $p.core = function(sel, ctxt, plugins){
         var h = outerHTML(dom), pfns = [];
 		// IE adds an unremovable "selected, value" attribute
 		// hard replace while waiting for a better solution
-        if (dom.tagName === 'OPTION' && h.indexOf(attPfx + 'selected') > 0) {
-            h = h.replace(/\sselected\s/, ' ');
-        } else if (dom.tagName === 'INPUT' && h.indexOf(attPfx + 'value') > 0) {
-            h = h.replace(/\svalue=("|')('|")\s/, ' ');
-        }
+        h = h.replace(/<([^>]+)\s(value\=""|selected)\s?([^>]*)>/ig, "<$1 $3>");
 		
         // remove attribute prefix
         h = h.split(attPfx).join('');
