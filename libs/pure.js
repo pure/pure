@@ -1,16 +1,14 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * *
-
+/*!
 	PURE Unobtrusive Rendering Engine for HTML
 
 	Licensed under the MIT licenses.
 	More information at: http://www.opensource.org
 
-	Copyright (c) 2009 Michael Cvilic - BeeBole.com
+	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.31
-
-* * * * * * * * * * * * * * * * * * * * * * * * * */
+	revision: 2.32
+*/
 
 var $p, pure = $p = function(){
 	var sel = arguments[0], 
@@ -192,8 +190,8 @@ $p.core = function(sel, ctxt, plugins){
 		if(m[1] === 'item'){
 			error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
 		}
-		if( !m[2] ){ //undefined or space(IE) 
-			m[2] = function(ctxt){return ctxt.data;};
+		if( !m[2] || (m[2] && (/context/i).test(m[2]))){ //undefined or space(IE) 
+			m[2] = function(ctxt){return ctxt.context;};
 		}
 		return {name: m[1], sel: m[2]};
 	}
@@ -231,13 +229,13 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		m = sel.split('.');
 		return function(ctxt){
-			var data = ctxt.data;
+			var data = ctxt.context;
 			if(!data){
 				return '';
 			}
 			var	v = ctxt[m[0]],
 				i = 0;
-			if(v){
+			if(v && v.item){
 				data = v.item;
 				i += 1;
 			}
@@ -379,9 +377,9 @@ $p.core = function(sel, ctxt, plugins){
 				temp = { items : a },
 				strs = [],
 				buildArg = function(idx){
-					ctxt.items = a;
 					ctxt.pos = temp.pos = idx;
 					ctxt.item = temp.item = a[ idx ];
+					ctxt.items = a;
 					strs.push( inner( ctxt ) );
 				};
 			ctxt[name] = temp;
@@ -402,6 +400,7 @@ $p.core = function(sel, ctxt, plugins){
 					a.hasOwnProperty( prop ) && buildArg(prop); 
 				}
 			}
+
 			typeof old !== 'undefined' ? ctxt[name] = old : delete ctxt[name];
 			return strs.join('');
 		};
@@ -593,9 +592,8 @@ $p.core = function(sel, ctxt, plugins){
 	// return a function waiting the data as argument
 	function compile(directive, ctxt, template){
 		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
-		return function(data, context){
-			context = context || data;
-			return rfn({data: data, context:context});
+		return function(context){
+			return rfn({context:context});
 		};
 	}
 	//compile with the directive as argument
