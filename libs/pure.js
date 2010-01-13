@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.32
+	revision: 2.33
 */
 
 var $p, pure = $p = function(){
@@ -115,7 +115,7 @@ $p.core = function(sel, ctxt, plugins){
 	// returns the string generator function
 	function wrapquote(qfn, f){
 		return function(ctxt){
-			return qfn('' + f(ctxt));
+			return qfn('' + f.call(ctxt.context, ctxt));
 		};
 	}
 
@@ -376,11 +376,11 @@ $p.core = function(sel, ctxt, plugins){
 				old = ctxt[name],
 				temp = { items : a },
 				strs = [],
-				buildArg = function(idx){
+				buildArg = function(idx, temp){
 					ctxt.pos = temp.pos = idx;
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
-					strs.push( inner( ctxt ) );
+					strs.push( inner.call(temp, ctxt ) );
 				};
 			ctxt[name] = temp;
 			if( isArray(a) ){
@@ -389,7 +389,7 @@ $p.core = function(sel, ctxt, plugins){
 				}
 				//loop on array
 				for(var i = 0, ii = a.length || 0; i < ii; i++){  
-					buildArg(i); 
+					buildArg(i, temp); 
 				}
 			}else{
 				if(typeof sorter !== 'undefined'){
@@ -397,7 +397,7 @@ $p.core = function(sel, ctxt, plugins){
 				}
 				//loop on collections
 				for(var prop in a){
-					a.hasOwnProperty( prop ) && buildArg(prop); 
+					a.hasOwnProperty( prop ) && buildArg(prop, temp); 
 				}
 			}
 
