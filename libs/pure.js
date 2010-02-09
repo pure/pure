@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.34
+	revision: 2.35
 */
 
 var $p, pure = $p = function(){
@@ -379,16 +379,16 @@ $p.core = function(sel, ctxt, plugins){
 				length,
 				strs = [],
 				buildArg = function(idx, temp, ftr, len){
-					//if filter directive
-					if(typeof ftr === 'function' && !ftr(ctxt)){
-						filtered++;
-						return;
-					}
 					ctxt.pos = temp.pos = idx;
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
 					//if array, set a length property - filtered items
 					typeof len !== 'undefined' &&  (ctxt.length = len);
+					//if filter directive
+					if(typeof ftr === 'function' && !ftr(ctxt)){
+						filtered++;
+						return;
+					}
 					strs.push( inner.call(temp, ctxt ) );
 				};
 			ctxt[name] = temp;
