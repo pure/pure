@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.33
+	revision: 2.34
 */
 
 var $p, pure = $p = function(){
@@ -370,26 +370,37 @@ $p.core = function(sel, ctxt, plugins){
 	}
 
 	// read de loop data, and pass it to the inner rendering function
-	function loopfn(name, dselect, inner, sorter){
+	function loopfn(name, dselect, inner, sorter, filter){
 		return function(ctxt){
 			var a = dselect(ctxt),
 				old = ctxt[name],
 				temp = { items : a },
+				filtered = 0,
+				length,
 				strs = [],
-				buildArg = function(idx, temp){
+				buildArg = function(idx, temp, ftr, len){
+					//if filter directive
+					if(typeof ftr === 'function' && !ftr(ctxt)){
+						filtered++;
+						return;
+					}
 					ctxt.pos = temp.pos = idx;
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
+					//if array, set a length property - filtered items
+					typeof len !== 'undefined' &&  (ctxt.length = len);
 					strs.push( inner.call(temp, ctxt ) );
 				};
 			ctxt[name] = temp;
 			if( isArray(a) ){
-				if(typeof sorter !== 'undefined'){
+				length = a.length || 0;
+				// if sort directive
+				if(typeof sorter === 'function'){
 					a.sort(sorter);
 				}
 				//loop on array
-				for(var i = 0, ii = a.length || 0; i < ii; i++){  
-					buildArg(i, temp); 
+				for(var i = 0, ii = length; i < ii; i++){
+					buildArg(i, temp, filter, length - filtered);
 				}
 			}else{
 				if(typeof sorter !== 'undefined'){
@@ -397,7 +408,7 @@ $p.core = function(sel, ctxt, plugins){
 				}
 				//loop on collections
 				for(var prop in a){
-					a.hasOwnProperty( prop ) && buildArg(prop, temp); 
+					a.hasOwnProperty( prop ) && buildArg(prop, temp, filter);
 				}
 			}
 
@@ -407,11 +418,14 @@ $p.core = function(sel, ctxt, plugins){
 	}
 	// generate the template for a loop node
 	function loopgen(dom, sel, loop, fns){
-		var already = false, ls, sorter, prop;
+		var already = false, ls, sorter, filter, prop;
 		for(prop in loop){
 			if(loop.hasOwnProperty(prop)){
 				if(prop === 'sort'){
 					sorter = loop.sort;
+					continue;
+				}else if(prop === 'filter'){
+					filter = loop.filter;
 					continue;
 				}
 				if(already){
@@ -439,7 +453,7 @@ $p.core = function(sel, ctxt, plugins){
 		for(i = 0; i < nodes.length; i++){
 			var node = nodes[i],
 				inner = compiler(node, dsel);
-			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner, sorter));
+			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner, sorter, filter));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
 		}
