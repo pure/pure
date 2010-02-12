@@ -1,0 +1,100 @@
+<html>
+<head>
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="../libs/jquery.js"></script>
+  <script src="../libs/pure.js"></script>
+  <style>
+    .even td { background : #DDD }
+    .odd  td { background : #FFF }
+  </style>
+</head>
+<body>
+  <!-- HTML template -->
+  <table>
+    <tr>
+      <td></td>
+    </tr>
+  </table>
+
+  <script>
+
+		//example of building a plugin to postprocess the generated HTML
+		
+		$p.plugins.renderWithEffects = function(ctxt, directive, postProcess){
+			var sel, action, elms, 
+			replace_ = function(pobj){
+				return {
+					by:function(pobj2){
+						var i = 0;
+						pobj.length = Math.max(pobj.length, pobj2.length);
+						for(; i<pobj.length; i++){
+							if(typeof pobj2[i] !== 'undefined'){
+								pobj[i] = pobj2[i];
+							}else{
+								delete pobj[i];
+							}
+						}
+					}
+				}
+			};
+			this.render( ctxt, directive );
+			if(typeof postProcess !== 'undefined'){
+				for(sel in postProcess){
+					action = postProcess[sel];
+					if(typeof action === 'function'){
+						replace_( this ).by( this.find(sel) );
+						action.call(this);
+					}
+				}
+			} 
+			return this;
+		};
+		
+		//register it as a jquery extension
+		jQuery.fn.extend({
+			renderWithEffects:function(ctxt, directive, postProcess){ 
+				return jQuery( $p( this[0] ).renderWithEffects( ctxt, directive, postProcess ) ); 
+			}
+		});
+
+
+    var directive = {
+    'tr' : { //trigger a loop
+      'animal<-animals' : { // loop on the property animals in the JSON 
+       '@class+':function(arg){ // add(+) the return value of the function to the class
+        var oddEven, firstLast;
+        oddEven = (arg.pos % 2 == 0) ? ' even' : ' odd';
+        firstLast = (arg.pos == 0) ? 
+         ' first' : 
+         (arg.pos == arg.animal.items.length - 1) ? 
+          ' last' : 
+          '';
+        return oddEven + firstLast;
+       },
+       'td':'animal.name'
+       }
+     }
+    };
+
+    var data = {
+      animals:[
+        {name:'bird'},
+        {name:'cat'},
+        {name:'dog'},
+        {name:'mouse'}
+      ]
+    };
+
+	var effects = {
+		tr:function(){
+			var i = 0;
+			$(this).each(function(){
+				i++ % 2 ? $(this).fadeOut(3000) : $(this).hide(3000);
+			});
+		}
+	};
+
+    $('table').renderWithEffects(data, directive, effects);
+  </script>
+</body>
+</html>
