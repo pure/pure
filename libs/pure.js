@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.35
+	revision: 2.36
 */
 
 var $p, pure = $p = function(){
@@ -403,7 +403,7 @@ $p.core = function(sel, ctxt, plugins){
 					buildArg(i, temp, filter, length - filtered);
 				}
 			}else{
-				if(typeof sorter !== 'undefined'){
+				if(a && typeof sorter !== 'undefined'){
 					error('sort is only available on arrays, not objects');
 				}
 				//loop on collections

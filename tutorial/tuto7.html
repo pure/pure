@@ -18,44 +18,44 @@
 
   <script>
 
-		//example of building a plugin to postprocess the generated HTML
-		
-		$p.plugins.renderWithEffects = function(ctxt, directive, postProcess){
-			var sel, action, elms, 
-			replace_ = function(pobj){
-				return {
-					by:function(pobj2){
-						var i = 0;
-						pobj.length = Math.max(pobj.length, pobj2.length);
-						for(; i<pobj.length; i++){
-							if(typeof pobj2[i] !== 'undefined'){
-								pobj[i] = pobj2[i];
-							}else{
-								delete pobj[i];
-							}
+	//example of building a plugin to postprocess the generated HTML
+	
+	$p.plugins.renderWithEffects = function(ctxt, directive, postProcess){
+		var sel, action, elms, 
+		replace_ = function(pobj){
+			return {
+				by:function(pobj2){
+					var i = 0;
+					pobj.length = Math.max(pobj.length, pobj2.length);
+					for(; i<pobj.length; i++){
+						if(typeof pobj2[i] !== 'undefined'){
+							pobj[i] = pobj2[i];
+						}else{
+							delete pobj[i];
 						}
 					}
 				}
-			};
-			this.render( ctxt, directive );
-			if(typeof postProcess !== 'undefined'){
-				for(sel in postProcess){
-					action = postProcess[sel];
-					if(typeof action === 'function'){
-						replace_( this ).by( this.find(sel) );
-						action.call(this);
-					}
-				}
-			} 
-			return this;
-		};
-		
-		//register it as a jquery extension
-		jQuery.fn.extend({
-			renderWithEffects:function(ctxt, directive, postProcess){ 
-				return jQuery( $p( this[0] ).renderWithEffects( ctxt, directive, postProcess ) ); 
 			}
-		});
+		};
+		this.render( ctxt, directive );
+		if(typeof postProcess !== 'undefined'){
+			for(sel in postProcess){
+				action = postProcess[sel];
+				if(typeof action === 'function'){
+					replace_( this ).by( this.find(sel) );
+					action.call(this);
+				}
+			}
+		} 
+		return this;
+	};
+	
+	//register it as a jquery extension
+	jQuery.fn.extend({
+		renderWithEffects:function(ctxt, directive, postProcess){ 
+			return jQuery( $p( this[0] ).renderWithEffects( ctxt, directive, postProcess ) ); 
+		}
+	});
 
 
     var directive = {
