@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.36
+	revision: 2.37
 */
 
 var $p, pure = $p = function(){
@@ -288,7 +288,7 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		var setstr, getstr, quotefn, isStyle, isClass, attName;
+		var setstr, getstr, quotefn, isStyle, isClass, attName, setfn;
 		if(attr){
 			isStyle = (/^style$/i).test(attr);
 			isClass = (/^class$/i).test(attr);
@@ -303,62 +303,49 @@ $p.core = function(sel, ctxt, plugins){
 					isClass && node.removeAttribute(attName);
 				}
 			};
-			if(isStyle) {
-				getstr = function(node){ return node.style.cssText; };
-			}else if(isClass) {
-				getstr = function(node){ return node.className;	};
-			}else{
-				getstr = function(node){ return node.getAttribute(attr); };
-			}
 			if (isStyle || isClass) {//IE no quotes special care
+				if(isStyle){
+					getstr = function(n){ return n.style.cssText; };
+				}else{
+					getstr = function(n){ return n.className;	};
+				}
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
 			}else {
+				getstr = function(n){ return n.getAttribute(attr); };
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;'); };
 			}
-		}else{
-			if(isloop){
-				setstr = function(node, s){
-					// we can have a null parent node
-					// if we get overlapping targets.
-					var pn = node.parentNode;
-					if(pn){
-						//replace node with s
-						pn.insertBefore( document.createTextNode( s ), node.nextSibling );
-						pn.removeChild( node );
-					}
-				};
+			if(prepend){
+				setfn = function(node, s){ setstr( node, s + getstr( node )); };
+			}else if(append){
+				setfn = function(node, s){ setstr( node, getstr( node ) + s); };
 			}else{
-				getstr = function(node){ 
-					return node.innerHTML;
-				};
-				setstr = function(node, s, ap){
-					if(ap === true){
-						node.innerHTML = s;
-					}else{
-						node.innerHTML = '';
-						node.appendChild( document.createTextNode( s ));
+				setfn = function(node, s){ setstr( node, s ); };
+			}
+		}else{
+			if (isloop) {
+				setfn = function(node, s) {
+					var pn = node.parentNode;
+					if (pn) {
+						//replace node with s
+						pn.insertBefore(document.createTextNode(s), node.nextSibling);
+						pn.removeChild(node);
 					}
 				};
+			} else {
+				if (prepend) {
+					setfn = function(node, s) { node.insertBefore(document.createTextNode(s), node.firstChild);	};
+				} else if (append) {
+					setfn = function(node, s) { node.appendChild(document.createTextNode(s));};
+				} else {
+					setfn = function(node, s) {
+						while (node.firstChild) { node.removeChild(node.firstChild); }
+						node.appendChild(document.createTextNode(s));
+					};
+				}
 			}
-			quotefn = function(s){ 
-				return s;
-			};
+			quotefn = function(s) { return s; };
 		}
-		var setfn;
-		if(prepend){
-			setfn = function(node, s){ 
-				setstr( node, s + getstr( node ) , true);
-			};
-		}else if(append){
-			setfn = function(node, s){ 
-				setstr( node, getstr( node ) + s , true);
-			};
-		}else{
-			setfn = function(node, s){ 
-				setstr( node, s );
-			};
-		}
-		return {attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn};
+		return { attr: attr, nodes: target, set: setfn, sel: osel, quotefn: quotefn };
 	}
 
 	function setsig(target, n){
@@ -436,7 +423,7 @@ $p.core = function(sel, ctxt, plugins){
 			}
 		}
 		if(!ls){
-			error('no loop spec');
+			error('Error in the selector: ' + sel + '\nA directive action must be a string, a function or a loop(<-)');
 		}
 		var dsel = loop[ls];
 		// if it's a simple data selector then we default to contents, not replacement.
