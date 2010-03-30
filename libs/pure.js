@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.37
+	revision: 2.39
 */
 
 var $p, pure = $p = function(){
@@ -67,11 +67,10 @@ $p.core = function(sel, ctxt, plugins){
 
 	// error utility
 	function error(e){
-		alert(e);
 		if(typeof console !== 'undefined'){
 			console.log(e);
 			debugger;
-		}
+		}else{ alert(e); }
 		throw('pure error: ' + e);
 	}
 	
@@ -119,23 +118,6 @@ $p.core = function(sel, ctxt, plugins){
 		};
 	}
 
-	// convert a JSON HTML structure to a dom node and returns the leaf
-	function domify(ns, pa){
-		pa = pa || document.createDocumentFragment();
-		var nn, leaf;
-		for(var n in ns){
-			nn = document.createElement(n);
-			pa.appendChild(nn);
-			if(typeof ns[n] === 'object'){
-				leaf = domify(ns[n], nn);
-			}else{
-				leaf = document.createElement(ns[n]);
-				nn.appendChild(leaf);
-			}
-		}
-		return leaf;
-	};
-	
 	// default find using querySelector when available on the browser
 	function find(n, sel){
 		if(typeof n === 'string'){
@@ -622,7 +604,36 @@ $p.core = function(sel, ctxt, plugins){
 		return this;
 	}
 	
-	function replaceWith(elm, html){
+	function replaceWith(elm, html) {
+		var ne, ep, depth = 1;
+		switch (elm.tagName) {
+			case 'TBODY': case 'THEAD': case 'TFOOT':
+				html = ['<TABLE>', html, '</TABLE>'].join('');
+				depth = 2;
+			break;
+			case 'TR':
+				html = ['<TABLE><TBODY>', html, '</TBODY></TABLE>'].join('');
+				depth = 3;
+			break;
+			case 'TD': case 'TH':
+				html = ['<TABLE><TBODY><TR>', html, '</TR></TBODY></TABLE>'].join('');
+				depth = 4;
+			break;
+		}
+		ne = document.createElement('SPAN');
+		ep = elm.parentNode;
+		ep.insertBefore(ne, elm);
+		ne.innerHTML = html;
+		while (depth--) {
+			ne = ne.firstChild;
+		}
+		ep.removeChild(elm);
+		elm = ne;
+
+		ne = ep = null;
+		return elm;
+	}
+	function replaceWith2(elm, html){
 		var tagName = elm.tagName, ne, pa, ep, parent = {TABLE:{}};
 		if((/TD|TR|TH/).test(tagName)){
 			var parents = {	TR:{TABLE:'TBODY'}, TD:{TABLE:{TBODY:'TR'}}, TH:{TABLE:{THEAD:'TR'}} };
