@@ -633,30 +633,6 @@ $p.core = function(sel, ctxt, plugins){
 		ne = ep = null;
 		return elm;
 	}
-	function replaceWith2(elm, html){
-		var tagName = elm.tagName, ne, pa, ep, parent = {TABLE:{}};
-		if((/TD|TR|TH/).test(tagName)){
-			var parents = {	TR:{TABLE:'TBODY'}, TD:{TABLE:{TBODY:'TR'}}, TH:{TABLE:{THEAD:'TR'}} };
-			pa = domify( parents[ tagName ] );
-		}else if( ( /TBODY|THEAD|TFOOT/ ).test( tagName )){
-			pa = document.createElement('TABLE');
-		}else{
-			pa = document.createElement('SPAN');
-		}
-		ep = elm.parentNode;
-		// avoid IE mem leak
-		ep.insertBefore(pa, elm);
-		ep.removeChild(elm);
-		pa.style.display = 'none';
-		pa.innerHTML = html;
-		ne = pa.firstChild;
-		ep.insertBefore(ne, pa);
-		ep.removeChild(pa);
-		elm = ne;
- 
-		pa = ne = ep = null;
-		return elm;
-	}
 };
 
 $p.plugins = {};
