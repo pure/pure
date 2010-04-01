@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.40
+	revision: 2.41
 */
 
 var $p, pure = $p = function(){
@@ -605,29 +605,33 @@ $p.core = function(sel, ctxt, plugins){
 	}
 	
 	function replaceWith(elm, html) {
-		var ne, ep, depth = 1;
+		var ne,
+			ep = elm.parentNode,
+			depth = 0;
 		switch (elm.tagName) {
 			case 'TBODY': case 'THEAD': case 'TFOOT':
-				html = ['<TABLE>', html, '</TABLE>'].join('');
-				depth = 2;
+				html = '<TABLE>' + html + '</TABLE>';
+				depth = 1;
 			break;
 			case 'TR':
-				html = ['<TABLE><TBODY>', html, '</TBODY></TABLE>'].join('');
-				depth = 3;
+				html = '<TABLE><TBODY>' + html + '</TBODY></TABLE>';
+				depth = 2;
 			break;
 			case 'TD': case 'TH':
-				html = ['<TABLE><TBODY><TR>', html, '</TR></TBODY></TABLE>'].join('');
-				depth = 4;
+				html = '<TABLE><TBODY><TR>' + html + '</TR></TBODY></TABLE>';
+				depth = 3;
 			break;
 		}
-		ne = document.createElement('SPAN');
-		ep = elm.parentNode;
-		ep.insertBefore(ne, elm);
-		ne.innerHTML = html;
+		tmp = document.createElement('SPAN');
+		document.body.appendChild(tmp);
+		tmp.innerHTML = html;
+		ne = tmp.firstChild;
 		while (depth--) {
 			ne = ne.firstChild;
 		}
+		ep.insertBefore(ne, elm);
 		ep.removeChild(elm);
+		document.body.removeChild(tmp);
 		elm = ne;
 
 		ne = ep = null;
