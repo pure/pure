@@ -107,9 +107,13 @@ $p.core = function(sel, ctxt, plugins){
 	}
 
 	// check if the argument is an array
-	function isArray(o){
-		return Object.prototype.toString.call( o ) === "[object Array]";
-	}
+	isArray = Array.isArray ?
+		function(o) {
+			return Array.isArray(o);
+		} :
+		function(o) {
+			return Object.prototype.toString.call( o ) === "[object Array]";
+		}
 	
 	// returns the string generator function
 	function wrapquote(qfn, f){
