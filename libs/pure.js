@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.43
+	revision: 2.44
 */
 
 var $p, pure = $p = function(){
@@ -56,7 +56,14 @@ $p.core = function(sel, ctxt, plugins){
 			IMG:'src',
 			INPUT:'value'
 		},
-		isArray;
+		// check if the argument is an array - thanks salty-horse (Ori Avtalion)
+		isArray = Array.isArray ?
+			function(o) {
+				return Array.isArray(o);
+			} :
+			function(o) {
+				return Object.prototype.toString.call(o) === "[object Array]";
+			};
 	
 	return plugins;
 
@@ -106,12 +113,6 @@ $p.core = function(sel, ctxt, plugins){
 				return h;
 			})(node);
 	}
-
-	// check if the argument is an array
-	function isArray(o) {
-		return Object.prototype.toString.call( o ) === "[object Array]";
-	};
-
 	
 	// returns the string generator function
 	function wrapquote(qfn, f){
@@ -356,7 +357,7 @@ $p.core = function(sel, ctxt, plugins){
 					//if array, set a length property - filtered items
 					typeof len !== 'undefined' &&  (ctxt.length = len);
 					//if filter directive
-					if(typeof ftr === 'function' && !ftr(ctxt)){
+					if(typeof ftr === 'function' && ftr(ctxt) === false){
 						filtered++;
 						return;
 					}

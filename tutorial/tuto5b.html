@@ -27,10 +27,12 @@
         'animal<-animals':{
           '.':'animal.name'
         },
+        //sort function like the ususal Array.sort
         sort:function(a, b){
           return a.name > b.name ? 1 : -1;
         },
         filter:function(a){
+			 //if the returned value is false, the rendering will be skipped for this entry
           return a.context.legs === a.item.legs;
         }
       }
