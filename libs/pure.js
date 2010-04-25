@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.44
+	revision: 2.45
 */
 
 var $p, pure = $p = function(){
@@ -187,8 +187,8 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof(sel) === 'function'){
 			return sel;
 		}
-		//check for a valid js variable name with hyphen(for properties only) and $
-		var m = sel.match(/^[a-zA-Z$_][\w$]*(\.[\w$-]*[^\.])*$/);
+		//check for a valid js variable name with hyphen(for properties only), $, _ and :
+		var m = sel.match(/^[a-zA-Z\$_][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);
 		if(m === null){
 			var found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
 			// check if literal
