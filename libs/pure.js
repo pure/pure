@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.45
+	revision: 2.46
 */
 
 var $p, pure = $p = function(){
@@ -669,7 +669,7 @@ $p.libs = {
 	jquery:function(){
 		if(typeof document.querySelector === 'undefined'){
 			$p.plugins.find = function(n, sel){
-				return $(n).find(sel);
+				return jQuery(n).find(sel);
 			};
 		}
 		jQuery.fn.extend({
