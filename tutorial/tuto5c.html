@@ -1,0 +1,55 @@
+<html>
+<head>
+	<title>PURE Unobtrusive Rendering Engine</title>
+	<script src="../libs/jquery.js"></script>
+	<script src="../libs/pure.js"></script>
+</head>
+<body>
+	<table>
+	  <thead>
+	    <tr>
+	      <th></th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr>
+	      <td></td>
+	    </tr>
+	  </tbody>
+	</table>
+	
+	<script>
+		var cols = ['name', 'food', 'legs', 'button'], 
+			data = {animals:[
+				{name:'bird', food:'seed', legs:2},
+				{name:'cat', food:'mouse, bird', legs:4},
+				{name:'dog', food:'bone', legs:4},
+				{name:'mouse', food:'cheese', legs:4}
+			]
+		},
+		colsDir = {
+			'th':{
+				'col<-':{
+					'.':'col'
+				}
+			},
+			'td':{
+				'col<-':{
+					'@class':'col'
+				}
+			}
+		},
+		dataDir = {
+			'tbody tr':{
+				'animal<-animals':{
+					'td.name':'animal.name',
+					'td.food':'animal.food',
+					'td.legs':'animal.legs',
+					'td.button':'<button onclick="alert(#{animal.legs})">View</button>'
+				}
+			}
+		};
+		$('table').render(cols, colsDir).render(data, dataDir);
+	</script>
+</body>
+</html>
