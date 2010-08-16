@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.47
+	revision: 2.48
 */
 
 var $p, pure = $p = function(){
@@ -78,7 +78,7 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof console !== 'undefined'){
 			console.log(e);
 			debugger;
-		}else{ alert(e); }
+		}
 		throw('pure error: ' + e);
 	}
 	
@@ -221,8 +221,13 @@ $p.core = function(sel, ctxt, plugins){
 			var	v = ctxt[m[0]],
 				i = 0;
 			if(v && v.item){
-				data = v.item;
 				i += 1;
+				if(m[i] === 'pos'){
+					//allow pos to be kept by string. Tx to Adam Freidin
+					return v.pos;
+				}else{
+					data = v.item;
+				}
 			}
 			var n = m.length;
 			for(; i < n; i++){
@@ -351,6 +356,10 @@ $p.core = function(sel, ctxt, plugins){
 				length,
 				strs = [],
 				buildArg = function(idx, temp, ftr, len){
+					//keep the current loop. Tx to Adam Freidin
+					var save_pos = ctxt.pos,
+						save_item = ctxt.item,
+						save_items = ctxt.items;
 					ctxt.pos = temp.pos = idx;
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
@@ -362,6 +371,10 @@ $p.core = function(sel, ctxt, plugins){
 						return;
 					}
 					strs.push( inner.call(temp, ctxt ) );
+					//restore the current loop
+					ctxt.pos = save_pos;
+					ctxt.item = save_item;
+					ctxt.items = save_items;
 				};
 			ctxt[name] = temp;
 			if( isArray(a) ){
