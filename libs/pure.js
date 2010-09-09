@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.48
+	revision: 2.49
 */
 
 var $p, pure = $p = function(){
@@ -214,11 +214,8 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		m = sel.split('.');
 		return function(ctxt){
-			var data = ctxt.context;
-			if(!data){
-				return '';
-			}
-			var	v = ctxt[m[0]],
+			var data = ctxt.context || ctxt,
+				v = ctxt[m[0]],
 				i = 0;
 			if(v && v.item){
 				i += 1;
@@ -499,9 +496,9 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			// not found check first level of data
 			if(typeof val === 'undefined'){
-				val = isArray(data) ? data[0][cspec.prop] : data[cspec.prop];
+				val = dataselectfn(cspec.prop)(isArray(data) ? data[0] : data);
 				// nothing found return
-				if(typeof val === 'undefined'){
+				if(val === ''){
 					return false;
 				}
 			}

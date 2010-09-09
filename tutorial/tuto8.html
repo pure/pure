@@ -1,0 +1,55 @@
+<html>
+<head>
+  <title>PURE Unobtrusive Rendering Engine - Recursion</title>
+  <script src="../libs/jquery.js"></script>
+  <script src="../libs/pure.js"></script>
+</head>
+<body>
+  <ul class="treeItem">
+    <li>
+      <a class="name" href="javascript:void(0)">name</a>
+      <div class="children"></div>
+    </li>
+  </ul>
+  <script>
+    var data = {
+      children: [{
+        name: 'Europe',
+        children: [{
+          name: 'Belgium',
+          children: [{
+            name: 'Brussels',
+            children:null},{
+            name: 'Namur'},{
+            name: 'Antwerpen'}]},{
+          name: 'Germany'},{
+          name: 'UK'}]},{
+        name: 'America',
+        children: [{
+          name: 'US',
+          children: [{
+            name: 'Alabama'},{
+            name: 'Georgia'}]},{
+          name: 'Canada'},{
+          name: 'Argentina'}]},{
+        name: 'Asia'},{
+        name: 'Africa'},{
+        name: 'Antarctica'}
+      ]
+    };
+    var directive = {
+      'li': {
+        'child <- children': {
+          'a': 'child.name',
+          'a@onclick':'alert(\'#{child.name}\');',
+          'div.children': function(ctxt){
+            return ctxt.child.item.children ? rfn(ctxt.child.item):'';
+          }
+        }
+      }
+    };
+    var rfn = $('ul').compile( directive );
+    $('ul').render( data, rfn );
+  </script>
+</body>
+</html>
