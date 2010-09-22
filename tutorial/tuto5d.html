@@ -1,0 +1,97 @@
+<html>
+<head>
+  <!-- Thanks to zackdykes@gmail.com for this example on nested loops -->
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="../libs/jquery.js"></script>
+  <script src="../libs/pure.js"></script>
+  <style>
+    ul {list-style: none; padding: 0px 0px 0px 15px;}
+    li.music {background: #eee; margin-bottom: 10px; padding: 10px;}
+  </style>
+</head>
+<body>
+    
+<!-- HTML template -->
+<ul>
+    <li class="music">
+        <ul>
+            <li>Album: <a class="release" href="#"></a></li>
+            <li>Artist: <a class="artist" href="#"></a></li>
+            <li>ID: <a class="label" href="#"></a></li>
+            <li>Tracks: 
+                <ul>
+                    <li class="track">
+                        <span class="trackNum">:</span>
+                        <span class="title"></span>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<script type="text/javascript">
+
+var directive = {
+    'li.music': {
+        'obj<-items': { // "for obj in items"
+            'a.release': 'obj.title',
+            'a.artist': 'obj.artist',
+            'a.label': 'obj.id',
+            'li.track': {
+                'track<-obj.tracks': { // "for track in obj.tracks"
+                    'span.trackNum': '#{track.trackNumber}:', // prepend
+                    'span.title': 'track.title'
+                }
+            }
+        }
+    }
+};
+var data = {
+    items: [
+        {
+            id: 1,
+            title: 'Mars Attack',
+            artist: 'Epos',
+            tracks: [
+                {
+                    title: 'Epos 1',
+                    trackNumber: '1'
+                },
+                {
+                    title: 'Epos 2',
+                    trackNumber: '2'
+                },
+                {
+                    title: 'Epos 3',
+                    trackNumber: '3'
+                }
+            ]
+        },
+        {
+            id: 2,
+            title: 'Reigni',
+            artist: 'Alfu',
+            tracks: [
+                {
+                    title: 'Alfu 1',
+                    trackNumber: '1'
+                },
+                {
+                    title: 'Alfu 2',
+                    trackNumber: '2'
+                },
+                {
+                    title: 'Alfu 3',
+                    trackNumber: '3'
+                }
+            ]
+        },
+    ]
+};
+
+$('ul').render(data, directive);
+
+</script>
+</body>
+</html>
