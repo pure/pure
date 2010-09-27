@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.51
+	revision: 2.52
 */
 
 var $p, pure = $p = function(){
@@ -103,15 +103,7 @@ $p.core = function(sel, ctxt, plugins){
 	
 	// returns the outer HTML of a node
 	function outerHTML(node){
-		// if IE take the internal method otherwise build one
-		return node.outerHTML || (
-			function(n){
-        		var div = document.createElement('div'), h;
-	        	div.appendChild( n.cloneNode(true) );
-				h = div.innerHTML;
-				div = null;
-				return h;
-			})(node);
+		return node.outerHTML || new XMLSerializer().serializeToString(node);
 	}
 	
 	// returns the string generator function
