@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.50
+	revision: 2.51
 */
 
 var $p, pure = $p = function(){
@@ -153,7 +153,7 @@ $p.core = function(sel, ctxt, plugins){
 				// if the value is empty and attribute, remove it
 				if(fnVal === ''){
 					attLine = strs[ strs.length - 1 ];
-					if( ( pos = attLine.search( /[\w]+=\"?$/ ) ) > -1){
+					if( ( pos = attLine.search( /[^\s]+=\"?$/ ) ) > -1){
 						strs[ strs.length - 1 ] = attLine.substring( 0, pos );
 						pVal = pVal.substr( 1 );
 					}
