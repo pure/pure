@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.52
+	revision: 2.53
 */
 
 var $p, pure = $p = function(){
@@ -248,7 +248,7 @@ $p.core = function(sel, ctxt, plugins){
 				target = plugins.find(dom, selector);
 			}
 			if(!target || target.length === 0){
-				return error('The node "' + sel + '" was not found in the template');
+				return error('The node "' + sel + '" was not found in the template:\n' + outerHTML(dom));
 			}
 		}else{
 			// autoRender node
@@ -540,15 +540,21 @@ $p.core = function(sel, ctxt, plugins){
 			}
 		}
 		// read directives
-		var target, dsel;
+		var target, dsel, sels, sl, i;
 		for(var sel in directive){
 			if(directive.hasOwnProperty(sel)){
+				i = 0;
 				dsel = directive[sel];
 				if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
-					// set the value for the node/attr
-					target = gettarget(dom, sel, false);
-					setsig(target, fns.length);
-					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
+					sels = sel.split(/\s*,\s*/); //allow selector separation by quotes
+					sl = sels.length;
+					do{
+						// set the value for the node/attr
+						sel = sels[i];
+						target = gettarget(dom, sel, false);
+						setsig(target, fns.length);
+						fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
+					}while(++i < sl);
 				}else{
 					// loop on node
 					loopgen(dom, sel, dsel, fns);
