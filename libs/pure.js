@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.54
+	revision: 2.55
 */
 
 var $p, pure = $p = function(){
@@ -37,7 +37,7 @@ $p.core = function(sel, ctxt, plugins){
 			error('The root of the template is undefined, check your selector');
 		break;
 		default:
-			templates = [sel];
+			templates = sel;
 	}
 	
 	for(var i = 0, ii = templates.length; i < ii; i++){
@@ -595,9 +595,9 @@ $p.core = function(sel, ctxt, plugins){
 	// return an HTML string 
 	// should replace the template and return this
 	function render(ctxt, directive){
-		var fn = typeof directive === 'function' ? directive : plugins.compile( directive, false, this[0] );
-		for(var i = 0, ii = this.length; i < ii; i++){
-			this[i] = replaceWith( this[i], fn( ctxt, false ));
+		var fn = typeof directive === 'function' && directive, i = 0, ii = this.length;
+		for(; i < ii; i++){
+			this[i] = replaceWith( this[i], (fn || plugins.compile( directive, false, this[i] ))( ctxt, false ));
 		}
 		context = null;
 		return this;
@@ -669,9 +669,9 @@ $p.libs = {
 		}
 		DOMAssistant.attach({ 
 			publicMethods : [ 'compile', 'render', 'autoRender'],
-			compile:function(directive, ctxt){ return $p(this).compile(directive, ctxt); },
-			render:function(ctxt, directive){ return $( $p(this).render(ctxt, directive) )[0]; },
-			autoRender:function(ctxt, directive){ return $( $p(this).autoRender(ctxt, directive) )[0]; }
+			compile:function(directive, ctxt){ return $p([this]).compile(directive, ctxt); },
+			render:function(ctxt, directive){ return $( $p([this]).render(ctxt, directive) )[0]; },
+			autoRender:function(ctxt, directive){ return $( $p([this]).autoRender(ctxt, directive) )[0]; }
 		});
 	},
 	jquery:function(){
@@ -682,9 +682,9 @@ $p.libs = {
 		}
 		jQuery.fn.extend({
 			directives:function(directive){this._pure_d = directive; return this;},
-			compile:function(directive, ctxt){ return $p(this[0]).compile(this._pure_d || directive, ctxt); },
-			render:function(ctxt, directive){ return jQuery( $p( this[0] ).render( ctxt, this._pure_d || directive ) ); },
-			autoRender:function(ctxt, directive){ return jQuery( $p( this[0] ).autoRender( ctxt, this._pure_d || directive ) ); }
+			compile:function(directive, ctxt){ return $p(this).compile(this._pure_d || directive, ctxt); },
+			render:function(ctxt, directive){ return jQuery( $p( this ).render( ctxt, this._pure_d || directive ) ); },
+			autoRender:function(ctxt, directive){ return jQuery( $p( this ).autoRender( ctxt, this._pure_d || directive ) ); }
 		});
 	},
 	mootools:function(){
