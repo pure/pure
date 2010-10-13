@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.53
+	revision: 2.54
 */
 
 var $p, pure = $p = function(){
@@ -34,7 +34,7 @@ $p.core = function(sel, ctxt, plugins){
 			}
 		break;
 		case 'undefined':
-			error('The template root is undefined, check your selector');
+			error('The root of the template is undefined, check your selector');
 		break;
 		default:
 			templates = [sel];
@@ -109,7 +109,7 @@ $p.core = function(sel, ctxt, plugins){
 	// returns the string generator function
 	function wrapquote(qfn, f){
 		return function(ctxt){
-			return qfn('' + f.call(ctxt.context, ctxt));
+			return qfn('' + f.call(this, ctxt));
 		};
 	}
 
@@ -139,7 +139,7 @@ $p.core = function(sel, ctxt, plugins){
 				fnVal, pVal, attLine, pos;
 
 			for(var i = 1; i < n; i++){
-				fnVal = fns[i]( ctxt );
+				fnVal = fns[i].call( this, ctxt );
 				pVal = parts[i];
 				
 				// if the value is empty and attribute, remove it
@@ -248,7 +248,7 @@ $p.core = function(sel, ctxt, plugins){
 				target = plugins.find(dom, selector);
 			}
 			if(!target || target.length === 0){
-				return error('The node "' + sel + '" was not found in the template:\n' + outerHTML(dom));
+				return error('The node "' + sel + '" was not found in the template:\n' + outerHTML(dom).replace(/\t/g,'  '));
 			}
 		}else{
 			// autoRender node
@@ -359,7 +359,7 @@ $p.core = function(sel, ctxt, plugins){
 						filtered++;
 						return;
 					}
-					strs.push( inner.call(temp, ctxt ) );
+					strs.push( inner.call(ctxt.item, ctxt ) );
 					//restore the current loop
 					ctxt.pos = save_pos;
 					ctxt.item = save_item;
@@ -681,9 +681,10 @@ $p.libs = {
 			};
 		}
 		jQuery.fn.extend({
-			compile:function(directive, ctxt){ return $p(this[0]).compile(directive, ctxt); },
-			render:function(ctxt, directive){ return jQuery( $p( this[0] ).render( ctxt, directive ) ); },
-			autoRender:function(ctxt, directive){ return jQuery( $p( this[0] ).autoRender( ctxt, directive ) ); }
+			directives:function(directive){this._pure_d = directive; return this;},
+			compile:function(directive, ctxt){ return $p(this[0]).compile(this._pure_d || directive, ctxt); },
+			render:function(ctxt, directive){ return jQuery( $p( this[0] ).render( ctxt, this._pure_d || directive ) ); },
+			autoRender:function(ctxt, directive){ return jQuery( $p( this[0] ).autoRender( ctxt, this._pure_d || directive ) ); }
 		});
 	},
 	mootools:function(){
