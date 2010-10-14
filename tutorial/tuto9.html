@@ -1,0 +1,28 @@
+<html>
+<head>
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+  <script src="http://github.com/pure/pure/raw/master/libs/pure.js"></script>
+</head>
+<body>
+
+  <!-- HTML template -->
+	<div class="template">
+		Hello <a></a>
+	</div>
+	<!-- result place -->
+	<div class="result"></div>
+
+	<script>
+		var jsonData = {'who':'BeeBole!', site:'http://beebole.com'};
+		
+		$('div.template')
+			 //set the directives
+			.directives({ 'a':'who', 'a@href':'site' })
+			 //call render with the JSON data
+			.render(jsonData)
+			 //use any jQuery command on the generated HTML
+			.appendTo('div.result');
+	</script>
+</body>
+</html>
