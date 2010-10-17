@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.55
+	revision: 2.56
 */
 
 var $p, pure = $p = function(){
@@ -669,9 +669,15 @@ $p.libs = {
 		}
 		DOMAssistant.attach({ 
 			publicMethods : [ 'compile', 'render', 'autoRender'],
-			compile:function(directive, ctxt){ return $p([this]).compile(directive, ctxt); },
-			render:function(ctxt, directive){ return $( $p([this]).render(ctxt, directive) )[0]; },
-			autoRender:function(ctxt, directive){ return $( $p([this]).autoRender(ctxt, directive) )[0]; }
+			compile:function(directive, ctxt){
+				return $p([this]).compile(directive, ctxt);
+			},
+			render:function(ctxt, directive){
+				return $( $p([this]).render(ctxt, directive) )[0];
+			},
+			autoRender:function(ctxt, directive){
+				return $( $p([this]).autoRender(ctxt, directive) )[0];
+			}
 		});
 	},
 	jquery:function(){
@@ -681,10 +687,18 @@ $p.libs = {
 			};
 		}
 		jQuery.fn.extend({
-			directives:function(directive){this._pure_d = directive; return this;},
-			compile:function(directive, ctxt){ return $p(this).compile(this._pure_d || directive, ctxt); },
-			render:function(ctxt, directive){ return jQuery( $p( this ).render( ctxt, this._pure_d || directive ) ); },
-			autoRender:function(ctxt, directive){ return jQuery( $p( this ).autoRender( ctxt, this._pure_d || directive ) ); }
+			directives:function(directive){
+				this._pure_d = directive; return this;
+			},
+			compile:function(directive, ctxt){
+				return $p(this).compile(this._pure_d || directive, ctxt);
+			},
+			render:function(ctxt, directive){
+				return jQuery( $p( this ).render( ctxt, this._pure_d || directive ) );
+			},
+			autoRender:function(ctxt, directive){
+				return jQuery( $p( this ).autoRender( ctxt, this._pure_d || directive ) );
+			}
 		});
 	},
 	mootools:function(){
@@ -694,9 +708,15 @@ $p.libs = {
 			};
 		}
 		Element.implement({
-			compile:function(directive, ctxt){ return $p(this).compile(directive, ctxt); },
-			render:function(ctxt, directive){ return $p(this).render(ctxt, directive); },
-			autoRender:function(ctxt, directive){ return $p(this).autoRender(ctxt, directive); }
+			compile:function(directive, ctxt){ 
+				return $p(this).compile(directive, ctxt);
+			},
+			render:function(ctxt, directive){
+				return $p(this).render(ctxt, directive);
+			},
+			autoRender:function(ctxt, directive){
+				return $p(this).autoRender(ctxt, directive);
+			}
 		});
 	},
 	prototype:function(){
@@ -707,9 +727,15 @@ $p.libs = {
 			};
 		}
 		Element.addMethods({
-			compile:function(element, directive, ctxt){ return $p(element).compile(directive, ctxt); }, 
-			render:function(element, ctxt, directive){ return $p(element).render(ctxt, directive); }, 
-			autoRender:function(element, ctxt, directive){ return $p(element).autoRender(ctxt, directive); }
+			compile:function(element, directive, ctxt){ 
+				return $p([element]).compile(directive, ctxt);
+			}, 
+			render:function(element, ctxt, directive){
+				return $p([element]).render(ctxt, directive);
+			}, 
+			autoRender:function(element, ctxt, directive){
+				return $p([element]).autoRender(ctxt, directive);
+			}
 		});
 	},
 	sizzle:function(){
