@@ -22,8 +22,8 @@ var $p, pure = $p = function(){
 
 $p.core = function(sel, ctxt, plugins){
 	//get an instance of the plugins
-	var plugins = getPlugins(),
-		templates = [];
+	plugins = plugins || getPlugins();
+	var templates = [];
 
 	//search for the template node(s)
 	switch(typeof sel){
@@ -65,8 +65,6 @@ $p.core = function(sel, ctxt, plugins){
 				return Object.prototype.toString.call(o) === "[object Array]";
 			};
 	
-	return plugins;
-
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * *
 		core functions
@@ -122,7 +120,7 @@ $p.core = function(sel, ctxt, plugins){
 		if(typeof document.querySelectorAll !== 'undefined'){
 			return (n||document).querySelectorAll( sel );
 		}else{
-			error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
+			return error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
 		}
 	}
 	
@@ -431,6 +429,7 @@ $p.core = function(sel, ctxt, plugins){
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
 		}
+		return target;
 	}
 	
 	function getAutoNodes(n, data){
@@ -465,7 +464,6 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			}
 		}
-		return an;
 		
 		function checkClass(c, tagName){
 			// read the class
@@ -504,16 +502,16 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			return cspec;
 		}
+		return an;
 	}
 
 	// returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	function compiler(dom, directive, data, ans){
-		var fns = [];
+		var fns = [], j, jj, cspec, n, target, nodes, itersel, node, inner, dsel, sel, sels, sl, i, h, pfns = [], parts, p;
 		// autoRendering nodes parsing -> auto-nodes
 		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
-			var j, jj, cspec, n, target, nodes, itersel, node, inner;
 			// for each auto-nodes
 			while(ans.length > 0){
 				cspec = ans[0].cspec;
@@ -540,8 +538,7 @@ $p.core = function(sel, ctxt, plugins){
 			}
 		}
 		// read directives
-		var target, dsel, sels, sl, i;
-		for(var sel in directive){
+		for(sel in directive){
 			if(directive.hasOwnProperty(sel)){
 				i = 0;
 				dsel = directive[sel];
@@ -562,7 +559,7 @@ $p.core = function(sel, ctxt, plugins){
 			}
 		}
         // convert node to a string 
-        var h = outerHTML(dom), pfns = [];
+        h = outerHTML(dom);
 		// IE adds an unremovable "selected, value" attribute
 		// hard replace while waiting for a better solution
         h = h.replace(/<([^>]+)\s(value\=""|selected)\s?([^>]*)>/ig, "<$1 $3>");
@@ -571,9 +568,9 @@ $p.core = function(sel, ctxt, plugins){
         h = h.split(attPfx).join('');
 
 		// slice the html string at "Sig"
-		var parts = h.split( Sig ), p;
+		parts = h.split( Sig );
 		// for each slice add the return string of 
-		for(var i = 1; i < parts.length; i++){
+		for(i = 1; i < parts.length; i++){
 			p = parts[i];
 			// part is of the form "fn-number:..." as placed there by setsig.
 			pfns[i] = fns[ parseInt(p, 10) ];
@@ -587,7 +584,7 @@ $p.core = function(sel, ctxt, plugins){
 	function compile(directive, ctxt, template){
 		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
 		return function(context){
-			return rfn({context:context});
+			return rfn({context:context}); //should be rfn.call(context, context)
 		};
 	}
 	//compile with the directive as argument
@@ -649,6 +646,7 @@ $p.core = function(sel, ctxt, plugins){
 		ne = ep = null;
 		return elm;
 	}
+	return plugins;
 };
 
 $p.plugins = {};
