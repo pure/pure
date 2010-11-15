@@ -581,10 +581,10 @@ $p.core = function(sel, ctxt, plugins){
 	// compile the template with directive
 	// if a context is passed, the autoRendering is triggered automatically
 	// return a function waiting the data as argument
-	function compile(directive, ctxt, template){
-		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, ctxt);
-		return function(context){
-			return rfn({context:context}); //should be rfn.call(context, context)
+	function compile(directive, context, template){
+		var rfn = compiler( ( template || this[0] ).cloneNode(true), directive, context);
+		return function(data){
+			return rfn.call(data, data);
 		};
 	}
 	//compile with the directive as argument
