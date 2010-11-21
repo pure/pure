@@ -67,7 +67,7 @@ var loadLib, runAll, run, transform;
 				}else{
 					span = h.nextSibling;
 				}
-				var cn = lis[i].className;
+				cn = lis[i].className;
 				window[cn].id = cn;
 				span.id = cn;
 				span.innerHTML = 
@@ -168,59 +168,59 @@ var loadLib, runAll, run, transform;
 	transform = function(ex, debug){
 		var template;
 		if(typeof ex === 'function'){
-			return ex();
-		}
-
-		switch(currLib){
-			case 'domassistant':
-			case 'jquery':
-				template = $( ex.template );
-			break;
-			case 'mootools':
-				template = $(document).getElement( ex.template );
-			case 'prototype':
-				template = $$( ex.template )[0];
-			default:
-				template = $p( ex.template );
-		}
+			ex();
+		}else{
+			switch(currLib){
+				case 'domassistant':
+				case 'jquery':
+					template = $( ex.template );
+				break;
+				case 'mootools':
+					template = $(document).getElement( ex.template );
+				case 'prototype':
+					template = $$( ex.template )[0];
+				default:
+					template = $p( ex.template );
+			}
 		
-		//keep a copy of the template
-		var dv = document.createElement('DIV');
-		dv.appendChild((template[0] || template).cloneNode(true));
-		ex.original = dv.innerHTML;
+			//keep a copy of the template
+			var dv = document.createElement('DIV');
+			dv.appendChild((template[0] || template).cloneNode(true));
+			ex.original = dv.innerHTML;
 		
-		switch(ex.id){
-			case 'ex01':
-			case 'ex02':
-			case 'ex03':
-			case 'ex04':
-			case 'ex06':
-				//autoRender with data (and directives)
-				template.autoRender( ex.data , ex.directive );
-			break;
+			switch(ex.id){
+				case 'ex01':
+				case 'ex02':
+				case 'ex03':
+				case 'ex04':
+				case 'ex06':
+					//autoRender with data (and directives)
+					template.autoRender( ex.data , ex.directive );
+				break;
 
-			case 'ex05':
-				/* double rendering */
-				template.render( ex.data, ex.directive1 ).render( ex.data, ex.directive2 );
-			break;
+				case 'ex05':
+					/* double rendering */
+					template.render( ex.data, ex.directive1 ).render( ex.data, ex.directive2 );
+				break;
 
-			case 'ex07':
-				/* Recursion */
-				var rfn = template.compile( ex.directive );
+				case 'ex07':
+					/* Recursion */
+					var rfn = template.compile( ex.directive );
 
-				if(typeof rfn[0] === 'function'){ //DOMAssistant sends back an array?
-					rfn = rfn[0];
-				}
-				ex.rfn = rfn;
-				//some libs send back an array, some send the node
-				( template[0] || template ).parentNode.innerHTML = rfn( ex.data );
-			break;
+					if(typeof rfn[0] === 'function'){ //DOMAssistant sends back an array?
+						rfn = rfn[0];
+					}
+					ex.rfn = rfn;
+					//some libs send back an array, some send the node
+					( template[0] || template ).parentNode.innerHTML = rfn( ex.data );
+				break;
 
-			default:
-				// default rendering with data and directive
-				template.render( ex.data, ex.directive );
+				default:
+					// default rendering with data and directive
+					template.render( ex.data, ex.directive );
+			}
+
 		}
-
 	};
 
 }());
