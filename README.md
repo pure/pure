@@ -1,4 +1,4 @@
-<h1>PURE Unbobtrusive Rendering Engine</h1>
+<h1>PURE Unobtrusive Rendering Engine</h1>
 
 <p>&nbsp;</p>
 
