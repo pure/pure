@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.59
+	revision: 2.60
 */
 
 var $p, pure = $p = function(){
@@ -296,7 +296,7 @@ $p.core = function(sel, ctxt, plugins){
 				quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
 			}else {
 				getstr = function(n){ return n.getAttribute(attr); };
-				quotefn = function(s){ return s.replace(/\"/g, '&quot;').replace(/\s/g, '&nbsp;'); };
+				quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
 			}
 			if(prepend){
 				setfn = function(node, s){ setstr( node, s + getstr( node )); };
