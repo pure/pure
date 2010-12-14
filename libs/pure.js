@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.60
+	revision: 2.61
 */
 
 var $p, pure = $p = function(){
@@ -551,20 +551,20 @@ $p.core = function(sel, ctxt, plugins){
 			if(directive.hasOwnProperty(sel)){
 				i = 0;
 				dsel = directive[sel];
-				if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
-					sels = sel.split(/\s*,\s*/); //allow selector separation by quotes
-					sl = sels.length;
-					do{
-						// set the value for the node/attr
-						sel = sels[i];
-						target = gettarget(dom, sel, false);
-						setsig(target, fns.length);
-						fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
-					}while(++i < sl);
-				}else{
-					// loop on node
-					loopgen(dom, sel, dsel, fns);
-				}
+				sels = sel.split(/\s*,\s*/); //allow selector separation by quotes
+				sl = sels.length;
+				do{
+					if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
+							// set the value for the node/attr
+							sel = sels[i];
+							target = gettarget(dom, sel, false);
+							setsig(target, fns.length);
+							fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
+					}else{
+						// loop on node
+						loopgen(dom, sel, dsel, fns);
+					}
+				}while(++i < sl);
 			}
 		}
         // convert node to a string 
