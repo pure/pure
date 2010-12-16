@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.61
+	revision: 2.62
 */
 
 var $p, pure = $p = function(){
@@ -204,7 +204,7 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			}
 			if(!found){
-				error('bad data selector syntax: ' + sel);
+				return function(){ return sel; };
 			}
 			parts[i] = s;
 			return concatenator(parts, pfns);
@@ -293,11 +293,10 @@ $p.core = function(sel, ctxt, plugins){
 				}else{
 					getstr = function(n){ return n.className;	};
 				}
-				quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
 			}else {
 				getstr = function(n){ return n.getAttribute(attr); };
-				quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
 			}
+			quotefn = function(s){ return s.replace(/\"/g, '&quot;'); };
 			if(prepend){
 				setfn = function(node, s){ setstr( node, s + getstr( node )); };
 			}else if(append){
@@ -555,11 +554,11 @@ $p.core = function(sel, ctxt, plugins){
 				sl = sels.length;
 				do{
 					if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
-							// set the value for the node/attr
-							sel = sels[i];
-							target = gettarget(dom, sel, false);
-							setsig(target, fns.length);
-							fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
+						// set the value for the node/attr
+						sel = sels[i];
+						target = gettarget(dom, sel, false);
+						setsig(target, fns.length);
+						fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
 					}else{
 						// loop on node
 						loopgen(dom, sel, dsel, fns);
