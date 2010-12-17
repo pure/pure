@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.62
+	revision: 2.63
 */
 
 var $p, pure = $p = function(){
@@ -719,10 +719,10 @@ $p.libs = {
 				return $p(this).compile(directive, ctxt);
 			},
 			render:function(ctxt, directive){
-				return $p(this).render(ctxt, directive);
+				return $p([this]).render(ctxt, directive);
 			},
 			autoRender:function(ctxt, directive){
-				return $p(this).autoRender(ctxt, directive);
+				return $p([this]).autoRender(ctxt, directive);
 			}
 		});
 	},
