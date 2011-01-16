@@ -7,7 +7,7 @@
 	Copyright (c) 2010 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.63
+	revision: 2.64
 */
 
 var $p, pure = $p = function(){
@@ -16,6 +16,8 @@ var $p, pure = $p = function(){
 
 	if(typeof sel === 'string'){
 		ctxt = arguments[1] || false;
+	}else if(sel && !sel[0] && !sel.length){
+		sel = [sel];
 	}
 	return $p.core(sel, ctxt);
 };

@@ -2,7 +2,7 @@
 var loadLib, runAll, run, transform;
 
 (function(){
-
+	//java -jar compiler.jar --js libs/pure.js --js_output_file libs/pure_min.js
 	var currLib = 'jquery'; //default lib
 
 	loadLib = function(lib){
