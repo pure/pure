@@ -9,5 +9,5 @@
 
 <p>&nbsp;</p>
 
-Copyright (c) 2010 Michael Cvilic - BeeBole.  All Rights Reserved
+Copyright (c) 2011 Michael Cvilic - BeeBole.  All Rights Reserved
 PURE is an Open Source Software. You can use, redistribute  and/or modify it under the terms of the MIT Licence.
