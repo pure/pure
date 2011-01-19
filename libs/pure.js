@@ -4,10 +4,10 @@
 	Licensed under the MIT licenses.
 	More information at: http://www.opensource.org
 
-	Copyright (c) 2010 Michael Cvilic - BeeBole.com
+	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.64
+	revision: 2.65
 */
 
 var $p, pure = $p = function(){
@@ -626,6 +626,10 @@ $p.core = function(sel, ctxt, plugins){
 		var ne,
 			ep = elm.parentNode,
 			depth = 0;
+		if(!ep){ //if no parents
+			ep = document.createElement('DIV');
+			ep.appendChild(elm);
+		}
 		switch (elm.tagName) {
 			case 'TBODY': case 'THEAD': case 'TFOOT':
 				html = '<TABLE>' + html + '</TABLE>';
