@@ -7,7 +7,7 @@
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.65
+	revision: 2.66
 */
 
 var $p, pure = $p = function(){
