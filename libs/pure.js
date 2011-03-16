@@ -7,7 +7,7 @@
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.67
+	revision: 2.68
 */
 
 var $p, pure = $p = function(){
@@ -116,7 +116,7 @@ $p.core = function(sel, ctxt, plugins){
 	// returns the string generator function
 	function wrapquote(qfn, f){
 		return function(ctxt){
-			return qfn('' + f.call(ctxt.context, ctxt));
+			return qfn('' + f.call(ctxt.item || ctxt.context, ctxt));
 		};
 	}
 
