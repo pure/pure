@@ -1,9 +1,17 @@
-/*! PURE Unobtrusive Rendering Engine for HTML  Licensed under the MIT licenses.
-	More information at: http://www.opensource.org Copyright (c) 2011 Michael Cvilic - BeeBole.com
-	Thanks to Rog Peppe for the functional JS jump 	revision: 2.65 */
+/*!
+	PURE Unobtrusive Rendering Engine for HTML
+
+	Licensed under the MIT licenses.
+	More information at: http://www.opensource.org
+
+	Copyright (c) 2011 Michael Cvilic - BeeBole.com
+
+	Thanks to Rog Peppe for the functional JS jump
+	revision: 2.67
+*/
 var $p,pure=$p=function(e,k){var o=e,t=false;if(typeof o==="string")t=k||false;else if(o&&!o[0]&&!o.length)o=[o];return $p.core(o,t)};
 $p.core=function(e,k,o){function t(a){if(typeof console!=="undefined"){console.log(a);debugger}throw"pure error: "+a;}function O(){var a=$p.plugins,b=function(){};b.prototype=a;b.prototype.compile=a.compile||P;b.prototype.render=a.render||Q;b.prototype.autoRender=a.autoRender||R;b.prototype.find=a.find||S;b.prototype._compiler=B;b.prototype._error=t;return new b}function G(a){return a.outerHTML||function(b){var d=document.createElement("div");d.appendChild(b.cloneNode(true));return d.innerHTML}(a)}
-function C(a,b){return function(d){return a(""+b.call(this,d))}}function S(a,b){if(typeof a==="string"){b=a;a=false}return typeof document.querySelectorAll!=="undefined"?(a||document).querySelectorAll(b):t("You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine")}function H(a,b){return function(d){for(var c=[a[0]],g=a.length,h,j,l,f,m=1;m<g;m++){h=b[m].call(this,d);j=a[m];if(h===""){l=c[c.length-
+function C(a,b){return function(d){return a(""+b.call(d.context,d))}}function S(a,b){if(typeof a==="string"){b=a;a=false}return typeof document.querySelectorAll!=="undefined"?(a||document).querySelectorAll(b):t("You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine")}function H(a,b){return function(d){for(var c=[a[0]],g=a.length,h,j,l,f,m=1;m<g;m++){h=b[m].call(this,d);j=a[m];if(h===""){l=c[c.length-
 1];if((f=l.search(/[^\s]+=\"?$/))>-1){c[c.length-1]=l.substring(0,f);j=j.substr(1)}}c[c.length]=h;c[c.length]=j}return c.join("")}}function T(a){var b=a.match(/^(\w+)\s*<-\s*(\S+)?$/);b===null&&t('bad loop spec: "'+a+'"');b[1]==="item"&&t('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');if(!b[2]||b[2]&&/context/i.test(b[2]))b[2]=function(d){return d.context};return{name:b[1],sel:b[2]}}function y(a){if(typeof a==="function")return a;
 var b=a.match(/^[a-zA-Z\$_\@][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);if(b===null){var d=false,c=a,g=[],h=[],j=0,l;if(/\'|\"/.test(c.charAt(0))){if(/\'|\"/.test(c.charAt(c.length-1))){l=c.substring(1,c.length-1);return function(){return l}}}else for(;(b=c.match(/#\{([^{}]+)\}/))!==null;){d=true;g[j++]=c.slice(0,b.index);h[j]=y(b[1]);c=c.slice(b.index+b[0].length,c.length)}if(!d)return function(){return a};g[j]=c;return H(g,h)}b=a.split(".");return function(f){var m=f.context||f,n=f[b[0]];f=0;if(n&&n.item){f+=
 1;if(b[f]==="pos")return n.pos;else m=n.item}for(n=b.length;f<n;f++){if(!m)break;m=m[b[f]]}return!m&&m!==0?"":m}}function D(a,b,d){var c,g,h,j,l,f=[];if(typeof b==="string"){c=b;(l=b.match(I))||t("bad selector syntax: "+b);g=l[1];h=l[2];j=l[3];l=l[4];if(h==="."||!h&&j)f[0]=a;else f=o.find(a,h);if(!f||f.length===0)return t('The node "'+b+'" was not found in the template:\n'+G(a).replace(/\t/g,"  "))}else{g=b.prepend;j=b.attr;l=b.append;f=[a]}if(g||l)if(g&&l)t("append/prepend cannot take place at the same time");
