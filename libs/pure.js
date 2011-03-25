@@ -7,7 +7,7 @@
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.69
+	revision: 2.70
 */
 
 var $p, pure = $p = function(){
@@ -281,9 +281,9 @@ $p.core = function(sel, ctxt, plugins){
 			attName = isClass ? 'className' : attr;
 			setstr = function(node, s) {
 				node.setAttribute(attPfx + attr, s);
-/* FF4			if (attName in node && !isStyle) {
+				if (attName in node && !isStyle) {
 					node[attName] = '';
-				}*/ 
+				} 
 				if (node.nodeType === 1) {
 					node.removeAttribute(attr);
 					isClass && node.removeAttribute(attName);
