@@ -282,7 +282,7 @@ $p.core = function(sel, ctxt, plugins){
 			setstr = function(node, s) {
 				node.setAttribute(attPfx + attr, s);
 				if (attName in node && !isStyle) {
-					node[attName] = '';
+					try{node[attName] = '';}catch(e){} //FF4 gives an error sometimes
 				} 
 				if (node.nodeType === 1) {
 					node.removeAttribute(attr);
