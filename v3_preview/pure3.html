@@ -8,7 +8,7 @@
 </head>
 <body>
 	<div class="template">
-		<a id="p"></a>
+		<a></a>
 		<span class="who"></span>
 	</div>
 	<div id="result"></div>
@@ -22,7 +22,7 @@
 			directive = {
 				'a':'site',
 				'a@href':'href',
-				'a@id+':'id',
+				'a@id':'id',
 				'span':function(a){
 					return this.who;
 				}
