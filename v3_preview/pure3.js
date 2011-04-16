@@ -6,7 +6,7 @@
 
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
-	revision: 3.0
+	revision: 3.*
 */
 var $p, pure = $p = function(){
 	var sel = arguments[0], 
@@ -75,7 +75,7 @@ $p.core = function(sel, ctxt, plugins){
 		
 		if(typeof sel === 'function'){
 			return function(ctxt){
-				return sel.call(ctxt, {context:ctxt, node:node});
+				target.set( node, sel.call(ctxt, {context:ctxt, node:node}));
 			};
 		}else if(typeof sel === 'string'){
 			var getData = dataReader(sel);
@@ -89,31 +89,42 @@ $p.core = function(sel, ctxt, plugins){
 		var prop,
 			actions = [],
 			forEachSel = function(sel, change, fn){
-				var sels = sel.split(/\s*,\s*/); //allow selector separation by quotes
+				var sels = sel.split(/\s*,\s*/), //allow selector separation by quotes
+					m,
+					selSpec;
 				i = sels.length;
 				while(i--){
-					fn(sels[i], change, find(root, sel));
+					m = sels[i].match(selRx);
+					if( !m ){
+						error( 'bad selector syntax: ' + sel );
+					}
+
+					selSpec = {
+						prepend: m[1],
+						selector: m[2],
+						attr: m[3],
+						append: m[4]
+					};
+					
+					fn(selSpec, change, root);
 				}
 			},
-			setActions = function(sel, change, nodes){
+			setActions = function(selSpec, change, nodes){
 				var i = nodes.length,
-					m = sel.match(selRx),
-					prepend = m[1],
-					selector = m[2],
-					attr = m[3],
-					append = m[4],
 					target = {},
 					
 					isStyle, isClass, attName;
 
-				if(attr){
-					isStyle = (/^style$/i).test(attr);
-					isClass = (/^class$/i).test(attr);
-					attName = isClass ? 'className' : attr;
+				if(selSpec.attr){
+					isStyle = (/^style$/i).test(selSpec.attr);
+					isClass = (/^class$/i).test(selSpec.attr);
+					attName = isClass ? 'className' : selSpec.attr;
 					target.set = function(node, s) {
 						if(!s && s !== 0){
 							if (attName in node && !isStyle) {
-								try{node[attName] = '';}catch(e){} //FF4 gives an error sometimes
+								try{
+									node[attName] = '';
+								}catch(e){} //FF4 gives an error sometimes
 							} 
 							if (node.nodeType === 1) {
 								node.removeAttribute(attr);
@@ -126,12 +137,12 @@ $p.core = function(sel, ctxt, plugins){
 					if (isStyle || isClass) {//IE no quotes special care
 						target.get = isStyle ? function(n){ return n.style.cssText; } : function(n){ return n.className;};
 					}else {
-						target.get = function(n){ return n.getAttribute(attr); };
+						target.get = function(n){ return n.getAttribute(selSpec.attr); };
 					}
 
-					if(prepend){
+					if(selSpec.prepend){
 						target.set = function(node, s){ target.set( node, s + target.get( node )); };
-					}else if(append){
+					}else if(selSpec.append){
 						target.set = function(node, s){ target.set( node, target.get( node ) + s); };
 					}
 				}else{
@@ -145,9 +156,9 @@ $p.core = function(sel, ctxt, plugins){
 							}
 						};
 					} else {*/
-						if (prepend) {
+						if (selSpec.prepend) {
 							target.set = function(node, s) { node.insertBefore(document.createTextNode(s), node.firstChild);	};
-						} else if (append) {
+						} else if (selSpec.append) {
 							target.set = function(node, s) { node.appendChild(document.createTextNode(s));};
 						} else {
 							target.set = function(node, s) {
@@ -163,12 +174,16 @@ $p.core = function(sel, ctxt, plugins){
 				}
 			};
 		for(prop in directive){
-			forEachSel(prop, directive[prop], function(sel, change, nodes){
+			forEachSel(prop, directive[prop], function(selSpec, change, root){
+				
+				var nodes = selSpec.selector ? find(root, selSpec.selector) : [root];
+				
 				if(nodes.length === 0){
-					//error bad selector
+					//error bad sel.selector
 				}
+				
 				if(typeof (/function|string/).test(change)){
-					setActions(sel, change, nodes);
+					setActions(selSpec, change, nodes);
 				}else{
 					
 				}
