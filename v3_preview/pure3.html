@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<title>pure3</title>
+	<script src="pure3.js"></script>
+</head>
+<body>
+	<div class="template">
+		<span class="who"></span>
+	</div>
+	<div id="result"></div>
+	<script>
+		var data = {who:'wrrrld'},
+			directive = {'span.who':'who'},
+
+			template =  $p('div.template')[0].cloneNode(true), //!templates are not copied by default anymore
+			rfn = $p(template).compile(directive); //!the compiled function returns a DOM node, not a string anymore
+		
+		document.getElementById('result').appendChild( rfn(data) );
+	
+	</script>
+
+</body>
+</html>
