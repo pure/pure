@@ -37,6 +37,16 @@ $p.core = function(sel, ctxt, plugins){
 			return error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
 		}
 	}
+	
+	// error utility
+	function error(e){
+		if(typeof console !== 'undefined'){
+			console.log(e);
+			debugger;
+		}
+		throw('pure error: ' + e);
+	}
+	
 
 	var targets = find(ctxt || document, sel),
 		i = this.length = targets.length,
@@ -80,7 +90,7 @@ $p.core = function(sel, ctxt, plugins){
 		}else if(typeof sel === 'string'){
 			var getData = dataReader(sel);
 			return function(ctxt){
-				target.set( node, getData(ctxt));
+				target.set( node, getData(ctxt) || sel);
 			};
 		}
 	}
@@ -113,13 +123,13 @@ $p.core = function(sel, ctxt, plugins){
 				var i = nodes.length,
 					target = {},
 					
-					isStyle, isClass, attName;
+					isStyle, isClass, attName, attSet;
 
 				if(selSpec.attr){
 					isStyle = (/^style$/i).test(selSpec.attr);
 					isClass = (/^class$/i).test(selSpec.attr);
 					attName = isClass ? 'className' : selSpec.attr;
-					target.set = function(node, s) {
+					attSet = function(node, s) {
 						if(!s && s !== 0){
 							if (attName in node && !isStyle) {
 								try{
@@ -137,13 +147,21 @@ $p.core = function(sel, ctxt, plugins){
 					if (isStyle || isClass) {//IE no quotes special care
 						target.get = isStyle ? function(n){ return n.style.cssText; } : function(n){ return n.className;};
 					}else {
-						target.get = function(n){ return n.getAttribute(selSpec.attr); };
+						target.get = function(n){ 
+							return n.getAttribute(selSpec.attr);
+						};
 					}
 
 					if(selSpec.prepend){
-						target.set = function(node, s){ target.set( node, s + target.get( node )); };
+						target.set = function(node, s){ 
+							attSet( node, s + target.get( node )); 
+						};
 					}else if(selSpec.append){
-						target.set = function(node, s){ target.set( node, target.get( node ) + s); };
+						target.set = function(node, s){ 
+							attSet( node, target.get( node ) + s); 
+						};
+					}else{
+						target.set = attSet;
 					}
 				}else{
 /*					if (isloop) {
@@ -179,7 +197,7 @@ $p.core = function(sel, ctxt, plugins){
 				var nodes = selSpec.selector ? find(root, selSpec.selector) : [root];
 				
 				if(nodes.length === 0){
-					//error bad sel.selector
+					error('The selector "' + selSpec.selector + '" was not found in the template:\n' + (root.outerHTML || root.innerHTML).replace(/\t/g,'  '));
 				}
 				
 				if(typeof (/function|string/).test(change)){

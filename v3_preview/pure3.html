@@ -7,25 +7,30 @@
 	<script src="pure3.js"></script>
 </head>
 <body>
-	<div class="template">
-		<a></a>
-		<span class="who"></span>
+	<div style="display:none">
+		<div class="template">
+			<span></span>
+			<a href="http://"></a>
+			<input type="button" />
+		</div>
 	</div>
 	<div id="result"></div>
 	<script>
 		var data = {
 				who:'wrrrld',
 				id:'345',
-				href:'http://beebole.com',
+				href:'beebole.com',
 				site:'hello'
 			},
 			directive = {
 				'a':'site',
-				'a@href':'href',
+				'a@href+':'href',
 				'a@id':'id',
-				'span':function(a){
+				'span':function(){
 					return this.who;
-				}
+				},
+				'span@id':'id',
+				'input@value':'anyText'
 			},
 
 			template =  $p('div.template')[0].cloneNode(true), //!templates are not copied by default anymore
