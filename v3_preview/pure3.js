@@ -1,7 +1,7 @@
 /*!
 	PURE Unobtrusive Rendering Engine for HTML
 
-	Licensed under the MIT licenses.
+	Dual licensed under GPL Version 2 or the MIT licenses
 	More information at: http://www.opensource.org
 
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
@@ -21,8 +21,17 @@ var $p, pure = $p = function(){
 };
 
 $p.core = function(sel, ctxt, plugins){
-
-	function find(n, sel){
+	//default find method
+	var selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
+	// check if the argument is an array - thanks salty-horse (Ori Avtalion)
+	isArray = Array.isArray ?
+		function(o) {
+			return Array.isArray(o);
+		} :
+		function(o) {
+			return Object.prototype.toString.call(o) === "[object Array]";
+		},
+	find = function(n, sel){
 		//a node set is passed
 		if(typeof sel !== 'string'){
 			return sel;
@@ -36,26 +45,19 @@ $p.core = function(sel, ctxt, plugins){
 		}else{
 			return error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
 		}
-	}
+	},
 	
 	// error utility
-	function error(e){
+	error = function(e){
 		if(typeof console !== 'undefined'){
 			console.log(e);
 			debugger;
 		}
 		throw('pure error: ' + e);
-	}
+	},
 	
-
-	var targets = find(ctxt || document, sel),
-		i = this.length = targets.length,
-		selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/;
-	while(i--){
-		this[i] = targets[i];
-	}
-
-	function dataReader(path){
+	//read a JSON from a path like prop1.prop2
+	dataReader = function(path){
 		// or read the data
 		var m = path.split('.');
 		return function(ctxt){
@@ -78,31 +80,16 @@ $p.core = function(sel, ctxt, plugins){
 			}
 			return (!data && data !== 0) ? '':data;
 		};
-	}
+	},
 	
-	function action(target, sel, node){
-		// execute the function directive
-		
-		if(typeof sel === 'function'){
-			return function(ctxt){
-				target.set( node, sel.call(ctxt, {context:ctxt, node:node}));
-			};
-		}else if(typeof sel === 'string'){
-			var getData = dataReader(sel);
-			return function(ctxt){
-				target.set( node, getData(ctxt) || sel);
-			};
-		}
-	}
-	
-	function compiler(root, directive, data){
-		var prop,
+	compiler = function(root, directive, data){
+		var selector,
 			actions = [],
 			forEachSel = function(sel, change, fn){
 				var sels = sel.split(/\s*,\s*/), //allow selector separation by quotes
 					m,
-					selSpec;
-				i = sels.length;
+					selSpec,
+					i = sels.length;
 				while(i--){
 					m = sels[i].match(selRx);
 					if( !m ){
@@ -119,11 +106,26 @@ $p.core = function(sel, ctxt, plugins){
 					fn(selSpec, change, root);
 				}
 			},
-			setActions = function(selSpec, change, nodes){
-				var i = nodes.length,
-					target = {},
-					
-					isStyle, isClass, attName, attSet;
+			showNode = function(node){
+				return (node.outerHTML || ( node.tagName + ':' + node.innerHTML )).replace(/\t/g,'  ');
+			},
+			getAction = function(makeAction, change, node){
+				if(typeof change === 'function'){
+					return function(ctxt){
+						var fnCtxt = ctxt.context ? ctxt : {context:ctxt};
+						fnCtxt.node = node;
+						makeAction( node, change.call(ctxt.item || ctxt, fnCtxt));
+					};
+				}else if(typeof change === 'string'){
+					var getData = dataReader(change);
+					return function(ctxt){
+						makeAction( node, getData(ctxt) || change);
+					};
+				}
+			},
+			setActions = function(selSpec, change, node){
+				var makeAction,
+					isStyle, isClass, attName, attSet, get;
 
 				if(selSpec.attr){
 					isStyle = (/^style$/i).test(selSpec.attr);
@@ -133,91 +135,164 @@ $p.core = function(sel, ctxt, plugins){
 						if(!s && s !== 0){
 							if (attName in node && !isStyle) {
 								try{
-									node[attName] = '';
-								}catch(e){} //FF4 gives an error sometimes
+									node[attName] = ''; //needed for IE to properly remove some attributes
+								}catch(e){} //FF4 gives an error sometimes -> try/catch
 							} 
-							if (node.nodeType === 1) {
-								node.removeAttribute(attr);
-								isClass && node.removeAttribute(attName);
-							}
+							//no more nodeType check since 
+							node.removeAttribute(attName);
 						}else{
 							node.setAttribute(attName, s);
 						}
 					};
 					if (isStyle || isClass) {//IE no quotes special care
-						target.get = isStyle ? function(n){ return n.style.cssText; } : function(n){ return n.className;};
+						get = isStyle ? function(n){ return n.style.cssText; } : function(n){ return n.className;};
 					}else {
-						target.get = function(n){ 
+						get = function(n){ 
 							return n.getAttribute(selSpec.attr);
 						};
 					}
 
 					if(selSpec.prepend){
-						target.set = function(node, s){ 
-							attSet( node, s + target.get( node )); 
+						makeAction = function(node, s){ 
+							attSet( node, s + get( node )); 
 						};
 					}else if(selSpec.append){
-						target.set = function(node, s){ 
-							attSet( node, target.get( node ) + s); 
+						makeAction = function(node, s){ 
+							attSet( node, get( node ) + s); 
 						};
 					}else{
-						target.set = attSet;
+						makeAction = attSet;
 					}
 				}else{
-/*					if (isloop) {
-						setfn = function(node, s) {
-							var pn = node.parentNode;
-							if (pn) {
-								//replace node with s
-								pn.insertBefore(document.createTextNode(s), node.nextSibling);
-								pn.removeChild(node);
-							}
+					if (selSpec.prepend) {
+						makeAction = function(node, s) { node.insertBefore( document.createTextNode(s), node.firstChild );	};
+					} else if (selSpec.append) {
+						makeAction = function(node, s) { node.appendChild( document.createTextNode(s) );};
+					} else {
+						makeAction = function(node, s) {
+							while (node.firstChild) { node.removeChild(node.firstChild); }
+							node.appendChild( document.createTextNode(s) );
 						};
-					} else {*/
-						if (selSpec.prepend) {
-							target.set = function(node, s) { node.insertBefore(document.createTextNode(s), node.firstChild);	};
-						} else if (selSpec.append) {
-							target.set = function(node, s) { node.appendChild(document.createTextNode(s));};
-						} else {
-							target.set = function(node, s) {
-								while (node.firstChild) { node.removeChild(node.firstChild); }
-								node.appendChild(document.createTextNode(s));
-							};
+					}
+				}
+				actions.push( getAction( makeAction, change, node ) );
+			},
+			loopNode = function(change, node){
+				var parseLoopSpec = function(p){
+						var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
+						if(m === null){
+							error('"' + p + '" must have the format loopItem<-loopArray');
 						}
-/*					}*/
-				}
-				
-				while(i--){
-					actions.push( action(target, change, nodes[i]) );
-				}
+						if(m[1] === 'item'){
+							error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
+						}
+						if( !m[2] || (m[2] && (/context/i).test(m[2]))){ //undefined or space(IE) 
+							m[2] = function(data){return data.context;};
+						}
+						return {itemName: m[1], arrayName: m[2]};
+					},
+					getLoopDef = function(change){
+						var loopProp,
+							already = false,
+							loopDef = {/*
+								filter, sort, loopSpec, loopChange
+							*/};
+						for(loopString in change){
+							switch(loopString){
+								case 'filter':
+									loopDef.filter = change[ loopString ];
+								break;
+								case 'sort':
+									loopDef.sorter = change[ loopString ];
+								break;
+								default:
+									if( already ){
+										error( 'cannot have a second loop declared for the same node:' + loopString );
+									}
+									loopDef.loopSpec = parseLoopSpec( loopString );
+									if( loopDef.loopSpec ){
+										loopDef.change = change[ loopString ];
+									}
+									already = true;
+							}
+						}
+						return loopDef;
+					},
+
+					loopDef = getLoopDef( change ),
+					innerCompiled = compiler( node, loopDef.change ),
+					getLoopCtxt = dataReader( loopDef.loopSpec.arrayName ),
+					
+					pa = node.parentNode,
+					
+					makeAction = function( ctxt ){
+						var dfrag = document.createDocumentFragment(),
+							items = getLoopCtxt( ctxt ),
+							i = 0, ii = items.length,
+							tempCtxt = {context: ctxt},
+							saved = {
+								item:  ctxt.item,
+								items: ctxt.items,
+								pos:   ctxt.pos
+							},
+							loopCtxt = tempCtxt[ loopDef.loopSpec.itemName ] = {};
+							tempCtxt.items = loopCtxt.items = items;
+
+						for( ; i < ii; i++ ){
+							tempCtxt.item = loopCtxt.item = items[ i ];
+							tempCtxt.node = loopCtxt.node = node;
+							tempCtxt.pos  = loopCtxt.pos  = i;
+							dfrag.appendChild( innerCompiled.call( tempCtxt.item, tempCtxt ) );
+						}
+						
+						pa.replaceChild( dfrag.cloneNode( true ), node );
+					};
+					
+				actions.push( function( ctxt ){
+					return makeAction( ctxt );
+				});
 			};
-		for(prop in directive){
-			forEachSel(prop, directive[prop], function(selSpec, change, root){
+			
+		for( selector in directive ){
+			forEachSel( 
+				selector,
+				directive[ selector ],
+				function( selSpec, change, root ){
 				
-				var nodes = selSpec.selector ? find(root, selSpec.selector) : [root];
+					var nodes = selSpec.selector && selSpec.selector !== '.' ? find( root, selSpec.selector ) : [ root ],
+						i = nodes.length;
 				
-				if(nodes.length === 0){
-					error('The selector "' + selSpec.selector + '" was not found in the template:\n' + (root.outerHTML || root.innerHTML).replace(/\t/g,'  '));
-				}
-				
-				if(typeof (/function|string/).test(change)){
-					setActions(selSpec, change, nodes);
-				}else{
+					if(i === 0){
+						error( 'The selector "' + selSpec.selector + '" was not found in the template:\n' + showNode( root ) );
+					}
 					
+					while(i--){
+						if(typeof change === 'object'){
+							loopNode( change, nodes[ i ]);
+						}else{
+							setActions( selSpec, change, nodes[ i ] );
+						}
+					}
 				}
-			});
+			);
 		}
-		return function(data){
-			var i = 0; ii = actions.length;
-			for(;i<ii;i++){
-				if(typeof actions[i] === 'function'){
-					actions[i](data);
-				}else{
-					
-				}
+		return function( data ){
+			var i = 0,
+				ii = actions.length;
+			for( ; i < ii; i++ ){
+				actions[ i ]( data );
 			}
-			return root;
+			return root.cloneNode(true);
 		};
+	},
+	
+	//find all nodes for the selector
+	targets = find(ctxt || document, sel),
+	i = this.length = targets.length;
+	
+	//fill an array of the nodes attachted to $p
+	while(i--){
+		this[i] = targets[i];
 	}
 	
 	this.compile = function(directive, dataToCompile, node){
