@@ -47,8 +47,8 @@ var ex04 = {
 					return ' ' + oddEven + ' ' + firstLast;
 				},
 				'td':'player',
-				'td@style': '"cursor:pointer"',
-				'td@onclick':'"clickLine(this);"'
+				'td@style': 'cursor:pointer',
+				'td@onclick':'clickLine(this);'
 			},
 			sort:function(a, b){
 				return a > b ? 1 : -1; 

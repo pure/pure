@@ -7,16 +7,16 @@
 	<script src="pure3.js"></script>
 </head>
 <body>
-	<div style="display:none">
+	<div>
 		<div class="template">
 			<a href="http://"></a>
 			<span></span>
 			<input type="button" />
 			<ul>
 				<li class="animal">
-					<span class="name"></span>
+					<span class="name">a</span>
 					<ol>
-						<li class="food"></li>
+						<li class="food">f</li>
 					</ol>
 				</li>
 			</ul>
@@ -44,27 +44,23 @@
 				'input@value':'anyText',*/
 				'li.animal':{
 					'animal<-animals':{
-						'span.name':'animal.name',
-						'@id':function(a){
+/*						'@id':function(a){
 							return this.name[0];
-						}
-						
-						
+						},*/
 						/*'li.food':{
 							'food<-animal.food':{
-								'.':function(){
-									return this;
-								}
+								'.':'food'
 							}
-						}*/
+						},*/
+						'span.name':'animal.name'
 					}
 				}
 			},
 
 		template =  $p('div.template')[0].cloneNode(true), //!templates are not copied by default anymore
-		rfn = $p(template).compile(directive); //!the compiled function returns a DOM node, not a string anymore
-		document.getElementById('result').appendChild( rfn(data) );
-	
+		rfn = $p(template).compile(directive); //!the compiled	 function returns a DOM node, not a string anymore
+		document.getElementById('result').appendChild( rfn(data) );	
+
 	</script>
 
 </body>

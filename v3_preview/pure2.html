@@ -30,7 +30,8 @@
 				href:'beebole.com',
 				site:'hello',
 				animals:[
-					{name:'cat', food:['mouse', 'meat']}, {name:'mouse', food:['cheese', 'grains']}, {name:'dog', food:['bones', 'meat']} 
+					{name:'cat', food:['mouse', 'meat']},
+					{name:'mouse', food:['cheese', 'grains']} 
 				]
 			},
 			directive = {
@@ -38,9 +39,6 @@
 					'animal<-animals':{
 						'li.food':{
 							'food<-animal.food':{
-								'.':function(){
-									return this;
-								}
 							}
 						}
 					}

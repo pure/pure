@@ -220,36 +220,51 @@ $p.core = function(sel, ctxt, plugins){
 					},
 
 					loopDef = getLoopDef( change ),
-					innerCompiled = compiler( node, loopDef.change ),
+					nodeToLoop = node.cloneNode(true),
+					innerCompiled = compiler( nodeToLoop, loopDef.change ),
 					getLoopCtxt = dataReader( loopDef.loopSpec.arrayName ),
 					
-					pa = node.parentNode,
-					
-					makeAction = function( ctxt ){
+					makeAction = function( ctxt, node, pa ){
 						var dfrag = document.createDocumentFragment(),
-							items = getLoopCtxt( ctxt ),
+							items = getLoopCtxt(ctxt),
 							i = 0, ii = items.length,
-							tempCtxt = {context: ctxt},
+							tempCtxt = {context:ctxt},
 							saved = {
 								item:  ctxt.item,
 								items: ctxt.items,
 								pos:   ctxt.pos
 							},
-							loopCtxt = tempCtxt[ loopDef.loopSpec.itemName ] = {};
+							loopCtxt = tempCtxt[loopDef.loopSpec.itemName] = {};
 							tempCtxt.items = loopCtxt.items = items;
 
 						for( ; i < ii; i++ ){
-							tempCtxt.item = loopCtxt.item = items[ i ];
+							tempCtxt.item = loopCtxt.item = items[i];
 							tempCtxt.node = loopCtxt.node = node;
 							tempCtxt.pos  = loopCtxt.pos  = i;
-							dfrag.appendChild( innerCompiled.call( tempCtxt.item, tempCtxt ) );
+							dfrag.appendChild( innerCompiled.call( tempCtxt.item, tempCtxt, true ) );
 						}
-						
 						pa.replaceChild( dfrag.cloneNode( true ), node );
 					};
-					
+				
 				actions.push( function( ctxt ){
-					return makeAction( ctxt );
+					var dfrag = document.createDocumentFragment(),
+						items = getLoopCtxt(ctxt),
+						i = 0, ii = items.length,
+						tempCtxt = {context:ctxt},
+						loopCtxt = tempCtxt[loopDef.loopSpec.itemName] = {},
+						innerCompiled = compiler( nodeToLoop.cloneNode(true), loopDef.change );
+
+					tempCtxt.items = loopCtxt.items = items;
+
+					for( ; i < ii; i++ ){
+						tempCtxt.item = loopCtxt.item = items[i];
+						tempCtxt.node = loopCtxt.node = node;
+						tempCtxt.pos  = loopCtxt.pos  = i;
+						dfrag.appendChild( innerCompiled( tempCtxt ) );
+					}
+
+					node.parentNode.replaceChild( dfrag.cloneNode( true ), node );
+
 				});
 			};
 			
@@ -268,7 +283,7 @@ $p.core = function(sel, ctxt, plugins){
 					
 					while(i--){
 						if(typeof change === 'object'){
-							loopNode( change, nodes[ i ]);
+							loopNode( change, nodes[ i ].cloneNode(true), nodes[i]);
 						}else{
 							setActions( selSpec, change, nodes[ i ] );
 						}
@@ -282,7 +297,7 @@ $p.core = function(sel, ctxt, plugins){
 			for( ; i < ii; i++ ){
 				actions[ i ]( data );
 			}
-			return root.cloneNode(true);
+			return root;
 		};
 	},
 	
