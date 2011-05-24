@@ -7,7 +7,7 @@
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.70
+	revision: 2.71
 */
 
 var $p, pure = $p = function(){
@@ -568,14 +568,14 @@ $p.core = function(sel, ctxt, plugins){
 				}while(++i < sl);
 			}
 		}
-	// convert node to a string
-	h = outerHTML(dom);
-		// IE adds an unremovable "selected, value" attribute
-		// hard replace while waiting for a better solution
-	h = h.replace(/<([^>]+)\s(value\=""|selected)\s?([^>]*)>/ig, "<$1 $3>");
+		// convert node to a string
+		h = outerHTML(dom);
+			// IE adds an unremovable "selected, value" attribute
+			// hard replace while waiting for a better solution
+		h = h.replace(/<([^>]+)\s(value\=""|selected)\s?([^>]*)>/ig, "<$1 $3>");
 
-	// remove attribute prefix
-	h = h.split(attPfx).join('');
+		// remove attribute prefix
+		h = h.split(attPfx).join('');
 
 		// slice the html string at "Sig"
 		parts = h.split( Sig );
@@ -765,7 +765,7 @@ $p.libs = {
 			};
 		}
 	},
-	yui:function(){
+	yui:function(){ //Thanks to https://github.com/soljin
 		if(typeof document.querySelector === 'undefined'){
 			YUI().use("node",function(Y){
 				$p.plugins.find = function(n, sel){
@@ -776,16 +776,16 @@ $p.libs = {
 		YUI.add("pure-yui",function(Y){
 			Y.Node.prototype.directives = function(directive){
 				this._pure_d = directive; return this;
-			}
+			};
 			Y.Node.prototype.compile = function(directive, ctxt){
 				return $p([this._node]).compile(this._pure_d || directive, ctxt);
-			}
+			};
 			Y.Node.prototype.render = function(ctxt, directive){
 				return Y.one($p([this._node]).render(ctxt, this._pure_d || directive));
-			}
+			};
 			Y.Node.prototype.autoRender = function(ctxt, directive){
 				return Y.one($p([this._node]).autoRender(ctxt, this._pure_d || directive));
-			}
+			};
 		},"0.1",{requires:["node"]});
 	}
 };
