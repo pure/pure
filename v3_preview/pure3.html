@@ -7,22 +7,20 @@
 	<script src="pure3.js"></script>
 </head>
 <body>
-	<div>
-		<div class="template">
-			<a href="http://"></a>
-			<span></span>
-			<input type="button" />
-			<ul>
-				<li class="animal">
-					<span class="name">a</span>
-					<ol>
-						<li class="food">f</li>
-					</ol>
-				</li>
-			</ul>
-		</div>
+	<div class="template">
+		<a href="http://"></a>
+		<span class="zoo"></span>
+		<input type="button" />
+		<ul>
+			<li class="animal">
+				<span class="name">a</span>
+				<ol>
+					<li class="food">f</li>
+				</ol>
+			</li>
+		</ul>
 	</div>
-	<div id="result"></div>
+
 	<script>
 		var data = {
 				who:'wrrrld',
@@ -34,32 +32,30 @@
 				]
 			},
 			directive = {
-				/*'a':'site',
+				'a':'site',
 				'a@href+':'href',
 				'a@id':'id',
 				'span':function(){
 					return this.who;
 				},
 				'span@id':'id',
-				'input@value':'anyText',*/
+				'input@value':'anyText',
 				'li.animal':{
 					'animal<-animals':{
-/*						'@id':function(a){
+						'@id':function(a){
 							return this.name[0];
-						},*/
-						/*'li.food':{
+						},
+						'li.food':{
 							'food<-animal.food':{
 								'.':'food'
 							}
-						},*/
+						},
 						'span.name':'animal.name'
 					}
 				}
-			},
-
-		template =  $p('div.template')[0].cloneNode(true), //!templates are not copied by default anymore
-		rfn = $p(template).compile(directive); //!the compiled	 function returns a DOM node, not a string anymore
-		document.getElementById('result').appendChild( rfn(data) );	
+			};
+			
+		$p('div.template').noClone().render(data, directive);
 
 	</script>
 
