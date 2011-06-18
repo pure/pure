@@ -1,63 +1,46 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-   "http://www.w3.org/TR/html4/strict.dtd">
-
-<html lang="en">
+<html>
 <head>
-	<title>pure3</title>
-	<script src="pure3.js"></script>
+  <title>PURE Unobtrusive Rendering Engine</title>
+  <script src="pure3.js"></script>
 </head>
 <body>
-	<div class="template">
-		<a href="http://"></a>
-		<span class="zoo"></span>
-		<input type="button" />
-		<ul>
-			<li class="animal">
-				<span class="name">a</span>
-				<ol>
-					<li class="food">f</li>
-				</ol>
-			</li>
-		</ul>
-	</div>
+  <!-- HTML template -->
+	It took:<span id="duration"></span>
+  <ul class="template">
+    <li class="people">
+		<span class="name"></span>
+    	<ul>
+	    <li class="team">
+			<a class="name"></a>
+	    </li>
+	  </ul>
+    </li>
+  </ul>
 
-	<script>
-		var data = {
-				who:'wrrrld',
-				id:'345',
-				href:'beebole.com',
-				site:'hello',
-				animals:[
-					{name:'mouse', food:['cheese', 'grains']}, {name:'dog', food:['bones', 'meat']}, {name:'cat', food:['mouse', 'bird']} 
-				]
-			},
-			directive = {
-				'a':'site',
-				'a@href+':'href',
-				'a@id':'id',
-				'span':function(){
-					return this.who;
-				},
-				'span@id':'id',
-				'input@value':'anyText',
-				'li.animal':{
-					'animal<-animals':{
-						'@id':function(a){
-							return this.name[0];
-						},
-						'li.food':{
-							'food<-animal.food':{
-								'.':'food'
-							}
-						},
-						'span.name':'animal.name'
+  <script>
+	function callback(data){
+	    var start = new Date().getTime();
+
+	    //declaration of the actions PURE has to do
+	   var directive = {
+			'li.people':{
+				'person<-people':{
+					'span.name':'person.name',
+					'li.team':{
+						'teamMember<-person.team':{
+							'a.name':'teamMember.name',
+							'a.name@href+':'teamMember.id'
+						}
 					}
 				}
-			};
-			
-		$p('div.template').noClone().render(data, directive);
+			}
+	   };
 
-	</script>
-
+	    // note the use of render instead of autoRender
+	   $p('ul.template').noClone().render(data, directive);
+		document.getElementById('duration').innerHTML = (new Date().getTime() - start) + 'ms for ' + data.people.length + ' records';
+	}
+</script>
+<script src="data.js"></script>
 </body>
 </html>

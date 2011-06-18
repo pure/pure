@@ -150,8 +150,14 @@ $p.core = function(sel, ctxt, plugins){
 							node.setAttribute(attName, s);
 						}
 					};
-					if ( isStyle || isClass ) {//IE no quotes special care
-						get = isStyle ? function(n){ return n.style.cssText; } : function( n ){ return n.className; };
+					if ( isStyle ) { //IE
+						get = function(n){
+							return n.style.cssText;
+						};
+					}else if ( isClass ) { //IE
+						get = function( n ){
+							return n.className;
+						};
 					}else {
 						get = function(n){ 
 							return n.getAttribute( selSpec.attr );
@@ -160,11 +166,11 @@ $p.core = function(sel, ctxt, plugins){
 
 					if(selSpec.prepend){
 						return function(node, s){ 
-							attSet( node, s + get( node ) ); 
+							attSet( node, s + ( get( node ) || '' ) ); 
 						};
 					}else if(selSpec.append){
 						return function(node, s){ 
-							attSet( node, get( node ) + s ); 
+							attSet( node, ( get( node ) || '' ) + s ); 
 						};
 					}else{
 						return attSet;
@@ -237,7 +243,7 @@ $p.core = function(sel, ctxt, plugins){
 						node;
 				
 					if(i === 0){
-						error( 'The selector "' + selSpec.selector + '" was not found in the template:\n' + showNode( root ) );
+						error( 'The selector "' + selSpec.selector + '" was not found in the template:\n' + root );
 					}
 					
 					while(i--){
