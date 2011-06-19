@@ -11,7 +11,7 @@
 		<span class="name"></span>
     	<ul>
 	    <li class="team">
-			<a class="name"></a>
+			<a href="http://domain.com/employee/" class="name"></a>
 	    </li>
 	  </ul>
     </li>
@@ -28,7 +28,7 @@
 					'span.name':'person.name',
 					'li.team':{
 						'teamMember<-person.team':{
-							'a.name':'teamMember.name',
+							'a.name':'#{teamMember.name} (#{person.id}-#{teamMember.id})',
 							'a.name@href+':'teamMember.id'
 						}
 					}
@@ -36,7 +36,7 @@
 			}
 	   };
 
-	    // note the use of render instead of autoRender
+	    // noClone() to transform the current node, instead of creating a new one
 	   $p('ul.template').noClone().render(data, directive);
 		document.getElementById('duration').innerHTML = (new Date().getTime() - start) + 'ms for ' + data.people.length + ' records';
 	}

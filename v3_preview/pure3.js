@@ -68,7 +68,12 @@ $p.core = function(sel, ctxt, plugins){
 	
 	transform = function(node, data, directive){
 		var selector,
-		loopNode = function(node, data, directive){
+		runLoopDirective = function(directive, data, node){
+
+
+			//nested loops
+
+
 			var parseLoopSpec = function(p){
 					var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
 					if(m === null){
@@ -229,8 +234,32 @@ $p.core = function(sel, ctxt, plugins){
 					fn(directive, node, selSpec);
 				}
 			},
-			stringValue = function(path, data){
-				return ( '' + readData(path, data) ) || path;
+			runStringDirective = function(s, data){
+				var retStr = '', m;
+				if(/\'|\"/.test( s.charAt(0) )){
+					// check if old literal notation
+					if(/\'|\"/.test( s.charAt( s.length-1 ) )){
+						retStr = s.substring( 1, s.length-1 );
+					}
+				}else if( (/#\{([^{}]+)\}/).test( s ) ){
+					// check if literal + #{var}
+					retStr = s;
+					while( (m = retStr.match(/#\{([^{}]+)\}/) ) !== null ){
+						retStr = [
+							retStr.slice( 0, m.index ),
+							readData( m[1], data ),
+							retStr.slice( m.index + m[0].length, retStr.length )
+						].join('');
+					}
+				}else{
+					// parse data with path
+					retStr = ( '' + readData( s, data ) ) || s;
+				}
+				return retStr;
+			},
+			runFunctionDirective = function(fn, data){
+				//run the function with item if available or data as the context
+				return fn.call( data.item || data, {context:data} );
 			};
 		for( selector in directive ){
 			forEachSel( 
@@ -249,13 +278,13 @@ $p.core = function(sel, ctxt, plugins){
 					while(i--){
 						node = nodes[ i ];
 						if(typeof directive === 'object'){
-							loopNode( node, data, directive );
+							runLoopDirective( directive, data, node );
 						}else{
 							getAction( selSpec )( 
-								node, typeof directive === 'string' ?
-									//if no value found, it's just a string
-									( '' + readData( directive, data ) ) || directive:
-									directive.call( data.item || data, {context:data} )
+								node, 
+								typeof directive === 'string' ?
+									runStringDirective( directive, data ) :
+									runFunctionDirective( directive, data, node )
 							);
 						}
 					}
