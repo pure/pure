@@ -7,7 +7,7 @@
 	Copyright (c) 2011 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.71
+	revision: 2.72
 */
 
 var $p, pure = $p = function(){
@@ -184,7 +184,11 @@ $p.core = function(sel, ctxt, plugins){
 	// can traverse the data accordingly, given a context.
 	function dataselectfn(sel){
 		if(typeof(sel) === 'function'){
-			return sel;
+			//handle false values in function directive
+			return function(ctxt){
+				var r = sel.call( ctxt.item || ctxt.context || ctxt, ctxt ); 
+				return !r && r !== 0 ? '' : r;
+			};
 		}
 		//check for a valid js variable name with hyphen(for properties only), $, _ and :
 		var m = sel.match(/^[a-zA-Z\$_\@][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);

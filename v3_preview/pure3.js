@@ -69,11 +69,6 @@ $p.core = function(sel, ctxt, plugins){
 	transform = function(node, data, directive){
 		var selector,
 		runLoopDirective = function(directive, data, node){
-
-
-			//nested loops
-
-
 			var parseLoopSpec = function(p){
 					var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
 					if(m === null){
@@ -120,7 +115,7 @@ $p.core = function(sel, ctxt, plugins){
 				var dfrag = document.createDocumentFragment(),
 					items = readData(loopDef.loopSpec.arrayName, data),
 					i = 0, ii = items.length,
-					tempCtxt = {context:ctxt},
+					tempCtxt = data.context ? data : {context:data},
 					loopCtxt = tempCtxt[loopDef.loopSpec.itemName] = {};
 
 				tempCtxt.items = loopCtxt.items = items;

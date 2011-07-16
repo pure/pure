@@ -1,7 +1,7 @@
 <html>
 <head>
   <title>PURE Unobtrusive Rendering Engine</title>
-  <script src="pure3.js"></script>
+  <script src="../libs/pure.js"></script>
 </head>
 <body>
   <!-- HTML template -->
@@ -35,7 +35,7 @@
 	   };
 
 	    // noClone() to transform the current node, instead of creating a new one
-	   $p('ul.template').noClone().render(data, directive);
+	   $p('ul.template').render(data, directive);
 		
 		document.getElementById('duration').innerHTML = (new Date().getTime() - start) + 'ms for ' + data.people.length + ' records';
 	}
