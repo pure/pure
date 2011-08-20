@@ -191,7 +191,7 @@ $p.core = function(sel, ctxt, plugins){
 			};
 		}
 		//check for a valid js variable name with hyphen(for properties only), $, _ and :
-		var m = sel.match(/^[a-zA-Z\$_\@][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);
+		var m = sel.match(/^[a-zA-Z\$_\@][\w\$:-]*(?:\(\))?(\.[\w\$:-]*[^\.](?:\(\))?)*$/);
 		if(m === null){
 			var found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
 			// check if literal
@@ -218,7 +218,7 @@ $p.core = function(sel, ctxt, plugins){
 		m = sel.split('.');
 		return function(ctxt){
 			var data = ctxt.context || ctxt,
-				v = ctxt[m[0]],
+				v = readctxt(ctxt,m[0]),
 				i = 0;
 			if(v && v.item){
 				i += 1;
@@ -232,10 +232,19 @@ $p.core = function(sel, ctxt, plugins){
 			var n = m.length;
 			for(; i < n; i++){
 				if(!data){break;}
-				data = data[m[i]];
+				data = readctxt(data,m[i]);
 			}
 			return (!data && data !== 0) ? '':data;
 		};
+	}
+
+	function readctxt(ctxt, subsel){
+		if (subsel.slice(-2) === "()"){
+			var f = ctxt[subsel.slice(0,-2)];
+      if (f) return f();
+    }else{
+			return ctxt[subsel];
+    }
 	}
 
 	// wrap in an object the target node/attr and their properties
