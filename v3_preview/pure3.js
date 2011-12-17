@@ -10,17 +10,17 @@
 */
 var $p, pure = $p = function(){
 	var sel = arguments[0], 
-		ctxt = false;
+		doc = false;
 
 	if(typeof sel === 'string'){
-		ctxt = arguments[1] || false;
+		doc = arguments[1] || false;
 	}else if(sel && !sel[0] && !sel.length){
 		sel = [sel];
 	}
-	return new $p.core(sel, ctxt);
+	return new $p.core(sel, doc);
 };
 
-$p.core = function(sel, ctxt, plugins){
+$p.core = function(sel, doc, plugins){
 	//default find method
 	var selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
 	// check if the argument is an array - thanks salty-horse (Ori Avtalion)
@@ -57,136 +57,57 @@ $p.core = function(sel, ctxt, plugins){
 	},
 	
 	//find all nodes for the selector
-	targets = find(ctxt || document, sel),
+	targets = find(doc || document, sel),
 	i = this.length = targets.length,
-	transform;
+	ctxt;
 	
 	//fill an array of the nodes attachted to $p
 	while(i--){
 		this[i] = targets[i];
 	}
-	
-	transform = function(node, data, directive){
-		var selector,
-		loopNode = function(node, data, directive){
-			var parseLoopSpec = function(p){
-					var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
-					if(m === null){
-						error('"' + p + '" must have the format loopItem<-loopArray');
-					}
-					if(m[1] === 'item'){
-						error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
-					}
-					if( !m[2] || (m[2] && (/context/i).test(m[2]))){ //undefined or space(IE) 
-						m[2] = function(data){return data.context;};
-					}
-					return {itemName: m[1], arrayName: m[2]};
-				},
-				getLoopDef = function(directive){
-					var loopProp,
-						already = false,
-						loopDef = {/*
-							filter, sort, loopSpec, directive
-						*/};
-					for(loopString in directive){
-						switch(loopString){
-							case 'filter':
-								loopDef.filter = directive[ loopString ];
-							break;
-							case 'sort':
-								loopDef.sorter = directive[ loopString ];
-							break;
-							default:
-								if( already ){
-									error( 'cannot have a second loop declared for the same node:' + loopString );
-								}
-								loopDef.loopSpec = parseLoopSpec( loopString );
-								if( loopDef.loopSpec ){
-									loopDef.directive = directive[ loopString ];
-								}
-								already = true;
-						}
-					}
-					return loopDef;
-				},
-
-				loopDef = getLoopDef( directive );
-				
-				var dfrag = document.createDocumentFragment(),
-					items = readData(loopDef.loopSpec.arrayName, data),
-					i = 0, ii = items.length,
-					tempCtxt = {context:ctxt},
-					loopCtxt = tempCtxt[loopDef.loopSpec.itemName] = {};
-
-				tempCtxt.items = loopCtxt.items = items;
-
-				for( ; i < ii; i++ ){
-					tempCtxt.item = loopCtxt.item = items[i];
-					tempCtxt.node = loopCtxt.node = node.cloneNode(true);
-					tempCtxt.pos  = loopCtxt.pos  = i;
-					dfrag.appendChild( transform( tempCtxt.node, tempCtxt, loopDef.directive ) );
+	this.compile = function(directive){
+		var root = this[0],
+			selector,
+			actions = [],
+			parseLoopSpec = function(p){
+				var m = p.match( /^(\w+)\s*<-\s*(\S+)?$/ );
+				if(m === null){
+					error('"' + p + '" must have the format loopItem<-loopArray');
 				}
-
-				node.parentNode.replaceChild( dfrag.cloneNode( true ), node );
+				if(m[1] === 'item'){
+					error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
+				}
+				if( !m[2] || (m[2] && (/context/i).test(m[2]))){ //undefined or space(IE) 
+					m[2] = function(data){return data.context;};
+				}
+				return {itemName: m[1], arrayName: m[2]};
 			},
-			getAction = function(selSpec){
-				
-				var isStyle, isClass, attName, attSet, get;
-
-				if(selSpec.attr){
-					isStyle = (/^style$/i).test( selSpec.attr );
-					isClass = (/^class$/i).test( selSpec.attr );
-					attName = isClass ? 'className' : selSpec.attr;
-					attSet = function(node, s) {
-						if(!s && s !== 0){
-							if (attName in node && !isStyle) {
-								try{
-									node[attName] = ''; //needed for IE to properly remove some attributes
-								}catch(e){} //FF4 gives an error sometimes -> try/catch
-							} 
-							//no more nodeType check since 
-							node.removeAttribute(attName);
-						}else{
-							node.setAttribute(attName, s);
-						}
-					};
-					if ( isStyle ) { //IE
-						get = function(n){
-							return n.style.cssText;
-						};
-					}else if ( isClass ) { //IE
-						get = function( n ){
-							return n.className;
-						};
-					}else {
-						get = function(n){ 
-							return n.getAttribute( selSpec.attr );
-						};
-					}
-
-					if(selSpec.prepend){
-						return function(node, s){ 
-							attSet( node, s + ( get( node ) || '' ) ); 
-						};
-					}else if(selSpec.append){
-						return function(node, s){ 
-							attSet( node, ( get( node ) || '' ) + s ); 
-						};
-					}else{
-						return attSet;
-					}
-				}else{
-					if (selSpec.prepend) {
-						return function(node, s) { node.insertBefore( document.createTextNode(s), node.firstChild );	};
-					} else if (selSpec.append) {
-						return function(node, s) { node.appendChild( document.createTextNode(s) );};
-					} else {
-						return function(node, s) {
-							while (node.firstChild) { node.removeChild(node.firstChild); }
-							node.appendChild( document.createTextNode(s) );
-						};
+			getLoopDef = function(directive){
+				var loopProp,
+					already = false,
+					loopDef = {/*
+						filter, sort, loopSpec, directive
+					*/};
+				for(loopString in directive){
+					switch(loopString){
+						case 'filter':
+							loopDef.filter = directive[ loopString ];
+						break;
+						case 'sort':
+							loopDef.sorter = directive[ loopString ];
+						break;
+						default:
+							if( already ){
+								error( 'cannot have a second loop declared for the same node:' + loopString );
+							}
+							loopDef.loopSpec = parseLoopSpec( loopString );
+							if( loopDef.loopSpec ){
+								loopDef.directive = directive[ loopString ];
+							}
+							already = true;
 					}
 				}
+				return loopDef;
 			},
 			readData = function(path, data){
 				var m = path.split('.'),
@@ -208,7 +129,71 @@ $p.core = function(sel, ctxt, plugins){
 				}
 				return (!data && data !== 0) ? '':data;
 			},
-			forEachSel = function(sel, directive, fn){
+			getAction = function(node, selSpec, actionSpec){
+
+				var isStyle, isClass, attName, attSet, get, set, init;
+
+				if(selSpec.attr){
+					isStyle = (/^style$/i).test( selSpec.attr );
+					isClass = (/^class$/i).test( selSpec.attr );
+					attName = isClass ? 'className' : selSpec.attr;
+					attSet = function(node, s) {
+						if(!s && s !== 0){
+							if (attName in node && !isStyle) {
+								try{
+									node[attName] = ''; //needed for IE to properly remove some attributes
+								}catch(e){} //FF4 gives an error sometimes -> try/catch
+							} 
+							//no more nodeType check since 
+							node.removeAttribute( attName );
+						}else{
+							node.setAttribute( attName, s );
+						}
+					};
+					if ( isStyle ) { //IE
+						get = function(n){
+							return n.style.cssText;
+						};
+					}else if ( isClass ) { //IE
+						get = function( n ){
+							return n.className;
+						};
+					}else {
+						get = function(n){ 
+							return n.getAttribute( selSpec.attr );
+						};
+					}
+
+					if(selSpec.prepend){
+						init = get( node ) || '';
+						set = function(s){ 
+							attSet( node, s + init ); 
+						};
+					}else if(selSpec.append){
+						init = get( node ) || '';
+						set = function(s){ 
+							attSet( node, init + s ); 
+						};
+					}else{
+						return attSet;
+					}
+				}else{
+					if (selSpec.prepend) {
+						set = function(s) { node.insertBefore( document.createTextNode(s), node.firstChild );	};
+					} else if (selSpec.append) {
+						set = function(s) { node.appendChild( document.createTextNode(s) );};
+					} else {
+						set = function(s) {
+							while (node.firstChild) { node.removeChild(node.firstChild); }
+							node.appendChild( document.createTextNode(s) );
+						};
+					}
+				}
+				return function(data){
+					set( ( '' + readData( actionSpec, data ) ) || actionSpec );
+				};
+			},
+			forEachTarget = function(sel, directive, doFn){
 				var sels = sel.split(/\s*,\s*/), //allow selector separation by quotes
 					m,
 					selSpec,
@@ -225,63 +210,100 @@ $p.core = function(sel, ctxt, plugins){
 						attr: m[3],
 						append: m[4]
 					};
-				
-					fn(directive, node, selSpec);
+
+					doFn(directive, root, selSpec);
 				}
 			},
-			stringValue = function(path, data){
-				return ( '' + readData(path, data) ) || path;
-			};
-		for( selector in directive ){
-			forEachSel( 
-				selector,
-				directive[ selector ],
-				function( directive, root, selSpec ){
-				
-					var nodes = selSpec.selector && selSpec.selector !== '.' ? find( root, selSpec.selector ) : [ root ],
-						i = nodes.length,
-						node;
-				
-					if(i === 0){
-						error( 'The selector "' + selSpec.selector + '" was not found in the template:\n' + root );
+			keepPos = function(n){
+				var i = 0;
+				while(n){
+					n = n.previousSibling;
+					i++;
+				}
+				return function(r){
+					var n = r.firstChild,
+						j = i;
+					while(--j){
+						n = n.nextSibling;
+					}
+					return n;
+				};
+			},
+			loopNode = function(node, directive){
+				var loopDef = getLoopDef( directive ),
+					parentNode = node.parentNode,
+					cleanParentNode = parentNode.cloneNode(true),
+					findNode = keepPos( node ),
+					compiled = $p( node.cloneNode(true) ).compile( loopDef.directive );
+
+				return function(data){
+					var dfrag = document.createDocumentFragment(),
+						items = readData( loopDef.loopSpec.arrayName, data ),
+						i = 0, ii = items.length,
+						tempCtxt = { context:ctxt },
+						loopCtxt = tempCtxt[ loopDef.loopSpec.itemName ] = {},
+						newParentNode = cleanParentNode.cloneNode(true);
+					
+					tempCtxt.items = loopCtxt.items = items;
+					
+					for( ; i < ii; i++ ){
+						//for each entry prepare the parameters for function directives, and sub templates
+						tempCtxt.item = loopCtxt.item = items[i];
+						tempCtxt.node = loopCtxt.node = node;
+						tempCtxt.pos  = loopCtxt.pos  = i;
+						dfrag.appendChild( compiled( tempCtxt ).cloneNode(true) );
 					}
 					
-					while(i--){
-						node = nodes[ i ];
-						if(typeof directive === 'object'){
-							loopNode( node, data, directive );
-						}else{
-							getAction( selSpec )( 
-								node, typeof directive === 'string' ?
-									//if no value found, it's just a string
-									( '' + readData( directive, data ) ) || directive:
-									directive.call( data.item || data, {context:data} )
-							);
-						}
+					//take a fresh parent
+					parentNode.parentNode.replaceChild( newParentNode, parentNode );
+					//get the node by its sibling position
+					node = findNode( newParentNode );
+					//set parentNode as the new one
+					parentNode = node.parentNode;
+					//insert the loop elements in the fresh loop template
+					parentNode.replaceChild( dfrag, node );
+
+				};
+			},
+			setTarget = function( actionSpec, root, selSpec ){
+				var nodes = selSpec.selector && selSpec.selector !== '.' ? find( root, selSpec.selector ) : [root],
+					i = -1,
+					l = nodes.length;
+
+				if(l === 0){
+					error( 'The selector "' + selSpec.selector + '" didn\'t match any node in:\n' + ( root.outerHTML || (root.tagName + root.className) ) );
+				}
+				while(++i < l){
+					if(typeof actionSpec === 'object'){
+						//loop
+						actions.push( loopNode( nodes[i], actionSpec ) );
+					}else{
+						//node value or attribute
+						actions.push( getAction(nodes[i], selSpec, actionSpec ) );
 					}
 				}
-			);
+			};
+				
+
+		for( selector in directive ){
+			forEachTarget( selector, directive[ selector ], setTarget );
 		}
-		return node;
-	};
-	// clone the node by default
-	var clone = function(node){ 
-		return node.cloneNode(true);
-	};
-	this.noClone = function(){
-		//but if requested work directly on the template node
-		clone = function(node){ 
-			return node;
+		
+		return function(data){
+			ctxt = ctxt || data;
+			var i = -1, l = actions.length;
+			while( ++i < l ){
+				actions[i](data);
+			}
+			return root;
 		};
-		return this;
+
 	};
 	this.render = function(data, directive){
-		if(typeof directive !== 'object'){
-			return this.error('No more functions in version 3, only DOM');
-		}
-		var i = this.length;
-		while(i--){
-			this[i] = transform( clone( this[i] ), data, directive);
+		var i = -1, l = this.length,
+			compiled = typeof directive === 'function' ? directive : this.compile(directive);
+		while( ++i < l ){
+			this[i] = compiled(data);
 		}
 		return this;
 	};

@@ -6,19 +6,19 @@
 <body>
   <!-- HTML template -->
 	It took:<span id="duration"></span>
-  <ul class="template">
-    <li class="people">
-		<span class="name"></span>
-    	<ul>
-	    <li class="team">
-			<a class="name"></a>
-	    </li>
-	  </ul>
-    </li>
-  </ul>
+	<ul class="template">
+		<li class="people">
+			<span class="name"></span>
+			<ul>
+				<li class="team">
+					<a class="name"></a>
+				</li>
+			</ul>
+		</li>
+	</ul>
 
   <script>
-	function callback(data){
+	function callback(json){
 	    var start = new Date().getTime();
 
 	    //declaration of the actions PURE has to do
@@ -36,9 +36,12 @@
 			}
 	   };
 
-	    // note the use of render instead of autoRender
-	   $p('ul.template').noClone().render(data, directive);
-		document.getElementById('duration').innerHTML = (new Date().getTime() - start) + 'ms for ' + data.people.length + ' records';
+/*		var compiled = $p( 'ul.template' ).compile( directive );
+			console.log( compiled( json ).outerHTML );*/
+		
+	   $p('ul.template').render( json, directive );
+		document.getElementById('duration').innerHTML = ( new Date().getTime() - start ) + 'ms for ' + json.people.length + ' records';
+		
 	}
 </script>
 <script src="data.js"></script>
