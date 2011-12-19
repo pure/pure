@@ -127,7 +127,7 @@ $p.core = function(sel, doc, plugins){
 					if(!data){break;}
 					data = data[m[i]];
 				}
-				return (!data && data !== 0) ? '':data;
+				return (!data && data !== 0) ? '' : data;
 			},
 			getAction = function(node, selSpec, actionSpec){
 
@@ -181,7 +181,7 @@ $p.core = function(sel, doc, plugins){
 					if (selSpec.prepend) {
 						set = function(s) { node.insertBefore( document.createTextNode(s), node.firstChild );	};
 					} else if (selSpec.append) {
-						set = function(s) { node.appendChild( document.createTextNode(s) );};
+						set = function(s) { node.appendChild(  document.createTextNode(s) );};
 					} else {
 						set = function(s) {
 							while (node.firstChild) { node.removeChild(node.firstChild); }
@@ -239,26 +239,35 @@ $p.core = function(sel, doc, plugins){
 				return function(data){
 					var dfrag = document.createDocumentFragment(),
 						items = readData( loopDef.loopSpec.arrayName, data ),
-						i = 0, ii = items.length,
+						pos = 0, il = items.length,
 						tempCtxt = { context:ctxt },
 						loopCtxt = tempCtxt[ loopDef.loopSpec.itemName ] = {},
-						newParentNode = cleanParentNode.cloneNode(true);
+						newParentNode = cleanParentNode.cloneNode(true),
+						innerLoop = function(dfrag, tempCtxt, loopCtxt, item, node, pos){
+							//for each entry prepare the parameters for function directives, and sub templates
+							tempCtxt.item = loopCtxt.item = item;
+							tempCtxt.node = loopCtxt.node = node;
+							tempCtxt.pos  = loopCtxt.pos  = pos;
+							dfrag.appendChild( compiled( tempCtxt ).cloneNode(true) );
+						};
 					
 					tempCtxt.items = loopCtxt.items = items;
 					
-					for( ; i < ii; i++ ){
-						//for each entry prepare the parameters for function directives, and sub templates
-						tempCtxt.item = loopCtxt.item = items[i];
-						tempCtxt.node = loopCtxt.node = node;
-						tempCtxt.pos  = loopCtxt.pos  = i;
-						dfrag.appendChild( compiled( tempCtxt ).cloneNode(true) );
+					if( isArray(items) ){
+						for( ; pos < il; pos++ ){
+							innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos);
+						}
+					}else{
+						for(pos in items){
+							innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos);
+						}
 					}
 					
 					//take a fresh parent
 					parentNode.parentNode.replaceChild( newParentNode, parentNode );
-					//get the node by its sibling position
+					//get the  looping node by its sibling position
 					node = findNode( newParentNode );
-					//set parentNode as the new one
+					//set the new parentNode
 					parentNode = node.parentNode;
 					//insert the loop elements in the fresh loop template
 					parentNode.replaceChild( dfrag, node );
