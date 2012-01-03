@@ -7,9 +7,13 @@
   <!-- HTML template -->
 	It took:<span id="duration"></span>
 	<ul class="template">
+		<!--img /-->
 		<li class="people">
 			<span class="name"></span>
 			<ul>
+				<!--li class="winner">
+					<a class="name"></a>
+				</li-->
 				<li class="team">
 					<a class="name"></a>
 				</li>
@@ -23,17 +27,29 @@
 
 	    //declaration of the actions PURE has to do
 	   var directive = {
+			//'img@src':'http://farm8.staticflickr.com/7175/6470586439_11461583a7_s.jpg',
+			/*'img@src':function(){
+				return 'http://farm8.staticflickr.com/7175/6470586439_11461583a7_s.jpg';
+			},*/
+			//'img@src':'',
 			'li.people':{
 				'person<-people':{
-					'span.name':'person.name',
+//					'span.name':'person.name',
 					'li.team':{
 						'teamMember<-person.team':{
 							'a.name':'teamMember.name',
 							'a.name@href+':'teamMember.id'
 						}
-					}
+					}/*,
+					'li.winner':{
+						'winner<-winners':{
+							'a.name':'winner.name',
+							'a.name@href+':'winner.id'
+						}
+					}*/
 				}
-			}
+			}/*,
+			'img@src':'http://farm8.staticflickr.com/7175/6470586439_11461583a7_s.jpg'*/
 	   };
 
 /*		var compiled = $p( 'ul.template' ).compile( directive );

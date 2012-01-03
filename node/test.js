@@ -1,18 +1,31 @@
-var http = require('http'),
-	fs    = require('fs'), // to load html/js templates
-	window = require("jsdom").jsdom().createWindow(), // DOM/BOM
-	jQuery = require('jquery'), // for selectors
-	$p = require('pure').$p,
-	templates = {};
-	
+//test from https://gist.github.com/729432
+
+var doc           = require('jsdom').jsdom(),
+    window        = doc.createWindow(),
+    jQueryElement = doc.createElement('script'),
+    pureElement   = doc.createElement('script'),
+    body          = doc.getElementsByTagName('body').item(0),
+    directive     = { 'span.who': 'who' },
+    data          = { 'who': 'Hello Wrrrld' };
+
+body.innerHTML = '<div id="template"><div class="hello">\
+<span class="who"></span>\
+</div></div>';
+
+// Load up jQuery
+jQueryElement.src = 'http://code.jquery.com/jquery-1.4.4.js';
+doc.head.appendChild(jQueryElement);
+
+// Load up PURE
+pureElement.src = 'http://beebole.com/pure/wp-content/themes/BeeBole-pure/libs/pure.js';
+doc.head.appendChild(pureElement);
+
+
 http.createServer(function (req, res) {
 
+	window.jQuery('div#template').render(data, directive);
 
-	res.writeHead(200, {'Content-Type': 'text/html'});
-	res.end('jQuery: ' + typeof(jQuery) + ' - pure: ' + typeof($p));
+}).listen(1234, '127.0.0.1');
 
-
-}).listen(1234, "127.0.0.1");
-console.log('Server running at http://127.0.0.1:1234/'); 
 
 

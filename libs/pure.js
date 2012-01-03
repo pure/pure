@@ -4,7 +4,7 @@
 	Licensed under the MIT licenses.
 	More information at: http://www.opensource.org
 
-	Copyright (c) 2011 Michael Cvilic - BeeBole.com
+	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
 	revision: 2.72

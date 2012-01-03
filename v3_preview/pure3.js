@@ -4,7 +4,7 @@
 	Dual licensed under GPL Version 2 or the MIT licenses
 	More information at: http://www.opensource.org
 
-	Copyright (c) 2011 Michael Cvilic - BeeBole.com
+	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	revision: 3.*
 */
@@ -175,7 +175,9 @@ $p.core = function(sel, doc, plugins){
 							attSet( node, init + s ); 
 						};
 					}else{
-						return attSet;
+						set = function(s){ 
+							attSet( node, s ); 
+						};
 					}
 				}else{
 					if (selSpec.prepend) {
@@ -214,61 +216,56 @@ $p.core = function(sel, doc, plugins){
 					doFn(directive, root, selSpec);
 				}
 			},
-			keepPos = function(n){
-				var i = 0;
-				while(n){
-					n = n.previousSibling;
-					i++;
-				}
-				return function(r){
-					var n = r.firstChild,
-						j = i;
-					while(--j){
-						n = n.nextSibling;
-					}
-					return n;
-				};
-			},
 			loopNode = function(node, directive){
+
 				var loopDef = getLoopDef( directive ),
+					dfrag = document.createDocumentFragment(),
+					arr = [],
+					templateNode = node.cloneNode(true),
 					parentNode = node.parentNode,
-					cleanParentNode = parentNode.cloneNode(true),
-					findNode = keepPos( node ),
-					compiled = $p( node.cloneNode(true) ).compile( loopDef.directive );
+					compiled = $p( templateNode ).compile( loopDef.directive );
 
 				return function(data){
-					var dfrag = document.createDocumentFragment(),
-						items = readData( loopDef.loopSpec.arrayName, data ),
-						pos = 0, il = items.length,
+					
+					var items = readData( loopDef.loopSpec.arrayName, data ),
+						il = items.length,
+						newNode,
+						al = arr.length,
 						tempCtxt = { context:ctxt },
 						loopCtxt = tempCtxt[ loopDef.loopSpec.itemName ] = {},
-						newParentNode = cleanParentNode.cloneNode(true),
 						innerLoop = function(dfrag, tempCtxt, loopCtxt, item, node, pos){
 							//for each entry prepare the parameters for function directives, and sub templates
 							tempCtxt.item = loopCtxt.item = item;
 							tempCtxt.node = loopCtxt.node = node;
 							tempCtxt.pos  = loopCtxt.pos  = pos;
-							dfrag.appendChild( compiled( tempCtxt ).cloneNode(true) );
-						};
-					
+							
+							//call the compiled template on item context, and return the resulting node
+							return dfrag.appendChild( compiled( tempCtxt ).cloneNode(true) );
+						},
+						pos = 0;
+
+/*					//clean the target if nested loops
+					while(al > 1 && al--){
+						parentNode.removeChild(arr[al]);
+					}
+
+					if(al > 0){
+						node = templateNode.cloneNode(true);
+						parentNode.replaceChild(node, arr[0]);
+					}*/
+
 					tempCtxt.items = loopCtxt.items = items;
 					
 					if( isArray(items) ){
 						for( ; pos < il; pos++ ){
-							innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos);
+							arr.push( innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos) );
 						}
 					}else{
 						for(pos in items){
-							innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos);
+							arr.push( innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos) );
 						}
 					}
 					
-					//take a fresh parent
-					parentNode.parentNode.replaceChild( newParentNode, parentNode );
-					//get the  looping node by its sibling position
-					node = findNode( newParentNode );
-					//set the new parentNode
-					parentNode = node.parentNode;
 					//insert the loop elements in the fresh loop template
 					parentNode.replaceChild( dfrag, node );
 

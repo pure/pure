@@ -1,24 +1,27 @@
 callback({
+  winners:[
+	{name:'winner 1'},{name:'winner 2'}
+  ],
   people:[
     {name:"Susan Braunhardt", id:1, team:[
 		{name:"Kristen Characklis", id:425},
-		{name:"Jane Tatum", id:426},
+		{name:"Jane Tatum", id:426}/*,
 		{name:"Kelly Gonzalez", id:427},
 		{name:"Deanne Feldman", id:428},
 		{name:"Greg Harrigan", id:429},
 		{name:"Jack Lacy", id:430},
 		{name:"Shaun Currie", id:431},
 		{name:"Peter Glaze", id:432},
-		{name:"Sam Reiten", id:433}
+		{name:"Sam Reiten", id:433}*/
 	]},
 	{name:"Duane Freymann", id:6, team:[
-		{name:"Marc O'Brien", id:458},
+		{name:"Marc O'Brien", id:458}/*,
 		{name:"Duane Millam", id:459},
 		{name:"Jennifer Lee", id:460},
 		{name:"Alex Bloomfield", id:461},
 		{name:"Jennifer Bolton", id:462},
-		{name:"Larry Moss", id:463}
-	]},
+		{name:"Larry Moss", id:463}*/
+	]}/*,
 	{name:"Denny Puckett", id:2},
 	{name:"Thomas Seay", id:3},
 	{name:"Joel Ruhlin", id:4},
@@ -1559,6 +1562,6 @@ callback({
 	{name:"Gina Woodbury", id:1000},
 	{name:"Marcia Haven", id:1001},
 	{name:"David Minnotte", id:1002},
-	{name:"Susan Mullet", id:1003}
+	{name:"Susan Mullet", id:1003}*/
   ]
 });
