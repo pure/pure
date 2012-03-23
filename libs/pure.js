@@ -7,7 +7,7 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.72
+	revision: 2.73
 */
 
 var $p, pure = $p = function(){
@@ -174,8 +174,10 @@ $p.core = function(sel, ctxt, plugins){
 		if(m[1] === 'item'){
 			error('"item<-..." is a reserved word for the current running iteration.\n\nPlease choose another name for your loop.');
 		}
-		if( !m[2] || (m[2] && (/context/i).test(m[2]))){ //undefined or space(IE)
+		if( !m[2] || m[2].toLowerCase() === 'context' ){ //undefined or space(IE)
 			m[2] = function(ctxt){return ctxt.context;};
+		}else if( (m[2] && m[2].indexOf('context') === 0 ) ){ //undefined or space(IE)
+			m[2] = dataselectfn( m[2].replace(/^context\.?/, '') );
 		}
 		return {name: m[1], sel: m[2]};
 	}
@@ -191,7 +193,7 @@ $p.core = function(sel, ctxt, plugins){
 			};
 		}
 		//check for a valid js variable name with hyphen(for properties only), $, _ and :
-		var m = sel.match(/^[a-zA-Z\$_\@][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);
+		var m = sel.match(/^[\da-zA-Z\$_\@][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);
 		if(m === null){
 			var found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
 			// check if literal
@@ -209,7 +211,7 @@ $p.core = function(sel, ctxt, plugins){
 					s = s.slice(m.index + m[0].length, s.length);
 				}
 			}
-			if(!found){
+			if(!found){ //constant, return it
 				return function(){ return sel; };
 			}
 			parts[i] = s;
