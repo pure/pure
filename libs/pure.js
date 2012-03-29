@@ -348,7 +348,7 @@ $p.core = function(sel, ctxt, plugins){
 	}
 
 	// read de loop data, and pass it to the inner rendering function
-	function loopfn(name, dselect, inner, sorter, filter){
+	function loopfn(name, dselect, inner, sorter, filter, generator){
 		return function(ctxt){
 			var a = dselect(ctxt),
 				old = ctxt[name],
@@ -378,6 +378,9 @@ $p.core = function(sel, ctxt, plugins){
 					ctxt.items = save_items;
 				};
 			ctxt[name] = temp;
+			if( generator ){
+				a = generator(ctxt);
+			}
 			if( isArray(a) ){
 				length = a.length || 0;
 				// if sort directive
@@ -404,7 +407,7 @@ $p.core = function(sel, ctxt, plugins){
 	}
 	// generate the template for a loop node
 	function loopgen(dom, sel, loop, fns){
-		var already = false, ls, sorter, filter, prop;
+		var already = false, ls, sorter, filter, generator, prop;
 		for(prop in loop){
 			if(loop.hasOwnProperty(prop)){
 				if(prop === 'sort'){
@@ -412,6 +415,9 @@ $p.core = function(sel, ctxt, plugins){
 					continue;
 				}else if(prop === 'filter'){
 					filter = loop.filter;
+					continue;
+				}else if(prop === 'generator'){
+					generator = loop.generator;
 					continue;
 				}
 				if(already){
@@ -439,7 +445,7 @@ $p.core = function(sel, ctxt, plugins){
 		for(i = 0; i < nodes.length; i++){
 			var node = nodes[i],
 				inner = compiler(node, dsel);
-			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner, sorter, filter));
+			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner, sorter, filter, generator));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
 		}
