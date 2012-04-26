@@ -7,7 +7,7 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.73
+	revision: 2.74
 */
 
 var $p, pure = $p = function(){
@@ -222,7 +222,7 @@ $p.core = function(sel, ctxt, plugins){
 			var data = ctxt.context || ctxt,
 				v = ctxt[m[0]],
 				i = 0;
-			if(v && v.item){
+			if(v && typeof v.item !== 'undefined'){
 				i += 1;
 				if(m[i] === 'pos'){
 					//allow pos to be kept by string. Tx to Adam Freidin
@@ -231,11 +231,16 @@ $p.core = function(sel, ctxt, plugins){
 					data = v.item;
 				}
 			}
-			var n = m.length;
+			var n = m.length,
+				dm;
+				
 			for(; i < n; i++){
 				if(!data){break;}
-				data = data[m[i]];
+				dm = data[ m[i] ];
+				//if it is a function call it
+				data = typeof dm === 'function' ? data[ m[i] ].call( data ) : dm;
 			}
+			
 			return (!data && data !== 0) ? '':data;
 		};
 	}
