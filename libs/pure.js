@@ -7,7 +7,7 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.75
+	revision: 2.76
 */
 
 var $p, pure = $p = function(){
@@ -333,6 +333,8 @@ $p.core = function(sel, ctxt, plugins){
 						//replace node with s
 						pn.insertBefore(document.createTextNode(s), node.nextSibling);
 						pn.removeChild(node);
+					}else{
+						error('The template root, can\'t be looped.');
 					}
 				};
 			} else {
@@ -650,6 +652,10 @@ $p.core = function(sel, ctxt, plugins){
 			ep.appendChild(elm);
 		}
 		switch (elm.tagName) {
+			case 'BODY':
+				ep.removeChild(elm);
+				ep.innerHTML += html;
+				return ep.getElementsByTagName('BODY')[0];
 			case 'TBODY': case 'THEAD': case 'TFOOT':
 				html = '<TABLE>' + html + '</TABLE>';
 				depth = 1;
