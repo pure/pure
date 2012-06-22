@@ -652,7 +652,7 @@ $p.core = function(sel, ctxt, plugins){
 			ep.appendChild(elm);
 		}
 		switch (elm.tagName) {
-			case 'BODY':
+			case 'BODY': //thanks to milan.adamovsky@gmail.com
 				ep.removeChild(elm);
 				ep.innerHTML += html;
 				return ep.getElementsByTagName('BODY')[0];
