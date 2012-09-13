@@ -7,48 +7,29 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.76
+	revision: 2.77
 */
 
-var $p, pure = $p = function(){
-	var sel = arguments[0],
+var $p = function(){
+	var args = arguments,
+		sel = args[0],
 		ctxt = false;
 
 	if(typeof sel === 'string'){
-		ctxt = arguments[1] || false;
+		ctxt = args[1] || false;
 	}else if(sel && !sel[0] && !sel.length){
 		sel = [sel];
 	}
 	return $p.core(sel, ctxt);
-};
+},
+pure = $p;
+
 
 $p.core = function(sel, ctxt, plugins){
 	//get an instance of the plugins
-	var templates = [];
-	plugins = plugins || getPlugins();
-
-	//search for the template node(s)
-	switch(typeof sel){
-		case 'string':
-			templates = plugins.find(ctxt || document, sel);
-			if(templates.length === 0) {
-				error('The template "' + sel + '" was not found');
-			}
-		break;
-		case 'undefined':
-			error('The root of the template is undefined, check your selector');
-		break;
-		default:
-			templates = sel;
-	}
-
-	for(var i = 0, ii = templates.length; i < ii; i++){
-		plugins[i] = templates[i];
-	}
-	plugins.length = ii;
-
-	// set the signature string that will be replaced at render time
-	var Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_',
+	var templates = [], i, ii,
+		// set the signature string that will be replaced at render time
+		Sig = '_s' + Math.floor( Math.random() * 1000000 ) + '_',
 		// another signature to prepend to attributes and avoid checks: style, height, on[events]...
 		attPfx = '_a' + Math.floor( Math.random() * 1000000 ) + '_',
 		// rx to parse selectors, e.g. "+tr.foo[class]"
@@ -67,6 +48,28 @@ $p.core = function(sel, ctxt, plugins){
 				return Object.prototype.toString.call(o) === "[object Array]";
 			};
 
+	plugins = plugins || getPlugins();
+
+	//search for the template node(s)
+	switch(typeof sel){
+		case 'string':
+			templates = plugins.find(ctxt || document, sel);
+			if(templates.length === 0) {
+				error('The template "' + sel + '" was not found');
+			}
+		break;
+		case 'undefined':
+			error('The root of the template is undefined, check your selector');
+		break;
+		default:
+			templates = sel;
+	}
+
+	for( i = 0, ii = templates.length; i < ii; i++){
+		plugins[i] = templates[i];
+	}
+	plugins.length = ii;
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * *
 		core functions
 	 * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -76,7 +79,7 @@ $p.core = function(sel, ctxt, plugins){
 	function error(e){
 		if(typeof console !== 'undefined'){
 			console.log(e);
-			debugger;
+			//debugger;
 		}
 		throw('pure error: ' + e);
 	}
@@ -110,13 +113,13 @@ $p.core = function(sel, ctxt, plugins){
 				h = div.innerHTML;
 				div = null;
 				return h;
-			})(node);
+			}(node));
 	}
 
 	// returns the string generator function
 	function wrapquote(qfn, f){
 		return function(ctxt){
-			return qfn('' + f.call(ctxt.item || ctxt.context, ctxt));
+			return qfn( String( f.call(ctxt.item || ctxt.context, ctxt) ) ) ;
 		};
 	}
 
@@ -128,9 +131,10 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		if(typeof document.querySelectorAll !== 'undefined'){
 			return (n||document).querySelectorAll( sel );
-		}else{
-			return error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
 		}
+
+		return error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
+
 	}
 
 	// create a function that concatenates constant string
@@ -143,9 +147,9 @@ $p.core = function(sel, ctxt, plugins){
 		return function(ctxt){
 			var strs = [ parts[ 0 ] ],
 				n = parts.length,
-				fnVal, pVal, attLine, pos;
+				fnVal, pVal, attLine, pos, i;
 			try{
-				for(var i = 1; i < n; i++){
+				for(i = 1; i < n; i++){
 					fnVal = fns[i].call( this, ctxt );
 					pVal = parts[i];
 
@@ -164,9 +168,9 @@ $p.core = function(sel, ctxt, plugins){
 				return strs.join('');
 			}catch(e){
 				if(console && console.log){
-					console.log( e.stack ? 
-						e.stack : 
-						e.message + ' (' + e.type + ', ' + e.arguments.join('-') + '). Use Firefox or Chromium/Chrome to get a full stack of the error. ' );
+					console.log( 
+						e.stack || 
+						e.message + ' (' + e.type + ', ' + e['arguments'].join('-') + '). Use Firefox or Chromium/Chrome to get a full stack of the error. ' );
 				}
 				return '';
 			}
@@ -201,9 +205,10 @@ $p.core = function(sel, ctxt, plugins){
 			};
 		}
 		//check for a valid js variable name with hyphen(for properties only), $, _ and :
-		var m = sel.match(/^[\da-zA-Z\$_\@][\w\$:-]*(\.[\w\$:-]*[^\.])*$/);
+		var m = sel.match(/^[\da-zA-Z\$_\@][\w\$:\-]*(\.[\w\$:\-]*[^\.])*$/),
+			found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
+
 		if(m === null){
-			var found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
 			// check if literal
 			if(/\'|\"/.test( s.charAt(0) )){
 				if(/\'|\"/.test( s.charAt(s.length-1) )){
@@ -229,24 +234,26 @@ $p.core = function(sel, ctxt, plugins){
 		return function(ctxt){
 			var data = ctxt.context || ctxt,
 				v = ctxt[m[0]],
-				i = 0;
+				i = 0,
+				n,
+				dm;
+
 			if(v && typeof v.item !== 'undefined'){
 				i += 1;
 				if(m[i] === 'pos'){
 					//allow pos to be kept by string. Tx to Adam Freidin
 					return v.pos;
-				}else{
-					data = v.item;
 				}
+				data = v.item;
 			}
-			var n = m.length,
-				dm;
+			n = m.length;
 				
-			for(; i < n; i++){
+			while( i < n ){
 				if(!data){break;}
 				dm = data[ m[i] ];
 				//if it is a function call it
 				data = typeof dm === 'function' ? data[ m[i] ].call( data ) : dm;
+				i++;
 			}
 			
 			return (!data && data !== 0) ? '':data;
@@ -255,10 +262,11 @@ $p.core = function(sel, ctxt, plugins){
 
 	// wrap in an object the target node/attr and their properties
 	function gettarget(dom, sel, isloop){
-		var osel, prepend, selector, attr, append, target = [];
+		var osel, prepend, selector, attr, append, target = [], m,
+			setstr, getstr, quotefn, isStyle, isClass, attName, setfn;
 		if( typeof sel === 'string' ){
 			osel = sel;
-			var m = sel.match(selRx);
+			m = sel.match(selRx);
 			if( !m ){
 				error( 'bad selector syntax: ' + sel );
 			}
@@ -293,19 +301,21 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		var setstr, getstr, quotefn, isStyle, isClass, attName, setfn;
+		
 		if(attr){
 			isStyle = (/^style$/i).test(attr);
 			isClass = (/^class$/i).test(attr);
 			attName = isClass ? 'className' : attr;
 			setstr = function(node, s) {
 				node.setAttribute(attPfx + attr, s);
-				if (attName in node && !isStyle) {
+				if ( node.hasOwnProperty(attName) && !isStyle) {
 					try{node[attName] = '';}catch(e){} //FF4 gives an error sometimes
 				}
 				if (node.nodeType === 1) {
 					node.removeAttribute(attr);
-					isClass && node.removeAttribute(attName);
+					if(isClass){
+						node.removeAttribute(attName);
+					}
 				}
 			};
 			if (isStyle || isClass) {//IE no quotes special care
@@ -355,8 +365,8 @@ $p.core = function(sel, ctxt, plugins){
 	}
 
 	function setsig(target, n){
-		var sig = Sig + n + ':';
-		for(var i = 0; i < target.nodes.length; i++){
+		var sig = Sig + n + ':', i;
+		for(i = 0; i < target.nodes.length; i++){
 			// could check for overlapping targets here.
 			target.set( target.nodes[i], sig );
 		}
@@ -380,7 +390,7 @@ $p.core = function(sel, ctxt, plugins){
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
 					//if array, set a length property - filtered items
-					typeof len !== 'undefined' &&  (ctxt.length = len);
+					if(typeof len !== 'undefined'){ (ctxt.length = len); }
 					//if filter directive
 					if(typeof ftr === 'function' && ftr.call(ctxt.item, ctxt) === false){
 						filtered++;
@@ -391,7 +401,8 @@ $p.core = function(sel, ctxt, plugins){
 					ctxt.pos = save_pos;
 					ctxt.item = save_item;
 					ctxt.items = save_items;
-				};
+				},
+				prop, i, ii;
 			ctxt[name] = temp;
 			if( isArray(a) ){
 				length = a.length || 0;
@@ -400,7 +411,7 @@ $p.core = function(sel, ctxt, plugins){
 					a.sort(sorter);
 				}
 				//loop on array
-				for(var i = 0, ii = length; i < ii; i++){
+				for(i = 0, ii = length; i < ii; i++){
 					buildArg(i, temp, filter, length - filtered);
 				}
 			}else{
@@ -408,52 +419,57 @@ $p.core = function(sel, ctxt, plugins){
 					error('sort is only available on arrays, not objects');
 				}
 				//loop on collections
-				for(var prop in a){
-					a.hasOwnProperty( prop ) && buildArg(prop, temp, filter);
+				for( prop in a ){
+					if( a.hasOwnProperty( prop ) ){
+						buildArg(prop, temp, filter);
+					}
 				}
 			}
 
-			typeof old !== 'undefined' ? ctxt[name] = old : delete ctxt[name];
+			if( typeof old !== 'undefined'){
+				ctxt[name] = old;
+			}else{
+				delete ctxt[name];
+			}
 			return strs.join('');
 		};
 	}
 	// generate the template for a loop node
 	function loopgen(dom, sel, loop, fns){
-		var already = false, ls, sorter, filter, prop;
+		var already = false, ls, sorter, filter, prop, dsel, spec, itersel, target, nodes, node, inner;
 		for(prop in loop){
 			if(loop.hasOwnProperty(prop)){
 				if(prop === 'sort'){
 					sorter = loop.sort;
-					continue;
 				}else if(prop === 'filter'){
 					filter = loop.filter;
-					continue;
-				}
-				if(already){
+				}else if(already){
 					error('cannot have more than one loop on a target');
+				}else{
+					ls = prop;
+					already = true;
 				}
-				ls = prop;
-				already = true;
 			}
 		}
 		if(!ls){
 			error('Error in the selector: ' + sel + '\nA directive action must be a string, a function or a loop(<-)');
 		}
-		var dsel = loop[ls];
+		dsel = loop[ls];
 		// if it's a simple data selector then we default to contents, not replacement.
 		if(typeof(dsel) === 'string' || typeof(dsel) === 'function'){
 			loop = {};
 			loop[ls] = {root: dsel};
 			return loopgen(dom, sel, loop, fns);
 		}
-		var spec = parseloopspec(ls),
-			itersel = dataselectfn(spec.sel),
-			target = gettarget(dom, sel, true),
-			nodes = target.nodes;
+		
+		spec = parseloopspec(ls);
+		itersel = dataselectfn(spec.sel);
+		target = gettarget(dom, sel, true);
+		nodes = target.nodes;
 
 		for(i = 0; i < nodes.length; i++){
-			var node = nodes[i],
-				inner = compiler(node, dsel);
+			node = nodes[i];
+			inner = compiler(node, dsel);
 			fns[fns.length] = wrapquote(target.quotefn, loopfn(spec.name, itersel, inner, sorter, filter));
 			target.nodes = [node];		// N.B. side effect on target.
 			setsig(target, fns.length - 1);
@@ -541,7 +557,7 @@ $p.core = function(sel, ctxt, plugins){
 	function compiler(dom, directive, data, ans){
 		var fns = [], j, jj, cspec, n, target, nodes, itersel, node, inner, dsel, sels, sel, sl, i, h, parts,  pfns = [], p;
 		// autoRendering nodes parsing -> auto-nodes
-		ans = ans || data && getAutoNodes(dom, data);
+		ans = ans || (data && getAutoNodes(dom, data));
 		if(data){
 			// for each auto-nodes
 			while(ans.length > 0){
@@ -623,11 +639,10 @@ $p.core = function(sel, ctxt, plugins){
 	// return an HTML string
 	// should replace the template and return this
 	function render(ctxt, directive){
-		var fn = typeof directive === 'function' && directive, i = 0, ii = this.length;
-		for(; i < ii; i++){
+		var fn = typeof directive === 'function' && directive, i, ii;
+		for(i = 0, ii = this.length; i < ii; i++){
 			this[i] = replaceWith( this[i], (fn || plugins.compile( directive, false, this[i] ))( ctxt, false ));
 		}
-		context = null;
 		return this;
 	}
 
@@ -635,18 +650,18 @@ $p.core = function(sel, ctxt, plugins){
 	// run the template function on the context argument
 	// return an HTML string
 	function autoRender(ctxt, directive){
-		var fn = plugins.compile( directive, ctxt, this[0] );
-		for(var i = 0, ii = this.length; i < ii; i++){
+		var fn = plugins.compile( directive, ctxt, this[0] ), i, ii;
+		for(i = 0, ii = this.length; i < ii; i++){
 			this[i] = replaceWith( this[i], fn( ctxt, false));
 		}
-		context = null;
 		return this;
 	}
 
 	function replaceWith(elm, html) {
 		var ne,
 			ep = elm.parentNode,
-			depth = 0;
+			depth = 0,
+			tmp;
 		if(!ep){ //if no parents
 			ep = document.createElement('DIV');
 			ep.appendChild(elm);
@@ -667,6 +682,10 @@ $p.core = function(sel, ctxt, plugins){
 			case 'TD': case 'TH':
 				html = '<TABLE><TBODY><TR>' + html + '</TR></TBODY></TABLE>';
 				depth = 3;
+			break;
+			case 'OPTGROUP': case 'OPTION':
+				html = '<SELECT>' + html + '</SELECT>';
+				depth = 1;
 			break;
 		}
 		tmp = document.createElement('SPAN');
