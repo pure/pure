@@ -44,7 +44,7 @@ var loadLib, runAll, run, transform;
 		//initialise the lib
 		currLib !== 'pure' && $p.libs[currLib]();
 
-		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="javascript:void(0)" onclick="runAll(this);">all at once</a><br />';
+		document.getElementById( 'libLoaded' ).innerHTML = '<b>'+ currLib + '</b> is loaded<br />You can run the examples below individually or <a href="javascript:" onclick="runAll(this);">all at once</a><br />';
 		document.getElementById( 'examples' ).style.display = 'block';
 
 		var lis = $p( 'ul.exampleList li' ),
@@ -70,7 +70,7 @@ var loadLib, runAll, run, transform;
 				window[cn].id = cn;
 				span.id = cn;
 				span.innerHTML = 
-					'<a class="run"   href="javascript:void(0)" onclick="run(this, '+cn+');">Run</a>';
+					'<a class="run"   href="javascript:" onclick="run(this, '+cn+');">Run</a>';
 			}
 		}
 	}

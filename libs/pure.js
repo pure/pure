@@ -7,7 +7,7 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.77
+	revision: 2.78
 */
 
 var $p = function(){
@@ -308,7 +308,7 @@ $p.core = function(sel, ctxt, plugins){
 			attName = isClass ? 'className' : attr;
 			setstr = function(node, s) {
 				node.setAttribute(attPfx + attr, s);
-				if ( node.hasOwnProperty(attName) && !isStyle) {
+				if ( node[attName] && !isStyle) {
 					try{node[attName] = '';}catch(e){} //FF4 gives an error sometimes
 				}
 				if (node.nodeType === 1) {
