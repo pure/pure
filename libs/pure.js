@@ -7,7 +7,7 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.78
+	revision: 2.79
 */
 
 var $p = function(){
@@ -129,12 +129,7 @@ $p.core = function(sel, ctxt, plugins){
 			sel = n;
 			n = false;
 		}
-		if(typeof document.querySelectorAll !== 'undefined'){
-			return (n||document).querySelectorAll( sel );
-		}
-
-		return error('You can test PURE standalone with: iPhone, FF3.5+, Safari4+ and IE8+\n\nTo run PURE on your browser, you need a JS library/framework with a CSS selector engine');
-
+		return (n||document).querySelectorAll( sel );
 	}
 
 	// create a function that concatenates constant string
@@ -712,18 +707,11 @@ $p.plugins = {};
 
 $p.libs = {
 	dojo:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				return dojo.query(sel, n);
-			};
-		}
+		return function(n, sel){
+			return dojo.query(sel, n);
+		};
 	},
 	domassistant:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				return $(n).cssSelect(sel);
-			};
-		}
 		DOMAssistant.attach({
 			publicMethods : [ 'compile', 'render', 'autoRender'],
 			compile:function(directive, ctxt){
@@ -736,13 +724,16 @@ $p.libs = {
 				return $( $p([this]).autoRender(ctxt, directive) )[0];
 			}
 		});
+		return function(n, sel){
+			return $(n).cssSelect(sel);
+		};
+	},
+	ext:function(){//Thanks to Greg Steirer
+		return function(n, sel){
+			return Ext.query(sel, n);
+		};
 	},
 	jquery:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				return jQuery(n).find(sel);
-			};
-		}
 		jQuery.fn.extend({
 			directives:function(directive){
 				this._pure_d = directive; return this;
@@ -757,13 +748,11 @@ $p.libs = {
 				return jQuery( $p( this ).autoRender( ctxt, this._pure_d || directive ) );
 			}
 		});
+		return function(n, sel){
+			return jQuery(n).find(sel);
+		};
 	},
 	mootools:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				return $(n).getElements(sel);
-			};
-		}
 		Element.implement({
 			compile:function(directive, ctxt){
 				return $p(this).compile(directive, ctxt);
@@ -775,14 +764,11 @@ $p.libs = {
 				return $p([this]).autoRender(ctxt, directive);
 			}
 		});
+		return function(n, sel){
+			return $(n).getElements(sel);
+		};
 	},
 	prototype:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				n = n === document ? n.body : n;
-				return typeof n === 'string' ? $$(n) : $(n).select(sel);
-			};
-		}
 		Element.addMethods({
 			compile:function(element, directive, ctxt){
 				return $p([element]).compile(directive, ctxt);
@@ -794,20 +780,20 @@ $p.libs = {
 				return $p([element]).autoRender(ctxt, directive);
 			}
 		});
+		return function(n, sel){
+			n = n === document ? n.body : n;
+			return typeof n === 'string' ? $$(n) : $(n).select(sel);
+		};
 	},
 	sizzle:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				return Sizzle(sel, n);
-			};
-		}
+		return function(n, sel){
+			return Sizzle(sel, n);
+		};
 	},
 	sly:function(){
-		if(typeof document.querySelector === 'undefined'){
-			$p.plugins.find = function(n, sel){
-				return Sly(sel, n);
-			};
-		}
+		return function(n, sel){
+			return Sly(sel, n);
+		};
 	},
 	yui:function(){ //Thanks to https://github.com/soljin
 		if(typeof document.querySelector === 'undefined'){
@@ -831,22 +817,40 @@ $p.libs = {
 				return Y.one($p([this._node]).autoRender(ctxt, this._pure_d || directive));
 			};
 		},"0.1",{requires:["node"]});
+
+		return true;
 	}
 };
 
 // get lib specifics if available
 (function(){
-	var libkey =
-		typeof dojo         !== 'undefined' && 'dojo' ||
-		typeof DOMAssistant !== 'undefined' && 'domassistant' ||
-		typeof jQuery       !== 'undefined' && 'jquery' ||
-		typeof MooTools     !== 'undefined' && 'mootools' ||
-		typeof Prototype    !== 'undefined' && 'prototype' ||
-		typeof Sizzle       !== 'undefined' && 'sizzle' ||
-		typeof Sly          !== 'undefined' && 'sly' ||
-		typeof YUI          !== 'undefined' && 'yui';
-
-	libkey && $p.libs[libkey]();
+	var libSel,
+		libkey =
+			(typeof dojo         !== 'undefined' && 'dojo') ||
+			(typeof DOMAssistant !== 'undefined' && 'domassistant') ||
+			(typeof Ext          !== 'undefined' && 'ext') ||
+			(typeof jQuery       !== 'undefined' && 'jquery') ||
+			(typeof MooTools     !== 'undefined' && 'mootools') ||
+			(typeof Prototype    !== 'undefined' && 'prototype') ||
+			(typeof Sizzle       !== 'undefined' && 'sizzle') ||
+			(typeof Sly          !== 'undefined' && 'sly') ||
+			(typeof YUI          !== 'undefined' && 'yui');
+	
+	//add library methods
+	if(libkey){
+		libSel = $p.libs[libkey]();
+	}
+	
+	//if no native selector available
+	if( typeof document.querySelector === 'undefined' ){
+		//take it from the JS lib
+		if( typeof libSel === 'function' ){
+			$p.plugins.find = libSel;
+		//if nothing throw an error
+		}else if( !libSel ){
+			throw('you need a JS library with a CSS selector engine');
+		}
+	}
 
 	//for node.js
 	if(typeof exports !== 'undefined'){
