@@ -7,7 +7,7 @@
 	Copyright (c) 2012 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.79
+	revision: 2.80
 */
 
 var $p = function(){
@@ -403,7 +403,9 @@ $p.core = function(sel, ctxt, plugins){
 				length = a.length || 0;
 				// if sort directive
 				if(typeof sorter === 'function'){
-					a.sort(sorter);
+					a.sort(function(a, b){
+						return sorter.call(ctxt, a, b);
+					});
 				}
 				//loop on array
 				for(i = 0, ii = length; i < ii; i++){
