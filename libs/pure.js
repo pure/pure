@@ -4,10 +4,10 @@
 	Licensed under the MIT licenses.
 	More information at: http://www.opensource.org
 
-	Copyright (c) 2012 Michael Cvilic - BeeBole.com
+	Copyright (c) 2013 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.80
+	revision: 2.81
 */
 
 var $p = function(){
@@ -165,7 +165,7 @@ $p.core = function(sel, ctxt, plugins){
 				if(console && console.log){
 					console.log( 
 						e.stack || 
-						e.message + ' (' + e.type + ', ' + e['arguments'].join('-') + '). Use Firefox or Chromium/Chrome to get a full stack of the error. ' );
+						e.message + ' (' + e.type + ( e['arguments'] ? ', ' + e['arguments'].join('-') : '' ) + '). Use Firefox or Chromium/Chrome to get a full stack of the error. ' );
 				}
 				return '';
 			}
