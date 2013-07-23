@@ -1,6 +1,6 @@
 {
   "name"          : "pure",
-  "description"   : "PURE Unobtrusive Rendering Engine",
+  "description"   : "PURE Unobtrusive Rendering Engine, keep your HTML clean of any logic",
   "url"           : "http://beebole.com/pure/",
   "keywords"      : ["unobtrusive", "templating", "engine", "think different"],
   "author"        : "Mic Cvilic <mic@beebole.com>",
