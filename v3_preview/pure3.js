@@ -8,12 +8,9 @@
 
 	revision: 3.*
 */
-var $p, pure = $p = function(){
-	var sel = arguments[0], 
-		doc = false;
-
+var $p = function(sel, doc){
 	if(typeof sel === 'string'){
-		doc = arguments[1] || false;
+		doc = doc || false;
 	}else if(sel && !sel[0] && !sel.length){
 		sel = [sel];
 	}
@@ -23,6 +20,15 @@ var $p, pure = $p = function(){
 $p.core = function(sel, doc, plugins){
 	//default find method
 	var selRx = /^(\+)?([^\@\+]+)?\@?([^\+]+)?(\+)?$/,
+	
+	// error utility
+	error = function(e){
+		if(typeof console !== 'undefined'){
+			console.log(e);
+		}
+		throw('pure error: ' + e);
+	},
+
 	// check if the argument is an array - thanks salty-horse (Ori Avtalion)
 	isArray = Array.isArray ?
 		function(o) {
@@ -47,15 +53,6 @@ $p.core = function(sel, doc, plugins){
 		}
 	},
 	
-	// error utility
-	error = function(e){
-		if(typeof console !== 'undefined'){
-			console.log(e);
-			debugger;
-		}
-		throw('pure error: ' + e);
-	},
-	
 	//find all nodes for the selector
 	targets = find(doc || document, sel),
 	i = this.length = targets.length,
@@ -67,6 +64,9 @@ $p.core = function(sel, doc, plugins){
 	}
 	this.compile = function(directive){
 		var root = this[0],
+			allNodes = root.getElementsByTagName('*'),
+			selectedNodes = {count:0},
+			nodeRefs = [],
 			selector,
 			actions = [],
 			parseLoopSpec = function(p){
@@ -87,7 +87,8 @@ $p.core = function(sel, doc, plugins){
 					already = false,
 					loopDef = {/*
 						filter, sort, loopSpec, directive
-					*/};
+					*/},
+					loopString;
 				for(loopString in directive){
 					switch(loopString){
 						case 'filter':
@@ -112,7 +113,8 @@ $p.core = function(sel, doc, plugins){
 			readData = function(path, data){
 				var m = path.split('.'),
 					v = data[m[0]],
-					i = 0;
+					i,
+					n;
 				if(v && v.item){
 					i += 1;
 					if(m[i] === 'pos'){
@@ -122,14 +124,19 @@ $p.core = function(sel, doc, plugins){
 						data = v.item;
 					}
 				}
-				var n = m.length;
-				for(; i < n; i++){
+				n = m.length;
+				for(i = 0; i < n; i++){
 					if(!data){break;}
 					data = data[m[i]];
 				}
 				return (!data && data !== 0) ? '' : data;
 			},
 			getAction = function(node, selSpec, actionSpec){
+				
+
+				// take an index of all querySelectorAll nodes in the template
+				// and note the references of selected nodes for fast reuse
+
 
 				var isStyle, isClass, attName, attSet, get, set, init;
 
@@ -192,7 +199,7 @@ $p.core = function(sel, doc, plugins){
 					}
 				}
 				return function(data){
-					set( ( '' + readData( actionSpec, data ) ) || actionSpec );
+					set( String( readData( actionSpec, data ) ) || actionSpec );
 				};
 			},
 			forEachTarget = function(sel, directive, doFn){
@@ -242,22 +249,12 @@ $p.core = function(sel, doc, plugins){
 							//call the compiled template on item context, and return the resulting node
 							return dfrag.appendChild( compiled( tempCtxt ).cloneNode(true) );
 						},
-						pos = 0;
-
-/*					//clean the target if nested loops
-					while(al > 1 && al--){
-						parentNode.removeChild(arr[al]);
-					}
-
-					if(al > 0){
-						node = templateNode.cloneNode(true);
-						parentNode.replaceChild(node, arr[0]);
-					}*/
+						pos;
 
 					tempCtxt.items = loopCtxt.items = items;
 					
 					if( isArray(items) ){
-						for( ; pos < il; pos++ ){
+						for( pos = 0 ; pos < il; pos++ ){
 							arr.push( innerLoop(dfrag, tempCtxt, loopCtxt, items[pos], node, pos) );
 						}
 					}else{
@@ -274,26 +271,49 @@ $p.core = function(sel, doc, plugins){
 			setTarget = function( actionSpec, root, selSpec ){
 				var nodes = selSpec.selector && selSpec.selector !== '.' ? find( root, selSpec.selector ) : [root],
 					i = -1,
-					l = nodes.length;
+					l = nodes.length,
+					action;
 
 				if(l === 0){
 					error( 'The selector "' + selSpec.selector + '" didn\'t match any node in:\n' + ( root.outerHTML || (root.tagName + root.className) ) );
 				}
 				while(++i < l){
-					if(typeof actionSpec === 'object'){
-						//loop
-						actions.push( loopNode( nodes[i], actionSpec ) );
-					}else{
-						//node value or attribute
-						actions.push( getAction(nodes[i], selSpec, actionSpec ) );
+					action = typeof actionSpec === 'object' ?
+						loopNode( nodes[i], actionSpec ) :
+						getAction(nodes[i], selSpec, actionSpec );
+
+					actions.push( action );
+					selectedNodes[ nodes[i] ] = action;
+					selectedNodes.count++;
+				}
+			},
+			setNodeRefs = function(allNodes, selectedNodes){
+				var l = allNodes.length,
+					nodeRefs = [],
+					action,
+					i;
+
+				for(i = 0; i < l; i++){
+					action = selectedNodes[ allNodes[l] ];
+					if( action ){
+						nodeRefs.push([l, action]);
+						selectedNodes.count--;
+						if( selectedNodes.count <= 0 ){
+							//no need to go further, all selected nodes were referenced
+							break;
+						}
 					}
 				}
+
+				return nodeRefs;
 			};
 				
 
 		for( selector in directive ){
 			forEachTarget( selector, directive[ selector ], setTarget );
 		}
+
+		nodeRefs = setNodeRefs( allNodes, selectedNodes );
 		
 		return function(data){
 			ctxt = ctxt || data;

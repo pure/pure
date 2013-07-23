@@ -7,7 +7,7 @@
 	Copyright (c) 2013 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.81
+	revision: 2.82
 */
 
 var $p = function(){
@@ -247,7 +247,7 @@ $p.core = function(sel, ctxt, plugins){
 				if(!data){break;}
 				dm = data[ m[i] ];
 				//if it is a function call it
-				data = typeof dm === 'function' ? data[ m[i] ].call( data ) : dm;
+				data = typeof dm === 'function' ? dm.call( data ) : dm;
 				i++;
 			}
 			
@@ -858,4 +858,4 @@ $p.libs = {
 	if(typeof exports !== 'undefined'){
 		exports.$p = $p;
 	}
-})();
+}());
