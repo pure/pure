@@ -826,22 +826,27 @@ $p.libs = {
 
 // get lib specifics if available
 (function(){
-	var libSel,
-		libkey =
-			(typeof dojo         !== 'undefined' && 'dojo') ||
-			(typeof DOMAssistant !== 'undefined' && 'domassistant') ||
-			(typeof Ext          !== 'undefined' && 'ext') ||
-			(typeof jQuery       !== 'undefined' && 'jquery') ||
-			(typeof MooTools     !== 'undefined' && 'mootools') ||
-			(typeof Prototype    !== 'undefined' && 'prototype') ||
-			(typeof Sizzle       !== 'undefined' && 'sizzle') ||
-			(typeof Sly          !== 'undefined' && 'sly') ||
-			(typeof YUI          !== 'undefined' && 'yui');
-	
-	//add library methods
-	if(libkey){
-		libSel = $p.libs[libkey]();
-	}
+	var libSel, libkey,
+    libkeys =
+      [
+        (typeof dojo !== 'undefined' && 'dojo'),
+        (typeof DOMAssistant !== 'undefined' && 'domassistant'),
+        (typeof Ext !== 'undefined' && 'ext'),
+        (typeof jQuery !== 'undefined' && 'jquery'),
+        (typeof MooTools !== 'undefined' && 'mootools'),
+        (typeof Prototype !== 'undefined' && 'prototype'),
+        (typeof Sizzle !== 'undefined' && 'sizzle'),
+        (typeof Sly !== 'undefined' && 'sly'),
+        (typeof YUI !== 'undefined' && 'yui')
+      ];
+
+  //add library methods
+  for (var i = 0, l = libkeys.length; i < l; i++) {
+    libkey = libkeys[i];
+    if(libkey){
+      libSel = $p.libs[libkey]();
+    }
+  }
 	
 	//if no native selector available
 	if( typeof document.querySelector === 'undefined' ){
