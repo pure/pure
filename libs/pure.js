@@ -7,7 +7,7 @@
 	Copyright (c) 2013 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.82
+	revision: 2.83
 */
 
 var $p = function(){
@@ -200,7 +200,7 @@ $p.core = function(sel, ctxt, plugins){
 			};
 		}
 		//check for a valid js variable name with hyphen(for properties only), $, _ and :
-		var m = sel.match(/^[\da-zA-Z\$_\@][\w\$:\-]*(\.[\w\$:\-]*[^\.])*$/),
+		var m = sel.match(/^[\da-zA-Z\$_\@\#][\w\$:\-\#]*(\.[\w\$:\-\#]*[^\.])*$/),
 			found = false, s = sel, parts = [], pfns = [], i = 0, retStr;
 
 		if(m === null){
