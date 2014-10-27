@@ -3,7 +3,7 @@
 <p>&nbsp;</p>
 
 <div style="background-color:#DDEEFF;border:1px solid #CCCCCC;padding:10px;">
-<big>Please see the <a href="http://beebole.com/pure/documentation/">documentation</a> for more information</big><br />&nbsp;<br />
+<big>Please see the <a href="http://beebole.com/pure/">documentation</a> for more information</big><br />&nbsp;<br />
 <big>If you have a question or an issue post it on: <a href="http://groups.google.com/group/Pure-Unobtrusive-Rendering-Engine">the discussion group</a></big>
 </div>
 
