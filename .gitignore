@@ -3,4 +3,3 @@ commit.sh
 js/*.html
 bugs/*
 compiler.jar
-/nbproject/private/
