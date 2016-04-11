@@ -686,8 +686,13 @@ $p.core = function(sel, ctxt, plugins){
 			break;
 		}
 		tmp = document.createElement('SPAN');
-		tmp.style.display = 'none';
-		document.body.appendChild(tmp);
+		if( tmp.style ) { // Ignore if not present, since in XML Document we don't have tmp.style
+            tmp.style.display = 'none';
+        }
+        var body= document.body!==undefined
+            ? document.body
+            : document.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0];
+		body.appendChild(tmp);
 		tmp.innerHTML = html;
 		ne = tmp.firstChild;
 		while (depth--) {
@@ -695,7 +700,7 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		ep.insertBefore(ne, elm);
 		ep.removeChild(elm);
-		document.body.removeChild(tmp);
+		body.removeChild(tmp);
 		elm = ne;
 
 		ne = ep = null;
