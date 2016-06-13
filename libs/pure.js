@@ -7,7 +7,7 @@
 	Copyright (c) 2013 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.83
+	revision: 2.84
 */
 
 var $p = function(){
@@ -81,7 +81,7 @@ $p.core = function(sel, ctxt, plugins){
 			console.log(e);
 			//debugger;
 		}
-		throw('pure error: ' + e);
+		throw 'pure error: ' + e;
 	}
 
 	//return a new instance of plugins
@@ -106,13 +106,14 @@ $p.core = function(sel, ctxt, plugins){
 	// returns the outer HTML of a node
 	function outerHTML(node){
 		// if IE, Chrome take the internal method otherwise build one
-		return node.outerHTML || (
+		return /*node.outerHTML || */(
 			function(n){
-			var div = document.createElement('div'), h;
+				return document.createElement('div').appendChild( n.cloneNode(true) ).parentNode.innerHTML;
+			/*var div = document.createElement('div'), h;
 			div.appendChild( n.cloneNode(true) );
 				h = div.innerHTML;
 				div = null;
-				return h;
+				return h;*/
 			}(node));
 	}
 
@@ -163,8 +164,8 @@ $p.core = function(sel, ctxt, plugins){
 				return strs.join('');
 			}catch(e){
 				if(console && console.log){
-					console.log( 
-						e.stack || 
+					console.log(
+						e.stack ||
 						e.message + ' (' + e.type + ( e['arguments'] ? ', ' + e['arguments'].join('-') : '' ) + '). Use Firefox or Chromium/Chrome to get a full stack of the error. ' );
 				}
 				return '';
@@ -183,7 +184,7 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		if( !m[2] || m[2].toLowerCase() === 'context' ){ //undefined or space(IE)
 			m[2] = function(ctxt){return ctxt.context;};
-		}else if( (m[2] && m[2].indexOf('context') === 0 ) ){ //undefined or space(IE)
+		}else if( m[2] && m[2].indexOf('context') === 0 ){ //undefined or space(IE)
 			m[2] = dataselectfn( m[2].replace(/^context\.?/, '') );
 		}
 		return {name: m[1], sel: m[2]};
@@ -195,7 +196,7 @@ $p.core = function(sel, ctxt, plugins){
 		if( typeof(sel) === 'function' ){
 			//handle false values in function directive
 			return function ( ctxt ){
-				var r = sel.call( ctxt.item || ctxt.context || ctxt, ctxt ); 
+				var r = sel.call( ctxt.item || ctxt.context || ctxt, ctxt );
 				return !r && r !== 0 ? '' : r;
 			};
 		}
@@ -242,7 +243,7 @@ $p.core = function(sel, ctxt, plugins){
 				data = v.item;
 			}
 			n = m.length;
-				
+
 			while( i < n ){
 				if(!data){break;}
 				dm = data[ m[i] ];
@@ -250,8 +251,8 @@ $p.core = function(sel, ctxt, plugins){
 				data = typeof dm === 'function' ? dm.call( data ) : dm;
 				i++;
 			}
-			
-			return (!data && data !== 0) ? '':data;
+
+			return !data && data !== 0 ? '':data;
 		};
 	}
 
@@ -271,7 +272,7 @@ $p.core = function(sel, ctxt, plugins){
 			attr = m[3];
 			append = m[4];
 
-			if(selector === '.' || ( !selector && attr ) ){
+			if(selector === '.' || !selector && attr ){
 				target[0] = dom;
 			}else{
 				target = plugins.find(dom, selector);
@@ -296,10 +297,10 @@ $p.core = function(sel, ctxt, plugins){
 				error('cannot append with loop (sel: ' + osel + ')');
 			}
 		}
-		
+
 		if(attr){
-			isStyle = (/^style$/i).test(attr);
-			isClass = (/^class$/i).test(attr);
+			isStyle = /^style$/i.test(attr);
+			isClass = /^class$/i.test(attr);
 			attName = isClass ? 'className' : attr;
 			setstr = function(node, s) {
 				node.setAttribute(attPfx + attr, s);
@@ -385,7 +386,7 @@ $p.core = function(sel, ctxt, plugins){
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
 					//if array, set a length property - filtered items
-					if(typeof len !== 'undefined'){ (ctxt.length = len); }
+					if(typeof len !== 'undefined'){ ctxt.length = len; }
 					//if filter directive
 					if(typeof ftr === 'function' && ftr.call(ctxt.item, ctxt) === false){
 						filtered++;
@@ -396,6 +397,11 @@ $p.core = function(sel, ctxt, plugins){
 					ctxt.pos = save_pos;
 					ctxt.item = save_item;
 					ctxt.items = save_items;
+				},
+				cmv = function(p){
+					if( ctxt[ p ] ){
+						delete ctxt[ p ];
+					}
 				},
 				prop, i, ii;
 			ctxt[name] = temp;
@@ -424,10 +430,12 @@ $p.core = function(sel, ctxt, plugins){
 			}
 
 			if( typeof old !== 'undefined'){
-				ctxt[name] = old;
+				ctxt[ name ] = old;
 			}else{
-				delete ctxt[name];
+				cmv( name );
 			}
+			//remove loop properties, to keep "this" clean inside function calls
+			cmv('item'); cmv('items'); cmv('pos'); cmv('length');
 			return strs.join('');
 		};
 	}
@@ -453,12 +461,12 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		dsel = loop[ls];
 		// if it's a simple data selector then we default to contents, not replacement.
-		if(typeof(dsel) === 'string' || typeof(dsel) === 'function'){
+		if(typeof dsel === 'string' || typeof dsel === 'function'){
 			loop = {};
 			loop[ls] = {root: dsel};
 			return loopgen(dom, sel, loop, fns);
 		}
-		
+
 		spec = parseloopspec(ls);
 		itersel = dataselectfn(spec.sel);
 		target = gettarget(dom, sel, true);
@@ -494,7 +502,7 @@ $p.core = function(sel, ctxt, plugins){
 					cspec = checkClass(cj, ni.tagName);
 					// if so, store the node, plus the type of data
 					if(cspec !== false){
-						isNodeValue = (/nodevalue/i).test(cspec.attr);
+						isNodeValue = /nodevalue/i.test(cspec.attr);
 						if(cspec.sel.indexOf('@') > -1 || isNodeValue){
 							ni.className = ni.className.replace('@'+cspec.attr, '');
 							if(isNodeValue){
@@ -552,9 +560,27 @@ $p.core = function(sel, ctxt, plugins){
 	// returns a function that, given a context argument,
 	// will render the template defined by dom and directive.
 	function compiler(dom, directive, data, ans){
-		var fns = [], j, jj, cspec, n, target, nodes, itersel, node, inner, dsel, sels, sel, sl, i, h, parts,  pfns = [], p;
+		var fns = [], j, jj, iii, cspec, n, target, nodes, itersel, node, inner, h, parts,  pfns = [], p, classes = {},
+		doDirective = function( psel, pdirective ){
+			var ii = 0,
+				dsel = pdirective[psel],
+				sels = psel.split(/\s*,\s*/), //allow selector separation by quotes
+				sl = sels.length;
+			do{
+				if(typeof dsel === 'function' || typeof dsel === 'string'){
+					// set the value for the node/attr
+					psel = sels[ii];
+					target = gettarget(dom, psel, false);
+					setsig(target, fns.length);
+					fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
+				}else{
+					// loop on node
+					loopgen(dom, psel, dsel, fns);
+				}
+			}while(++ii < sl);
+		};
 		// autoRendering nodes parsing -> auto-nodes
-		ans = ans || (data && getAutoNodes(dom, data));
+		ans = ans || data && getAutoNodes(dom, data);
 		if(data){
 			// for each auto-nodes
 			while(ans.length > 0){
@@ -583,24 +609,16 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		// read directives
 		for(sel in directive){
-			if(directive.hasOwnProperty(sel)){
-				i = 0;
-				dsel = directive[sel];
-				sels = sel.split(/\s*,\s*/); //allow selector separation by quotes
-				sl = sels.length;
-				do{
-					if(typeof(dsel) === 'function' || typeof(dsel) === 'string'){
-						// set the value for the node/attr
-						sel = sels[i];
-						target = gettarget(dom, sel, false);
-						setsig(target, fns.length);
-						fns[fns.length] = wrapquote(target.quotefn, dataselectfn(dsel));
-					}else{
-						// loop on node
-						loopgen(dom, sel, dsel, fns);
-					}
-				}while(++i < sl);
+			if( sel.indexOf('@class') >= 0 ){
+				//skip the classes and do it at the end to avoid selector errors of class not found
+				classes[sel] = directive[sel];
+				continue;
 			}
+			doDirective( sel, directive );
+		}
+
+		for( sel in classes ){
+			doDirective( sel, classes );
 		}
 		// convert node to a string
 		h = outerHTML(dom);
@@ -614,11 +632,11 @@ $p.core = function(sel, ctxt, plugins){
 		// slice the html string at "Sig"
 		parts = h.split( Sig );
 		// for each slice add the return string of
-		for(i = 1; i < parts.length; i++){
-			p = parts[i];
+		for(iii = 1; iii < parts.length; iii++){
+			p = parts[iii];
 			// part is of the form "fn-number:..." as placed there by setsig.
-			pfns[i] = fns[ parseInt(p, 10) ];
-			parts[i] = p.substring( p.indexOf(':') + 1 );
+			pfns[iii] = fns[ parseInt(p, 10) ];
+			parts[iii] = p.substring( p.indexOf(':') + 1 );
 		}
 		return concatenator(parts, pfns);
 	}
@@ -658,7 +676,8 @@ $p.core = function(sel, ctxt, plugins){
 		var ne,
 			ep = elm.parentNode,
 			depth = 0,
-			tmp;
+			tmp,
+			db = document.body || document.getElementsByTagNameNS( 'http://www.w3.org/1999/xhtml', 'body')[0];//DOM or XML body, thanks to https://github.com/peter-kehl
 		if(!ep){ //if no parents
 			ep = document.createElement('DIV');
 			ep.appendChild(elm);
@@ -686,8 +705,10 @@ $p.core = function(sel, ctxt, plugins){
 			break;
 		}
 		tmp = document.createElement('SPAN');
-		tmp.style.display = 'none';
-		document.body.appendChild(tmp);
+		if( tmp.style ){ //check if XML document
+			tmp.style.display = 'none';
+		}
+		db.appendChild(tmp);
 		tmp.innerHTML = html;
 		ne = tmp.firstChild;
 		while (depth--) {
@@ -695,7 +716,7 @@ $p.core = function(sel, ctxt, plugins){
 		}
 		ep.insertBefore(ne, elm);
 		ep.removeChild(elm);
-		document.body.removeChild(tmp);
+		db.removeChild(tmp);
 		elm = ne;
 
 		ne = ep = null;
@@ -828,21 +849,21 @@ $p.libs = {
 (function(){
 	var libSel,
 		libkey =
-			(typeof dojo         !== 'undefined' && 'dojo') ||
-			(typeof DOMAssistant !== 'undefined' && 'domassistant') ||
-			(typeof Ext          !== 'undefined' && 'ext') ||
-			(typeof jQuery       !== 'undefined' && 'jquery') ||
-			(typeof MooTools     !== 'undefined' && 'mootools') ||
-			(typeof Prototype    !== 'undefined' && 'prototype') ||
-			(typeof Sizzle       !== 'undefined' && 'sizzle') ||
-			(typeof Sly          !== 'undefined' && 'sly') ||
-			(typeof YUI          !== 'undefined' && 'yui');
-	
+			typeof dojo         !== 'undefined' && 'dojo' ||
+			typeof DOMAssistant !== 'undefined' && 'domassistant' ||
+			typeof Ext          !== 'undefined' && 'ext' ||
+			typeof jQuery       !== 'undefined' && 'jquery' ||
+			typeof MooTools     !== 'undefined' && 'mootools' ||
+			typeof Prototype    !== 'undefined' && 'prototype' ||
+			typeof Sizzle       !== 'undefined' && 'sizzle' ||
+			typeof Sly          !== 'undefined' && 'sly' ||
+			typeof YUI          !== 'undefined' && 'yui';
+
 	//add library methods
 	if(libkey){
 		libSel = $p.libs[libkey]();
 	}
-	
+
 	//if no native selector available
 	if( typeof document.querySelector === 'undefined' ){
 		//take it from the JS lib
@@ -850,7 +871,7 @@ $p.libs = {
 			$p.plugins.find = libSel;
 		//if nothing throw an error
 		}else if( !libSel ){
-			throw('you need a JS library with a CSS selector engine');
+			throw 'you need a JS library with a CSS selector engine';
 		}
 	}
 
