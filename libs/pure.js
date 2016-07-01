@@ -7,7 +7,7 @@
 	Copyright (c) 2013 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.84
+	revision: 2.85
 */
 
 var $p = function(){
@@ -434,8 +434,6 @@ $p.core = function(sel, ctxt, plugins){
 			}else{
 				cmv( name );
 			}
-			//remove loop properties, to keep "this" clean inside function calls
-			cmv('item'); cmv('items'); cmv('pos'); cmv('length');
 			return strs.join('');
 		};
 	}
