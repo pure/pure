@@ -4,10 +4,10 @@
 	Licensed under the MIT licenses.
 	More information at: http://www.opensource.org
 
-	Copyright (c) 2013 Michael Cvilic - BeeBole.com
+	Copyright (c) 2008-2017 Michael Cvilic - BeeBole.com
 
 	Thanks to Rog Peppe for the functional JS jump
-	revision: 2.85
+	revision: 2.86
 */
 
 var $p = function(){
@@ -252,7 +252,11 @@ $p.core = function(sel, ctxt, plugins){
 				i++;
 			}
 
-			return !data && data !== 0 ? '':data;
+			if( typeof data === 'string' ){
+				data = data.replace(/</g, '&lt;').replace(/>/g, '&gt;');//mitigate basic XSS
+			}
+
+			return !data && data !== 0 ? '' : data;
 		};
 	}
 
@@ -383,6 +387,11 @@ $p.core = function(sel, ctxt, plugins){
 						save_item = ctxt.item,
 						save_items = ctxt.items;
 					ctxt.pos = temp.pos = idx;
+
+					if( typeof a[ idx ] === 'string' ){
+						a[ idx ] = a[ idx ].replace(/</g, '&lt;').replace(/>/g, '&gt;');//mitigate basic XSS
+					}
+
 					ctxt.item = temp.item = a[ idx ];
 					ctxt.items = a;
 					//if array, set a length property - filtered items
